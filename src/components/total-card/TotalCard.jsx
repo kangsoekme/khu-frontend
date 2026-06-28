@@ -43,7 +43,7 @@ function TotalCard({ className }) {
           </CardContent>
           <CardHeader>
             <CardTitle className="font-bold text-4xl">20</CardTitle>
-            <CardDescription className="text-lg">Total Siswa</CardDescription>
+            <CardDescription className="text-lg">TOTAL SISWA</CardDescription>
             <CardDescription className="text-sm">
               10 Laki Laki - 10 Perempuan
             </CardDescription>
