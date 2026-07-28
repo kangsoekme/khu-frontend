@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAddTahsinMutation, useEditTahsinMutation } from "../../../store/api/tahsinApi";
+import {
+  useAddTahsinMutation,
+  useEditTahsinMutation,
+} from "../../../store/api/tahsinApi";
 import { toast } from "sonner";
 import { formatEnum } from "../../../utils/formatEnum";
 import { getKategoriTahapan } from "../../../utils/tahsinCompletion";
@@ -29,6 +32,12 @@ function TahsinAssessmentForm({
   editData,
   onSuccess,
 }) {
+  const [isReady, setIsReady] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setIsReady(true), 150);
+    return () => clearTimeout(timer);
+  }, []);
+
   const [addTahsin] = useAddTahsinMutation();
   const [editTahsin] = useEditTahsinMutation();
   const { data: surahRes } = useGetAllSurahQuery();
@@ -73,30 +82,34 @@ function TahsinAssessmentForm({
         ? rawJilidVal
         : rawJilidVal || formatEnum(tahapan) || "";
 
-  // Halaman buku: ambil dari setoran sebelumnya +1 (hanya jika ada data sebelumnya)
+  const isLastMengulang = !editData && lastRiwayat?.status_kelanjutan === "MENGULANG";
+
+  // Halaman buku: ambil dari setoran sebelumnya +1, ATAU tetap jika MENGULANG
   const lastBukuHalaman = editData
     ? Number(editData.laporan_bacaan?.bab) || 0
     : Number(lastRiwayat?.laporan_bacaan?.bab) || 0;
   const nextBukuHalaman = editData
     ? lastBukuHalaman
-    : lastBukuHalaman > 0
-      ? lastBukuHalaman + 1
-      : 1;
+    : isLastMengulang && lastBukuHalaman > 0
+      ? lastBukuHalaman
+      : lastBukuHalaman > 0
+        ? lastBukuHalaman + 1
+        : 1;
 
   // ===========================================================================
   // DEFAULT VALUE - LAPORAN BACAAN: Al-QURAN (surah + ayat)
-  // Logika +1 untuk ayat awal (lanjutan dari ayat_akhir sebelumnya)
+  // Logika +1 untuk ayat awal, ATAU tetap dari ayat_awal sebelumnya jika MENGULANG
   // ===========================================================================
   const defaultQuranSurah = editData?.laporan_bacaan?.surah
-    ? allSurah.find(
-        (s) => s.nama_surah === editData.laporan_bacaan.surah,
-      )?.no_surah.toString()
+    ? allSurah
+        .find((s) => s.nama_surah === editData.laporan_bacaan.surah)
+        ?.no_surah.toString()
     : !editData &&
         lastRiwayat?.laporan_bacaan?.surah &&
         (kategori === "QURAN" || kategori === "GANDA")
-      ? allSurah.find(
-          (s) => s.nama_surah === lastRiwayat.laporan_bacaan.surah,
-        )?.no_surah.toString()
+      ? allSurah
+          .find((s) => s.nama_surah === lastRiwayat.laporan_bacaan.surah)
+          ?.no_surah.toString()
       : undefined;
 
   const lastQuranAyatAkhir = editData
@@ -104,9 +117,11 @@ function TahsinAssessmentForm({
     : Number(lastRiwayat?.laporan_bacaan?.ayat_akhir) || 0;
   const nextQuranAyatAwal = editData
     ? Number(editData.laporan_bacaan?.ayat_awal) || ""
-    : lastQuranAyatAkhir > 0
-      ? lastQuranAyatAkhir + 1
-      : 1;
+    : isLastMengulang && lastRiwayat?.laporan_bacaan?.ayat_awal
+      ? Number(lastRiwayat.laporan_bacaan.ayat_awal)
+      : lastQuranAyatAkhir > 0
+        ? lastQuranAyatAkhir + 1
+        : 1;
 
   const defaultQuranAyatAkhir = editData
     ? editData.laporan_bacaan?.ayat_akhir || ""
@@ -116,19 +131,25 @@ function TahsinAssessmentForm({
   // DEFAULT VALUE - HAFALAN PENDEK (Surah Juz 30) - tetap dipertahankan
   // ===========================================================================
   const defaultHafalanSurah = editData?.hafalan_surah?.surah
-    ? allSurah.find(
-        (s) => s.nama_surah === editData.hafalan_surah.surah,
-      )?.no_surah.toString()
-    : undefined;
+    ? allSurah
+        .find((s) => s.nama_surah === editData.hafalan_surah.surah)
+        ?.no_surah.toString()
+    : !editData && lastRiwayat?.hafalan_surah?.surah
+      ? allSurah
+          .find((s) => s.nama_surah === lastRiwayat.hafalan_surah.surah)
+          ?.no_surah.toString()
+      : undefined;
 
   const lastHafalanAyat = editData
     ? Number(editData.hafalan_surah?.ayat_akhir) || 0
     : Number(lastRiwayat?.hafalan_surah?.ayat_akhir) || 0;
   const nextHafalanAyatAwal = editData
     ? editData.hafalan_surah?.ayat_awal || ""
-    : lastHafalanAyat > 0
-      ? lastHafalanAyat + 1
-      : 1;
+    : isLastMengulang && lastRiwayat?.hafalan_surah?.ayat_awal
+      ? Number(lastRiwayat.hafalan_surah.ayat_awal)
+      : lastHafalanAyat > 0
+        ? lastHafalanAyat + 1
+        : 1;
   const defaultHafalanAyatAkhir = editData
     ? editData.hafalan_surah?.ayat_akhir || ""
     : "";
@@ -184,10 +205,23 @@ function TahsinAssessmentForm({
     }
   };
 
+  if (!isReady) {
+    return (
+      <div className="flex flex-col gap-5 py-6 w-full animate-pulse">
+        <div className="h-10 bg-muted rounded-md w-full" />
+        <div className="h-10 bg-muted rounded-md w-full" />
+        <div className="h-24 bg-muted rounded-md w-full mt-4" />
+      </div>
+    );
+  }
+
   return (
-    <ScrollArea className="max-h-[75vh] pr-4">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5 text-left pb-4">
-        <div className="flex flex-col gap-5">
+    <div className="overflow-y-auto max-h-[75vh]">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-5 text-left pb-4"
+      >
+        <div className="flex flex-col gap-5 px-4 lg:px-0">
           {/* HAFALAN PENDEK - Surah Juz 30 (opsional) */}
           <Field>
             <FieldLabel>Hafalan Surah Pendek</FieldLabel>
@@ -372,8 +406,12 @@ function TahsinAssessmentForm({
                 >
                   <FaPlus />
                 </Button>
-                </div>
-              <input type="hidden" name="nilai" value={daftarNilai[nilaiIndex]} />
+              </div>
+              <input
+                type="hidden"
+                name="nilai"
+                value={daftarNilai[nilaiIndex]}
+              />
             </div>
           </Field>
 
@@ -388,10 +426,12 @@ function TahsinAssessmentForm({
             />
           </Field>
 
-          <Button>{editData ? "Simpan Perubahan" : "Tambah Setoran"}</Button>
+          <Button type="submit" className="w-full shadow-xs mt-2">
+            Simpan Penilaian
+          </Button>
         </div>
       </form>
-    </ScrollArea>
+    </div>
   );
 }
 

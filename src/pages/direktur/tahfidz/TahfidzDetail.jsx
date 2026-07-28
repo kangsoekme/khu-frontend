@@ -127,10 +127,7 @@ function TahfidzDetail() {
                   ? `${siswa.setoranHafalan[0].surah?.nama_surah || "Surah " + siswa.setoranHafalan[0].no_surah} (${siswa.setoranHafalan[0].ayat_awal}-${siswa.setoranHafalan[0].ayat_akhir})`
                   : "Belum Memulai"
               }
-              badgeText={siswa?.setoranHafalan?.[0]?.predikat || "-"}
-              onClick={() =>
-                navigate(`/direktur/tahfidz/${siswa.id || siswa.nis}`)
-              }
+              onClick={() => navigate(`/tahfidz/${id}/${siswa.nis}`)}
             />
           ))
         )}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 
 import {
   Item,
@@ -17,11 +17,65 @@ function StudentMobileCardItem({
   kelas,
   waliSiswa,
   onClick,
+  isSelected,
+  isSelectionMode,
+  onToggleSelect,
 }) {
+  const timerRef = useRef(null);
+  const longPressTriggered = useRef(false);
+
+  const startPress = () => {
+    if (isSelectionMode) return;
+    longPressTriggered.current = false;
+    timerRef.current = setTimeout(() => {
+      longPressTriggered.current = true;
+      onToggleSelect();
+      if (window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(50);
+      }
+    }, 500);
+  };
+
+  const cancelPress = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+  };
+
+  const handleClick = (e) => {
+    if (longPressTriggered.current) {
+      longPressTriggered.current = false;
+      return;
+    }
+
+    if (isSelectionMode) {
+      onToggleSelect();
+    } else {
+      onClick(e);
+    }
+  };
+
   return (
-    <Item variant="outline" onClick={onClick}>
-      <ItemMedia>
-        <Avatar className="flex items-center h-full">
+    <Item
+      variant="outline"
+      onTouchStart={startPress}
+      onTouchEnd={cancelPress}
+      onTouchMove={cancelPress}
+      onMouseDown={startPress}
+      onMouseUp={cancelPress}
+      onMouseLeave={cancelPress}
+      onClick={handleClick}
+      onContextMenu={(e) => {
+        if (window.innerWidth < 1024) e.preventDefault();
+      }}
+      className={`cursor-pointer transition-all duration-200 select-none ${
+        isSelected 
+          ? "border-blue-500 bg-blue-50 shadow-sm ring-1 ring-blue-500" 
+          : "hover:bg-neutral-textmuted"
+      }`}
+    >
+      <ItemMedia className="shrink-0">
+        <Avatar>
           <AvatarImage src={profilePhoto} className="grayscale" />
           <AvatarFallback>{name.charAt(0)}</AvatarFallback>
         </Avatar>

@@ -15,7 +15,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { FaSearch } from "react-icons/fa";
 import { BASE_API_URL } from "../../store/baseApi";
+
+const getFilenameTimestamp = () => {
+  const d = new Date();
+  const pad = (n) => n.toString().padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
+};
+
 import { toast } from "sonner";
 import { useGetStudentsQuery } from "../../store/api/studentsApi";
 import {
@@ -29,6 +38,8 @@ import {
 function LaporanManagement() {
   const [loadingType, setLoadingType] = useState(null);
   const [selectedNis, setSelectedNis] = useState("");
+  const [searchStudent, setSearchStudent] = useState("");
+  const [openStudentPopover, setOpenStudentPopover] = useState(false);
   const [periodeType, setPeriodeType] = useState("semester");
   const [selectedBulan, setSelectedBulan] = useState(
     new Date().toISOString().slice(0, 7)
@@ -36,11 +47,12 @@ function LaporanManagement() {
 
   const { data: studentsRes } = useGetStudentsQuery();
   const students = studentsRes?.data || [];
+  const filteredStudents = students.filter(s => s.nama.toLowerCase().includes(searchStudent.toLowerCase()) || s.nis.includes(searchStudent));
 
   const handleDownload = async (kategori) => {
     try {
       setLoadingType(kategori);
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const queryParams = new URLSearchParams({
         kategori,
         periode: periodeType,
@@ -64,7 +76,7 @@ function LaporanManagement() {
       const infoPeriode =
         periodeType === "bulanan" ? `_BULANAN_${selectedBulan}` : `_SEMESTERAN`;
       a.download = `Laporan_Jamai_${kategori.toUpperCase()}${infoPeriode}_${
-        new Date().toISOString().split("T")[0]
+        getFilenameTimestamp()
       }.xlsx`;
       document.body.appendChild(a);
       a.click();
@@ -86,7 +98,7 @@ function LaporanManagement() {
     }
     try {
       setLoadingType("individu");
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const selectedStudent = students.find((s) => s.nis === selectedNis);
       const response = await fetch(
         `${BASE_API_URL}/export/individual/${selectedNis}`,
@@ -102,7 +114,7 @@ function LaporanManagement() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Rapor_Perkembangan_${selectedStudent?.nama || selectedNis}_${new Date().toISOString().split("T")[0]}.xlsx`;
+      a.download = `Rapor_Perkembangan_${selectedStudent?.nama || selectedNis}_${getFilenameTimestamp()}.xlsx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -119,7 +131,7 @@ function LaporanManagement() {
   const handleDownloadUmmiWord = async () => {
     try {
       setLoadingType("ummi-word");
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await fetch(`${BASE_API_URL}/export/ummi-word`, {
         method: "GET",
         headers: { Authorization: `Bearer ${token}` },
@@ -129,7 +141,7 @@ function LaporanManagement() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Laporan_Perkembangan_Ummi_${new Date().toISOString().split("T")[0]}.docx`;
+      a.download = `Laporan_Perkembangan_Ummi_${getFilenameTimestamp()}.docx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -150,7 +162,7 @@ function LaporanManagement() {
     }
     try {
       setLoadingType("individu-word");
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const selectedStudent = students.find((s) => s.nis === selectedNis);
       const response = await fetch(
         `${BASE_API_URL}/export/individual-word/${selectedNis}`,
@@ -164,7 +176,7 @@ function LaporanManagement() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Rapor_Word_${selectedStudent?.nama || selectedNis}_${new Date().toISOString().split("T")[0]}.docx`;
+      a.download = `Rapor_Word_${selectedStudent?.nama || selectedNis}_${getFilenameTimestamp()}.docx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -330,18 +342,45 @@ function LaporanManagement() {
             </p>
             {/* ✔️ Hapus duplikasi div flex-col di sini */}
             <div className="flex flex-col gap-2 mt-auto">
-              <Select value={selectedNis} onValueChange={setSelectedNis}>
-                <SelectTrigger className="w-full h-9 text-xs">
-                  <SelectValue placeholder="Pilih Siswa..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {students.map((s) => (
-                    <SelectItem key={s.nis} value={s.nis} className="text-xs">
-                      {s.nis} - {s.nama}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={openStudentPopover} onOpenChange={setOpenStudentPopover}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full h-9 justify-start text-xs font-normal border-neutral-300">
+                    {selectedNis 
+                      ? `${selectedNis} - ${students.find(s => s.nis === selectedNis)?.nama || ""}` 
+                      : "Pilih Siswa..."}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[300px] p-0" align="start">
+                  <div className="flex flex-col gap-1 p-2">
+                    <div className="relative">
+                      <FaSearch className="absolute left-2.5 top-2.5 h-3 w-3 text-neutral-400" />
+                      <input 
+                        type="text" 
+                        placeholder="Cari NIS / Nama..." 
+                        className="h-8 w-full pl-8 pr-3 border border-neutral-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-purple-500" 
+                        value={searchStudent} 
+                        onChange={e => setSearchStudent(e.target.value)} 
+                        autoFocus
+                      />
+                    </div>
+                    <div className="max-h-60 overflow-y-auto flex flex-col mt-1 scrollbar-thin">
+                      {filteredStudents.length > 0 ? filteredStudents.map(s => (
+                         <div 
+                           key={s.nis} 
+                           className="p-2 text-xs hover:bg-neutral-100 cursor-pointer rounded text-left transition-colors" 
+                           onClick={() => { 
+                             setSelectedNis(s.nis); 
+                             setOpenStudentPopover(false); 
+                             setSearchStudent("");
+                           }}
+                         >
+                           {s.nis} - {s.nama}
+                         </div>
+                      )) : <div className="p-2 text-xs text-neutral-500 text-center">Tidak ditemukan</div>}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
 
               <Button
                 onClick={handleDownloadIndividual}

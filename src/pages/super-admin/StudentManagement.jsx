@@ -33,6 +33,7 @@ import { FaPlus } from "react-icons/fa6";
 import {
   useGetStudentsQuery,
   useImportStudentMutation,
+  useDeleteBulkStudentsMutation,
 } from "../../store/api/studentsApi.js";
 
 import { FaFileImport } from "react-icons/fa";
@@ -40,12 +41,17 @@ import { FaFileImport } from "react-icons/fa";
 import { toast } from "sonner";
 
 function StudentManagement() {
+  const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
 
   const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
+
+  const [selectedStudents, setSelectedStudents] = useState([]);
+  const [deleteBulk, { isLoading: isDeletingBulk }] =
+    useDeleteBulkStudentsMutation();
 
   const fileInputRef = useRef(null);
   const [importStudent, { isLoading: isImporting }] =
@@ -56,16 +62,11 @@ function StudentManagement() {
     isLoading,
     isError,
     refetch,
-  } = useGetStudentsQuery();
+  } = useGetStudentsQuery({ page: currentPage, limit: 7, search });
   const students = studentsData?.data || [];
+  const totalPages = studentsData?.meta?.totalPages || 1;
 
-  const filteredStudents = students.filter((s) => {
-    const keyword = search.toLowerCase();
-    return (
-      s.nama?.toLowerCase().includes(keyword) ||
-      s.nis?.toLowerCase().includes(keyword)
-    );
-  });
+  const filteredStudents = students;
 
   const handleRowClick = (student) => {
     setSelectedStudent(student);
@@ -95,14 +96,51 @@ function StudentManagement() {
     }
   };
 
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedStudents(filteredStudents.map((s) => s.nis));
+    } else {
+      setSelectedStudents([]);
+    }
+  };
+  const handleSelectRow = (nis) => {
+    setSelectedStudents((prev) =>
+      prev.includes(nis) ? prev.filter((id) => id !== nis) : [...prev, nis],
+    );
+  };
+  const handleBulkDelete = async () => {
+    try {
+      await deleteBulk(selectedStudents).unwrap();
+      toast.success(`${selectedStudents.length} siswa berhasil dihapus`);
+      setSelectedStudents([]); // reset setelah berhasil
+    } catch (error) {
+      toast.error(error.data?.message || "Gagal menghapus siswa");
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 animate-in fade-in duration-500">
       <div className="flex w-full gap-5">
         <SearchInput
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setCurrentPage(1);
+          }}
           placeholder="Cari nama / NIS siswa..."
         />
+
+        {selectedStudents.length > 0 && (
+          <Button
+            variant="destructive"
+            onClick={handleBulkDelete}
+            disabled={isDeletingBulk}
+          >
+            {isDeletingBulk
+              ? "Menghapus..."
+              : `Hapus (${selectedStudents.length})`}
+          </Button>
+        )}
 
         <input
           type="file"
@@ -136,6 +174,12 @@ function StudentManagement() {
         <StudentTableContainer
           students={filteredStudents}
           onRowClick={handleRowClick}
+          selectedStudents={selectedStudents}
+          onSelectAll={handleSelectAll}
+          onSelectRow={handleSelectRow}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={(page) => setCurrentPage(page)}
         />
       )}
 

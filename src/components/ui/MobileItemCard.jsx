@@ -3,21 +3,11 @@ import {
   ItemContent,
   ItemDescription,
   ItemMedia,
-  ItemActions,
   ItemTitle,
 } from "@/components/ui/item";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-import { Badge } from "@/components/ui/badge";
-
-function MobileItemCard({
-  avatar,
-  title,
-  subtitle,
-  statusText,
-  badgeText,
-  onClick,
-}) {
+function MobileItemCard({ avatar, title, subtitle, statusText, onClick }) {
   return (
     <Item
       variant="outline"
@@ -39,9 +29,6 @@ function MobileItemCard({
           {subtitle} | {statusText}
         </ItemDescription>
       </ItemContent>
-      <ItemActions>
-        <Badge>{badgeText}</Badge>
-      </ItemActions>
     </Item>
   );
 }

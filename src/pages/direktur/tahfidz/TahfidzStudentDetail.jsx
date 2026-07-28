@@ -54,7 +54,7 @@ import { MobileHistoryCard } from "../../../components/ui/MobileHistoryCard";
 
 function TahfidzStudentDetail() {
   const { nis } = useParams();
-  const currentRole = localStorage.getItem("role");
+  const currentRole = sessionStorage.getItem("role");
 
   const [openHafalan, setOpenHafalan] = useState(false);
   const [openMurajaah, setOpenMurajaah] = useState(false);
@@ -76,8 +76,11 @@ function TahfidzStudentDetail() {
   const riwayatList = riwayatRes?.data?.history?.hafalan_baru || [];
   const murajaahList = murajaahRes?.data?.history?.murajaah_baru || [];
 
-  const chartData = [...(riwayatList || [])].reverse().map((item, idx) => {
-    const dateVal = item.timestamp || item.tanggal;
+  const chartData = [...(riwayatList || [])]
+    .slice(0, 7)
+    .reverse()
+    .map((item, idx) => {
+      const dateVal = item.timestamp || item.tanggal;
     const dateStr = dateVal
       ? new Date(dateVal).toLocaleDateString("id-ID", {
           day: "2-digit",
@@ -413,22 +416,30 @@ function TahfidzStudentDetail() {
         <Dialog open={openHafalan} onOpenChange={setOpenHafalan}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Tambah Setoran Bacaan</DialogTitle>
+              <DialogTitle>Tambah Setoran Hafalan</DialogTitle>
             </DialogHeader>
-            <TahfidzAssessmentForm
-              nis={nis}
-              halaqohId={student?.halaqoh_tahfidz?.id}
-              lastRiwayat={riwayatList[0]}
-              onSuccess={() => setOpenHafalan(false)}
-            />
+            <div>
+              <TahfidzAssessmentForm
+                nis={nis}
+                halaqohId={student?.halaqoh_tahfidz?.id}
+                lastRiwayat={riwayatList[0]}
+                onSuccess={() => setOpenHafalan(false)}
+              />
+            </div>
           </DialogContent>
         </Dialog>
       ) : (
         <Drawer open={openHafalan} onOpenChange={setOpenHafalan}>
           <DrawerContent>
             <DrawerHeader>
-              <DrawerTitle>Tambah Setorah Bacaan</DrawerTitle>
+              <DrawerTitle>Tambah Setorah Hafalan</DrawerTitle>
             </DrawerHeader>
+            <TahfidzAssessmentForm
+              nis={nis}
+              halaqohId={student?.halaqoh_tahfidz?.id}
+              lastRiwayat={riwayatList[0]}
+              onSuccess={() => setOpenHafalan(false)}
+            />
           </DrawerContent>
         </Drawer>
       )}
@@ -437,7 +448,7 @@ function TahfidzStudentDetail() {
         <Dialog open={openMurajaah} onOpenChange={setOpenMurajaah}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Tambah Setoran Bacaan</DialogTitle>
+              <DialogTitle>Tambah Setoran Murajaah</DialogTitle>
             </DialogHeader>
             <MurajaahAssessmentForm
               nis={nis}
@@ -451,8 +462,14 @@ function TahfidzStudentDetail() {
         <Drawer open={openMurajaah} onOpenChange={setOpenMurajaah}>
           <DrawerContent>
             <DrawerHeader>
-              <DrawerTitle>Tambah Setorah Bacaan</DrawerTitle>
+              <DrawerTitle>Tambah Setorah Murajaah</DrawerTitle>
             </DrawerHeader>
+            <MurajaahAssessmentForm
+              nis={nis}
+              halaqohId={student?.halaqoh_tahfidz?.id}
+              lastRiwayat={murajaahList[0]}
+              onSuccess={() => setOpenMurajaah(false)}
+            />
           </DrawerContent>
         </Drawer>
       )}

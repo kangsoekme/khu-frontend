@@ -59,8 +59,8 @@ function MainLayout() {
     setSidebarOpen((prev) => !prev);
   };
 
-  const currentRole = localStorage.getItem("role") || ROLES.SUPER_ADMIN;
-  const rawName = localStorage.getItem("nama") || "Pengguna";
+  const currentRole = sessionStorage.getItem("role") || ROLES.SUPER_ADMIN;
+  const rawName = sessionStorage.getItem("nama") || "Pengguna";
   const currentName = rawName.split(" ").slice(0, 2).join(" ");
   const roleName = ROLES_NAMES[currentRole];
 
@@ -69,7 +69,7 @@ function MainLayout() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
+    sessionStorage.removeItem("isLoggedIn");
     navigate("/login");
   };
 
@@ -121,7 +121,9 @@ function MainLayout() {
           </div>
           <h1 className="text-xl xl:hidden font-semibold">{pageTitle}</h1>
           <br className="xl:hidden" />
-          <Outlet />
+          <div key={location.pathname} className="animate-in fade-in duration-500">
+            <Outlet />
+          </div>
         </div>
         {/* topbar */}
         <div className="bg-neutral-bg col-span-5 row-start-1 flex items-center justify-end xl:col-start-2">

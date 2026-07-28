@@ -3,7 +3,16 @@ import { baseApi } from "../baseApi";
 export const studentsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getStudents: builder.query({
-      query: () => "/students",
+      query: (params) => {
+        let queryString = "";
+        if (params) {
+          const { page = 1, limit = 10, search = "" } = params;
+          queryString = `?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`;
+        } else {
+          queryString = "?limit=1000";
+        }
+        return `/students${queryString}`;
+      },
       providesTags: ["Student"],
     }),
     getStudent: builder.query({
@@ -58,6 +67,15 @@ export const studentsApi = baseApi.injectEndpoints({
       ],
     }),
 
+    deleteBulkStudents: builder.mutation({
+      query: (nis_array) => ({
+        url: `/siswa/bulk-delete`,
+        method: "POST",
+        body: { nis_array },
+      }),
+      invalidatesTags: ["Student", "Halaqoh", "Dashboard"],
+    }),
+
     importStudent: builder.mutation({
       query: (formData) => ({
         url: `/student/import`,
@@ -73,6 +91,14 @@ export const studentsApi = baseApi.injectEndpoints({
         "Laporan",
       ],
     }),
+    getWaitingPretest: builder.query({
+      query: () => `/students/waiting/pretest`,
+      providesTags: ["Student"],
+    }),
+    getWaitingHalaqoh: builder.query({
+      query: ({ kategori }) => `/students/waiting/halaqoh?kategori=${kategori}`,
+      providesTags: ["Student"],
+    }),
   }),
 
   overrideExisting: false,
@@ -85,4 +111,7 @@ export const {
   useEditStudentMutation,
   useDeleteStudentMutation,
   useImportStudentMutation,
+  useDeleteBulkStudentsMutation,
+  useGetWaitingPretestQuery,
+  useGetWaitingHalaqohQuery,
 } = studentsApi;

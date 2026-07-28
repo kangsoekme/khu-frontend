@@ -3,7 +3,16 @@ import { baseApi } from "../baseApi.js";
 export const usersApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getUsers: builder.query({
-      query: () => "/users",
+      query: (params) => {
+        let queryString = "";
+        if (params) {
+          const { page = 1, limit = 10, search = "" } = params;
+          queryString = `?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`;
+        } else {
+          queryString = "?limit=1000";
+        }
+        return `/users${queryString}`;
+      },
       providesTags: ["User"],
     }),
 
@@ -32,6 +41,15 @@ export const usersApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["User", "Halaqoh", "Dashboard"],
     }),
+
+    deleteBulkUsers: builder.mutation({
+      query: (ids) => ({
+        url: `/users/bulk-delete`,
+        method: "POST",
+        body: { ids },
+      }),
+      invalidatesTags: ["User", "Halaqoh", "Dashboard"],
+    }),
   }),
 
   overrideExisting: false,
@@ -42,4 +60,5 @@ export const {
   useAddUserMutation,
   useEditUserMutation,
   useDeleteUserMutation,
+  useDeleteBulkUsersMutation,
 } = usersApi;

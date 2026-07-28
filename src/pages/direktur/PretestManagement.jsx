@@ -1,8 +1,8 @@
 import React from "react";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
-import { useState } from "react";
-import { useGetStudentsQuery } from "../../store/api/studentsApi";
+import { useState, useMemo } from "react";
+import { useGetWaitingPretestQuery } from "../../store/api/studentsApi";
 import { SearchInput } from "../../components/ui/SearchInput";
 import PretestTableContainer from "../../components/tahsin-tahfidz/tahsin/pretest/PretestTableContainer";
 
@@ -22,24 +22,16 @@ import {
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import PretestForm from "../../components/tahsin-tahfidz/tahsin/pretest/PretestForm";
+
 function PretestManagement() {
   const [search, setSearch] = useState("");
-  const { data, isLoading } = useGetStudentsQuery();
+  const { data, isLoading } = useGetWaitingPretestQuery();
 
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery("only screen and (min-width:768px)");
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center py-20">
-        <p className="text-neutral-500 font-medium">
-          Memuat data siswa baru...
-        </p>
-      </div>
-    );
-  }
 
   const allStudents = Array.isArray(data?.data)
     ? data.data
@@ -47,17 +39,31 @@ function PretestManagement() {
       ? data
       : [];
 
-  const newStudents = allStudents.filter(
-    (student) => !student.tahapan_tahsin || student.tahapan_tahsin === "",
-  );
-
-  const filteredNewStudents = newStudents.filter((s) => {
+  const filteredNewStudents = useMemo(() => {
+    if (!search) return allStudents;
     const keyword = search.toLowerCase();
-    return (
-      s.nama?.toLowerCase().includes(keyword) ||
-      s.nis?.toLowerCase().includes(keyword)
+    return allStudents.filter(
+      (s) =>
+        s.nama?.toLowerCase().includes(keyword) ||
+        s.nis?.toLowerCase().includes(keyword)
     );
-  });
+  }, [allStudents, search]);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-4 py-6 w-full animate-in fade-in duration-500">
+        <div className="flex gap-4">
+          <Skeleton className="h-10 w-full max-w-sm" />
+        </div>
+        <div className="flex flex-col gap-3 mt-4">
+          <Skeleton className="h-16 w-full rounded-xl" />
+          <Skeleton className="h-16 w-full rounded-xl" />
+          <Skeleton className="h-16 w-full rounded-xl" />
+          <Skeleton className="h-16 w-full rounded-xl" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -103,14 +109,14 @@ function PretestManagement() {
                 Berikan penilaian untuk penempatah tahap tahsin siswa
               </DrawerDescription>
             </DrawerHeader>
-            <ScrollArea>
+            <div className="overflow-y-auto max-h-[80vh]">
               <div className="p-4">
                 <PretestForm
                   initialData={selectedStudent}
                   onSuccess={() => setOpen(false)}
                 />
               </div>
-            </ScrollArea>
+            </div>
           </DrawerContent>
         </Drawer>
       )}

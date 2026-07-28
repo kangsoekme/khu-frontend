@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 
 function TahfidzManagement() {
   const navigate = useNavigate();
-  const currentRole = localStorage.getItem("role");
-  const currentNama = localStorage.getItem("nama");
+  const currentRole = sessionStorage.getItem("role");
+  const currentNama = sessionStorage.getItem("nama");
 
   const [triggerGetLaporan, { isLoading: isExporting }] =
     useLazyGetLaporanTahfidzQuery();

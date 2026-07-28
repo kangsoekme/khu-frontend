@@ -52,7 +52,8 @@ function TahsinDetail() {
   });
 
   const getPosisiBacaan = (siswa) => {
-    const currentTahap = siswa.tahapan_tahsin || siswa?.ujianPretest?.[0]?.tahapan;
+    const currentTahap =
+      siswa.tahapan_tahsin || siswa?.ujianPretest?.[0]?.tahapan;
     const lastSetoran = siswa?.setoranTahsin?.[0];
 
     if (!lastSetoran) {
@@ -76,7 +77,9 @@ function TahsinDetail() {
     if (lastSetoran.jilid > 0 || lastSetoran.bab || lastSetoran.halaman) {
       return `Jilid ${lastSetoran.jilid} (Hal. ${lastSetoran.bab || lastSetoran.halaman || "-"})`;
     }
-    return lastSetoran.materi || formatEnum(lastSetoran.tahapan) || "Belum Memulai";
+    return (
+      lastSetoran.materi || formatEnum(lastSetoran.tahapan) || "Belum Memulai"
+    );
   };
 
   return (
@@ -123,7 +126,10 @@ function TahsinDetail() {
                     <Item>
                       <ItemMedia>
                         <Avatar>
-                          <AvatarImage src={siswa.avatar} className="grayscale" />
+                          <AvatarImage
+                            src={siswa.avatar}
+                            className="grayscale"
+                          />
                           <AvatarFallback>
                             {siswa.nama?.charAt(0)}
                           </AvatarFallback>
@@ -159,7 +165,6 @@ function TahsinDetail() {
           halaqoh?.siswa?.map((siswa) => {
             const lastSetoran = siswa?.setoranTahsin?.[0];
             const posisi = getPosisiBacaan(siswa);
-            const nilai = lastSetoran?.nilai || "-";
             const statusTahap = formatEnum(
               siswa.tahapan_tahsin ||
                 lastSetoran?.tahapan ||
@@ -179,7 +184,6 @@ function TahsinDetail() {
                   </>
                 }
                 statusText={`${statusTahap} | ${posisi}`}
-                badgeText={nilai}
                 onClick={() => navigate(`/tahsin/${id}/${siswa.nis}`)}
               />
             );

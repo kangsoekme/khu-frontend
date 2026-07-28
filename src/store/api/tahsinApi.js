@@ -24,7 +24,7 @@ export const tahsinApi = baseApi.injectEndpoints({
     }),
     editTahsin: builder.mutation({
       query: ({ id, ...assessmentData }) => ({
-        url: `/assessment/tahsin/${id}`,
+        url: `/assessment/tahsin/setoran/${id}`,
         method: "PUT",
         body: assessmentData,
       }),
@@ -32,7 +32,7 @@ export const tahsinApi = baseApi.injectEndpoints({
     }),
     deleteTahsin: builder.mutation({
       query: (id) => ({
-        url: `/assessment/tahsin/${id}`,
+        url: `/assessment/tahsin/setoran/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Student", "Halaqoh", "Dashboard", "Laporan"],

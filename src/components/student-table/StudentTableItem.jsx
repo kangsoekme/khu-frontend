@@ -10,6 +10,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { Checkbox } from "@/components/ui/checkbox";
+
 import {
   Item,
   ItemActions,
@@ -29,10 +31,16 @@ function StudentTableItem({
   kelas,
   waliSiswa,
   onClick,
+
+  isSelected,
+  onToggleSelect,
 }) {
   return (
     <>
       <TableRow onClick={onClick}>
+        <TableCell onClick={(e) => e.stopPropagation()}>
+          <Checkbox checked={isSelected} onCheckedChange={onToggleSelect} />
+        </TableCell>
         <TableCell>
           <Item>
             <ItemMedia>

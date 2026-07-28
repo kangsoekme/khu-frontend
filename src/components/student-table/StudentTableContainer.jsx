@@ -1,6 +1,7 @@
 // import React from "react";
 
 import { useState } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import {
   Table,
@@ -8,6 +9,7 @@ import {
   TableCell,
   TableHeader,
   TableRow,
+  TableHead,
 } from "@/components/ui/table";
 
 import {
@@ -25,18 +27,20 @@ import StudentMobileCardItem from "./StudentMobileCardItem.jsx";
 
 const ITEMS_PER_PAGE = 7;
 
-function StudentTableContainer({ students, onRowClick }) {
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const totalPages = Math.ceil(students.length / ITEMS_PER_PAGE);
-
-  const paginatedStudents = students.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
-  );
+function StudentTableContainer({
+  students,
+  onRowClick,
+  selectedStudents = [],
+  onSelectAll,
+  onSelectRow,
+  currentPage,
+  totalPages,
+  onPageChange,
+}) {
+  const paginatedStudents = students;
 
   const goToPage = (page) => {
-    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+    if (page >= 1 && page <= totalPages) onPageChange(page);
   };
 
   const getPageNumbers = () => {
@@ -73,6 +77,15 @@ function StudentTableContainer({ students, onRowClick }) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-12">
+                <Checkbox
+                  checked={
+                    students.length > 0 &&
+                    selectedStudents.length === students.length
+                  }
+                  onCheckedChange={onSelectAll}
+                />
+              </TableHead>
               <TableCell>Siswa</TableCell>
               <TableCell>Kelas</TableCell>
               <TableCell>Wali Siswa</TableCell>
@@ -82,6 +95,7 @@ function StudentTableContainer({ students, onRowClick }) {
             {paginatedStudents.map((student) => {
               return (
                 <StudentTableItem
+                  key={student.nis}
                   profilePhoto={student.profile_photo}
                   name={student.nama}
                   nis={student.nis}
@@ -89,6 +103,8 @@ function StudentTableContainer({ students, onRowClick }) {
                   kelas={student.riwayatKelas?.[0]?.nama_kelas || "-"}
                   waliSiswa={student.nama_wali}
                   onClick={() => onRowClick(student)}
+                  isSelected={selectedStudents.includes(student.nis)}
+                  onToggleSelect={() => onSelectRow(student.nis)}
                 />
               );
             })}
@@ -97,15 +113,30 @@ function StudentTableContainer({ students, onRowClick }) {
       </div>
 
       <div className="flex flex-col gap-4 xl:hidden mb-4">
-        {paginatedStudents.map((student, index) => (
+        {selectedStudents.length > 0 && (
+          <div className="flex items-center justify-between px-4 py-3 bg-neutral-800 text-white rounded-lg shadow-md">
+            <span className="text-sm font-semibold">{selectedStudents.length} Terpilih</span>
+            <button 
+              onClick={() => onSelectAll(selectedStudents.length !== students.length)} 
+              className="text-sm font-medium underline underline-offset-2 hover:text-blue-300"
+            >
+              {selectedStudents.length === students.length ? "Batal Semua" : "Pilih Semua"}
+            </button>
+          </div>
+        )}
+
+        {paginatedStudents.map((student) => (
           <StudentMobileCardItem
-            key={index}
+            key={student.nis}
             profilePhoto={student.profile_photo}
             name={student.nama}
             nis={student.nis}
             alamat={student.alamat}
             kelas={student.riwayatKelas?.[0]?.nama_kelas || "-"}
             waliSiswa={student.nama_wali}
+            isSelected={selectedStudents.includes(student.nis)}
+            isSelectionMode={selectedStudents.length > 0}
+            onToggleSelect={() => onSelectRow(student.nis)}
             onClick={() => onRowClick(student)}
           />
         ))}

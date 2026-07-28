@@ -1,5 +1,4 @@
-// import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -39,6 +38,12 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 function UserForm({ className, onSuccess, initialData, isEdit }) {
+  const [isReady, setIsReady] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setIsReady(true), 150);
+    return () => clearTimeout(timer);
+  }, []);
+
   const [addUser, { isLoading: isAdding }] = useAddUserMutation();
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
   const [editUser, { isLoading: isEditing }] = useEditUserMutation();
@@ -106,6 +111,19 @@ function UserForm({ className, onSuccess, initialData, isEdit }) {
     initialData.role !== "SUPER_ADMIN" &&
     isEdit &&
     initialData.role !== "DIREKTUR";
+
+  if (!isReady) {
+    return (
+      <div className="flex flex-col gap-6 py-6 w-full animate-pulse">
+        <div className="h-10 bg-muted rounded-md w-full" />
+        <div className="flex gap-3">
+          <div className="h-10 bg-muted rounded-md w-full" />
+          <div className="h-10 bg-muted rounded-md w-full" />
+        </div>
+        <div className="h-10 bg-muted rounded-md w-full" />
+      </div>
+    );
+  }
 
   return (
     <form

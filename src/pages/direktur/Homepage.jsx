@@ -81,7 +81,7 @@ function Homepage() {
         <Card className="bg-linear-to-br from-primary-600 to-primary-800 text-white shadow-lg border-0 ">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-medium text-primmary-100">
-              Menunggu Persetujian
+              Menunggu Persetujuan
             </CardTitle>
           </CardHeader>
           <CardContent>

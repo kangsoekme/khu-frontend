@@ -23,7 +23,7 @@ function BackupManagement() {
     try {
       setIsDownloading(true);
 
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       const response = await fetch(`${BASE_API_URL}/backup`, {
         method: "GET",
@@ -70,7 +70,7 @@ function BackupManagement() {
       );
       // Baca isi file JSON yang dipilih user
       const fileText = await file.text();
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await fetch(`${BASE_API_URL}/restore`, {
         method: "POST",
         headers: {

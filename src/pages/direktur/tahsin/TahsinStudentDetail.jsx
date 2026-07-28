@@ -131,7 +131,7 @@ function TahsinStudentDetail() {
   const [ajukanUjian, { isLoading: isMengajukan }] = useAjukanUjianMutation();
   const [deleteTahsin, { isLoading: isDeleting }] = useDeleteTahsinMutation();
   const { nis } = useParams();
-  const currentRole = localStorage.getItem("role");
+  const currentRole = sessionStorage.getItem("role");
 
   const [openForm, setOpenForm] = useState(false);
   const [editData, setEditData] = useState(null);
@@ -158,7 +158,10 @@ function TahsinStudentDetail() {
     student?.tahapan_tahsin,
   );
 
-  const chartData = [...riwayatList].reverse().map((item, idx) => {
+  const chartData = [...riwayatList]
+    .slice(0, 7)
+    .reverse()
+    .map((item, idx) => {
     const gradeMap = {
       "A+": 98,
       A: 90,
@@ -389,8 +392,10 @@ function TahsinStudentDetail() {
                         {riwayat.nilai_tahsin || "-"}
                       </TableCell>
                       <TableCell>
-                        <span className="font-bold text-primary-600">
-                          {riwayat.status_kelanjutan || ""}
+                        <span className="font-semibold text-primary-800">
+                          {riwayat.status_kelanjutan === "MENGULANG"
+                            ? "TIDAK LULUS"
+                            : riwayat.status_kelanjutan || ""}
                         </span>
                       </TableCell>
                       <TableCell className="text-sm max-w-50 truncate">
@@ -472,6 +477,12 @@ function TahsinStudentDetail() {
                     subtitle2={parts[1]?.sub}
                     badgeText={riwayat.nilai_tahsin}
                     description={riwayat.keterangan}
+                    showActions={currentRole === "GURU"}
+                    onEdit={() => {
+                      setEditData(riwayat);
+                      setOpenForm(true);
+                    }}
+                    onDelete={() => handleDelete(riwayat.id)}
                   />
                 );
               })

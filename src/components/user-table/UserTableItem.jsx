@@ -10,6 +10,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { Checkbox } from "@/components/ui/checkbox";
+
 import {
   Item,
   ItemActions,
@@ -32,9 +34,14 @@ function UserTableItem({
   role,
   lastLogin,
   onClick,
+  isSelected,
+  onToggleSelect,
 }) {
   return (
     <TableRow onClick={onClick} className="cursor-pointer ">
+      <TableCell onClick={(e) => e.stopPropagation()}>
+        <Checkbox checked={isSelected} onCheckedChange={onToggleSelect} />
+      </TableCell>
       <TableCell>
         <Item>
           <ItemMedia>
@@ -55,7 +62,6 @@ function UserTableItem({
       <TableCell>
         <RoleBadges role={role} />
       </TableCell>
-      <TableCell>{lastLogin} minutes ago</TableCell>
     </TableRow>
   );
 }

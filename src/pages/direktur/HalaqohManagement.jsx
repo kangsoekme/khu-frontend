@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useGetStudentsQuery } from "../../store/api/studentsApi";
+import React, { useState, useMemo } from "react";
+import { useGetWaitingHalaqohQuery } from "../../store/api/studentsApi";
 import {
   useGetAllHalaqohQuery,
   useDeleteHalaqohMutation,
@@ -47,8 +47,10 @@ import { toast } from "sonner";
 import { useGetUsersQuery } from "../../store/api/usersApi";
 
 function HalaqohManagement() {
+  const [activeTab, setActiveTab] = useState("TAHSIN");
+  
   const { data: studentObj, isLoading: isStudentLoading } =
-    useGetStudentsQuery();
+    useGetWaitingHalaqohQuery({ kategori: activeTab });
   const { data: halaqohObj, isLoading: isHalaqohLoading } =
     useGetAllHalaqohQuery();
   const [autoGenerateHalaqoh, { isLoading: isGenerating }] =
@@ -57,77 +59,64 @@ function HalaqohManagement() {
   const [openForm, setOpenForm] = useState(false);
   const [selectedHalaqoh, setSelectedHalaqoh] = useState(null);
 
-  const [activeTab, setActiveTab] = useState("TAHSIN");
+  const allHalaqoh = halaqohObj?.data || [];
+  const waitingStudent = studentObj?.data || [];
+
+  const groupedStudents = useMemo(() => {
+    const sortedStudents = [...waitingStudent].sort((a, b) => {
+      if (activeTab === "TAHSIN") {
+        const hasSetoranA = a.setoranTahsin && a.setoranTahsin.length > 0;
+        const hasSetoranB = b.setoranTahsin && b.setoranTahsin.length > 0;
+        if (hasSetoranA && !hasSetoranB) return -1;
+        if (!hasSetoranA && hasSetoranB) return 1;
+        if (hasSetoranA && hasSetoranB) {
+          const halA = Number(
+            a.setoranTahsin[0]?.bab || a.setoranTahsin[0]?.halaman || 0,
+          );
+          const halB = Number(
+            b.setoranTahsin[0]?.bab || b.setoranTahsin[0]?.halaman || 0,
+          );
+          return halA - halB;
+        }
+        return 0;
+      } else {
+        const surahA = Number(a.setoranHafalan?.[0]?.no_surah || 0);
+        const surahB = Number(b.setoranHafalan?.[0]?.no_surah || 0);
+        if (surahA !== surahB) return surahB - surahA;
+        return (
+          Number(a.setoranHafalan?.[0]?.ayat_akhir || 0) -
+          Number(b.setoranHafalan?.[0]?.ayat_akhir || 0)
+        );
+      }
+    });
+
+    return sortedStudents.reduce((acc, student) => {
+      let rawKey = "BELUM MULAI";
+      if (activeTab === "TAHSIN") {
+        rawKey =
+          student.tahapan_tahsin ||
+          student.setoranTahsin?.[0]?.tahapan ||
+          student.ujianPretest?.[0]?.tahapan ||
+          "🌟 BELUM MULAI / BELUM ADA TAHAPAN";
+      } else {
+        rawKey = student.setoranHafalan?.[0]?.surah?.nama_surah
+          ? `Juz 30 (Qs. ${student.setoranHafalan[0].surah.nama_surah})`
+          : student.setoranHafalan?.[0]?.no_surah
+          ? `Juz 30 (Surah ke-${student.setoranHafalan[0].no_surah})`
+          : "🌟 SISWA BARU (BELUM ADA SETORAN)";
+      }
+      const key =
+        activeTab === "TAHSIN" && !rawKey.includes("🌟")
+          ? formatEnum(rawKey)
+          : rawKey;
+
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(student);
+      return acc;
+    }, {});
+  }, [waitingStudent, activeTab]);
 
   if (isStudentLoading || isHalaqohLoading) return <p>Memuat data..</p>;
-
-  const allStudents = studentObj?.data || [];
-  const allHalaqoh = halaqohObj?.data || [];
-
-  const waitingStudent = allStudents.filter((student) => {
-    if (activeTab === "TAHSIN") {
-      const hasTahsinProgressOrPretest =
-        (student.ujianPretest && student.ujianPretest.length > 0) ||
-        (student.setoranTahsin && student.setoranTahsin.length > 0) ||
-        student.tahapan_tahsin !== null;
-
-      return student.halaqoh_tahsin_id === null && hasTahsinProgressOrPretest;
-    } else {
-      return student.halaqoh_tahfidz_id === null;
-    }
-  });
-
-  const sortedStudents = [...waitingStudent].sort((a, b) => {
-    if (activeTab === "TAHSIN") {
-      const hasSetoranA = a.setoranTahsin && a.setoranTahsin.length > 0;
-      const hasSetoranB = b.setoranTahsin && b.setoranTahsin.length > 0;
-      if (hasSetoranA && !hasSetoranB) return -1;
-      if (!hasSetoranA && hasSetoranB) return 1;
-      if (hasSetoranA && hasSetoranB) {
-        const halA = Number(
-          a.setoranTahsin[0]?.bab || a.setoranTahsin[0]?.halaman || 0,
-        );
-        const halB = Number(
-          b.setoranTahsin[0]?.bab || b.setoranTahsin[0]?.halaman || 0,
-        );
-        return halA - halB;
-      }
-      return 0;
-    } else {
-      const surahA = Number(a.setoranHafalan?.[0]?.no_surah || 0);
-      const surahB = Number(b.setoranHafalan?.[0]?.no_surah || 0);
-      if (surahA !== surahB) return surahB - surahA;
-      return (
-        Number(a.setoranHafalan?.[0]?.ayat_akhir || 0) -
-        Number(b.setoranHafalan?.[0]?.ayat_akhir || 0)
-      );
-    }
-  });
-
-  const groupedStudents = sortedStudents.reduce((acc, student) => {
-    let rawKey = "BELUM MULAI";
-    if (activeTab === "TAHSIN") {
-      rawKey =
-        student.tahapan_tahsin ||
-        student.setoranTahsin?.[0]?.tahapan ||
-        student.ujianPretest?.[0]?.tahapan ||
-        "🌟 BELUM MULAI / BELUM ADA TAHAPAN";
-    } else {
-      rawKey = student.setoranHafalan?.[0]?.surah?.nama_surah
-        ? `Juz 30 (Qs. ${student.setoranHafalan[0].surah.nama_surah})`
-        : student.setoranHafalan?.[0]?.no_surah
-        ? `Juz 30 (Surah ke-${student.setoranHafalan[0].no_surah})`
-        : "🌟 SISWA BARU (BELUM ADA SETORAN)";
-    }
-    const key =
-      activeTab === "TAHSIN" && !rawKey.includes("🌟")
-        ? formatEnum(rawKey)
-        : rawKey;
-
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(student);
-    return acc;
-  }, {});
 
   const handleAutoGenerate = async () => {
     if (
@@ -153,7 +142,7 @@ function HalaqohManagement() {
 
   const handleExportExcel = async () => {
     try {
-      const token = localStorage.getItem("token") || "";
+      const token = sessionStorage.getItem("token") || "";
       // Gunakan fetch untuk mengunduh file binary dari backend berserta header Authorization
       const response = await fetch(
         `${BASE_API_URL}/export/halaqoh?kategori=${activeTab}`,

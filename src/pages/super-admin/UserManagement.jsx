@@ -1,8 +1,9 @@
+import { toast } from "sonner";
+import { useDeleteBulkUsersMutation } from "../../store/api/usersApi.js";
+
 import React, { use } from "react";
 import { useState } from "react";
 import { useMediaQuery } from "@/hooks/use-media-query";
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { Button } from "@/components/ui/button";
 
@@ -56,28 +57,31 @@ function UserManagement() {
   const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
+  const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
 
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  const { data: usersData, isLoading, isError } = useGetUsersQuery();
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [deleteBulk, { isLoading: isDeletingBulk }] =
+    useDeleteBulkUsersMutation();
+
+  const {
+    data: usersData,
+    isLoading,
+    isError,
+  } = useGetUsersQuery({ page: currentPage, limit: 7, search });
 
   const users = usersData?.data || [];
+  const totalPages = usersData?.meta?.totalPages || 1;
 
   const roleFiltered =
     activeRole === "semua"
       ? users
       : users.filter((user) => user.role === activeRole);
 
-  const filteredUser = roleFiltered.filter((u) => {
-    const keyword = search.toLowerCase();
-    return (
-      u.nama?.toLowerCase().includes(keyword) ||
-      u.email?.toLowerCase().includes(keyword) ||
-      u.no_telp?.toLowerCase().includes(keyword)
-    );
-  });
+  const filteredUser = roleFiltered;
 
   if (isError) {
     return (
@@ -92,15 +96,55 @@ function UserManagement() {
     setOpenEdit(true);
   };
 
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedUsers(filteredUser.map((u) => u.id));
+    } else {
+      setSelectedUsers([]);
+    }
+  };
+  const handleSelectRow = (userId) => {
+    setSelectedUsers((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId],
+    );
+  };
+  const handleBulkDelete = async () => {
+    try {
+      await deleteBulk(selectedUsers).unwrap();
+      toast.success(`${selectedUsers.length} user berhasil dihapus`);
+      setSelectedUsers([]); // reset setelah berhasil
+    } catch (error) {
+      toast.error(error.data?.message || "Gagal menghapus user");
+    }
+  };
+
   return (
     <>
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-5 animate-in fade-in duration-500">
         <div className="flex w-full gap-5">
           <SearchInput
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
             placeholder="Cari nama / email / no. telp..."
           />
+
+          {selectedUsers.length > 0 && (
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={isDeletingBulk}
+            >
+              {isDeletingBulk
+                ? "Menghapus..."
+                : `Hapus (${selectedUsers.length})`}
+            </Button>
+          )}
+
           <Button onClick={() => setOpen(true)}>
             <span className="hidden xl:block">Tambah User</span>
             <FaPlus className="xl:hidden" />
@@ -131,7 +175,16 @@ function UserManagement() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <UserTableContainer users={filteredUser} onRowClick={handleRowClick} />
+        <UserTableContainer
+          users={filteredUser}
+          onRowClick={handleRowClick}
+          selectedUsers={selectedUsers}
+          onSelectAll={handleSelectAll}
+          onSelectRow={handleSelectRow}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={(page) => setCurrentPage(page)}
+        />
 
         {/* add user */}
         {isDesktop && (

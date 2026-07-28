@@ -10,15 +10,15 @@ function WaliLayout() {
   };
 
   const pageTitle = getPageTitle(location.pathname);
-  const currentRole = localStorage.getItem("role") || "WALI";
-  const rawName = localStorage.getItem("nama") || "Wali Santri";
+  const currentRole = sessionStorage.getItem("role") || "WALI";
+  const rawName = sessionStorage.getItem("nama") || "Wali Santri";
   const currentName = rawName.split(" ").slice(0, 2).join(" ");
 
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("role");
-    localStorage.removeItem("token");
-    localStorage.removeItem("nama");
+    sessionStorage.removeItem("isLoggedIn");
+    sessionStorage.removeItem("role");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("nama");
     navigate("/wali/login");
   };
 

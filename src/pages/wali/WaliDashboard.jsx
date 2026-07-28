@@ -29,7 +29,7 @@ import { MobileHistoryCard } from "../../components/ui/MobileHistoryCard";
 import { FaCalendarCheck } from "react-icons/fa";
 
 export default function WaliDashboard() {
-  const nis = localStorage.getItem("nis");
+  const nis = sessionStorage.getItem("nis");
 
   const { data: studentRes, isLoading: isLoadingStudent } =
     useGetStudentQuery(nis);
@@ -278,8 +278,10 @@ export default function WaliDashboard() {
                           {riwayat.nilai_tahsin || "-"}
                         </TableCell>
                         <TableCell>
-                          <span className="font-bold text-primary-600 text-xs md:text-sm">
-                            {riwayat.status_kelanjutan || ""}
+                          <span className="font-bold text-primary-600">
+                            {riwayat.status_kelanjutan === "MENGULANG"
+                              ? "TIDAK LULUS"
+                              : riwayat.status_kelanjutan || ""}
                           </span>
                         </TableCell>
                         <TableCell className="text-xs md:text-sm max-w-50 truncate">

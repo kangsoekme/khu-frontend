@@ -29,6 +29,12 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 
 function TahfidzAssessmentForm({ nis, halaqohId, onSuccess }) {
+  const [isReady, setIsReady] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setIsReady(true), 150);
+    return () => clearTimeout(timer);
+  }, []);
+
   const { data: surahRes } = useGetAllSurahQuery();
   const allSurah = surahRes?.data || [];
 
@@ -110,7 +116,9 @@ function TahfidzAssessmentForm({ nis, halaqohId, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const surahObj = allSurah.find((s) => s.no_surah.toString() === selectedSurah);
+    const surahObj = allSurah.find(
+      (s) => s.no_surah.toString() === selectedSurah,
+    );
     const maxAyat = surahObj?.jumlah_ayat || 286;
     const awal = Number(ayatAwal);
     const akhir = Number(ayatAkhir);
@@ -121,7 +129,7 @@ function TahfidzAssessmentForm({ nis, halaqohId, onSuccess }) {
     }
     if (awal > maxAyat || akhir > maxAyat) {
       toast.error(
-        `Ayat melebihi batas maksimal surah ${surahObj?.nama_surah || ""} (${maxAyat} ayat)`
+        `Ayat melebihi batas maksimal surah ${surahObj?.nama_surah || ""} (${maxAyat} ayat)`,
       );
       return;
     }
@@ -158,11 +166,22 @@ function TahfidzAssessmentForm({ nis, halaqohId, onSuccess }) {
     }
   };
 
+  if (!isReady) {
+    return (
+      <div className="flex flex-col gap-5 py-6 w-full animate-pulse">
+        <div className="h-10 bg-muted rounded-md w-full" />
+        <div className="h-10 bg-muted rounded-md w-full" />
+        <div className="h-10 bg-muted rounded-md w-full" />
+        <div className="h-24 bg-muted rounded-md w-full mt-4" />
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5 text-left">
       <div className="flex flex-col gap-5">
         <ScrollArea className="h-100">
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-5 px-4 lg:px-0">
             <Field>
               <Select
                 name="hafalan_surah"
@@ -179,7 +198,8 @@ function TahfidzAssessmentForm({ nis, halaqohId, onSuccess }) {
                         key={surah.no_surah}
                         value={surah.no_surah.toString()}
                       >
-                        {surah.no_surah}. {surah.nama_surah} ({surah.jumlah_ayat} ayat)
+                        {surah.no_surah}. {surah.nama_surah} (
+                        {surah.jumlah_ayat} ayat)
                       </SelectItem>
                     ))}
                   </SelectGroup>

@@ -1,44 +1,51 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import React, { lazy, Suspense } from "react";
+
 // global
 import MainLayout from "../layout/MainLayout";
 import LoginPage from "../pages/auth/LoginPage";
 import ProtectedRoute from "./ProtectedRoute.jsx";
-
-// super admin
-import SuperAdminHomepage from "../pages/super-admin/Homepage";
-import SuperAdminUserManagement from "../pages/super-admin/UserManagement";
-import SuperAdminStudentManagement from "../pages/super-admin/StudentManagement";
-
-// direktur
-import DirekturHomepage from "../pages/direktur/Homepage.jsx";
-import DirekturHalaqohManagement from "../pages/direktur/HalaqohManagement.jsx";
-import DirekturPretestManagement from "../pages/direktur/PretestManagement.jsx";
-
-// guru
-import GuruHomepage from "../pages/guru/Homepage.jsx";
-
-// tahsin tabs
-import TahsinManagement from "../pages/direktur/tahsin/TahsinManagement.jsx";
-
-import { ROLES } from "../utils/constant.js";
-import TahsinDetail from "../pages/direktur/tahsin/TahsinDetail.jsx";
-import TahfidzManagement from "../pages/direktur/tahfidz/TahfidzManagement.jsx";
-import TahfidzDetail from "../pages/direktur/tahfidz/TahfidzDetail.jsx";
-import TahsinStudentDetail from "../pages/direktur/tahsin/TahsinStudentDetail.jsx";
-import TahfidzStudentDetail from "../pages/direktur/tahfidz/TahfidzStudentDetail.jsx";
-import UjianKenaikanManagement from "../pages/direktur/tahsin/UjianKenaikanManagement.jsx";
-import BackupManagement from "../pages/super-admin/BackupManagement.jsx";
-import LaporanManagement from "../pages/direktur/LaporanManagement.jsx";
-import TahunAjaranManagement from "../pages/direktur/TahunAjaranManajemen.jsx";
-
-// WALI
-import WaliLogin from "../pages/wali/WaliLogin.jsx";
-import WaliDashboard from "../pages/wali/WaliDashboard.jsx";
 import WaliLayout from "../layout/WaliLayout.jsx";
 import WaliProtectedRoute from "./WaliProtectedRoute.jsx";
 
+// --- Lazy-loaded pages untuk performa loading lebih cepat ---
+const SuperAdminHomepage        = lazy(() => import("../pages/super-admin/Homepage"));
+const SuperAdminUserManagement  = lazy(() => import("../pages/super-admin/UserManagement"));
+const SuperAdminStudentManagement = lazy(() => import("../pages/super-admin/StudentManagement"));
+const BackupManagement          = lazy(() => import("../pages/super-admin/BackupManagement.jsx"));
+
+const DirekturHomepage          = lazy(() => import("../pages/direktur/Homepage.jsx"));
+const DirekturHalaqohManagement = lazy(() => import("../pages/direktur/HalaqohManagement.jsx"));
+const DirekturPretestManagement = lazy(() => import("../pages/direktur/PretestManagement.jsx"));
+const LaporanManagement         = lazy(() => import("../pages/direktur/LaporanManagement.jsx"));
+const TahunAjaranManagement     = lazy(() => import("../pages/direktur/TahunAjaranManajemen.jsx"));
+const TahsinManagement          = lazy(() => import("../pages/direktur/tahsin/TahsinManagement.jsx"));
+const TahsinDetail              = lazy(() => import("../pages/direktur/tahsin/TahsinDetail.jsx"));
+const TahsinStudentDetail       = lazy(() => import("../pages/direktur/tahsin/TahsinStudentDetail.jsx"));
+const UjianKenaikanManagement   = lazy(() => import("../pages/direktur/tahsin/UjianKenaikanManagement.jsx"));
+const TahfidzManagement         = lazy(() => import("../pages/direktur/tahfidz/TahfidzManagement.jsx"));
+const TahfidzDetail             = lazy(() => import("../pages/direktur/tahfidz/TahfidzDetail.jsx"));
+const TahfidzStudentDetail      = lazy(() => import("../pages/direktur/tahfidz/TahfidzStudentDetail.jsx"));
+
+const GuruHomepage              = lazy(() => import("../pages/guru/Homepage.jsx"));
+
+const WaliLogin                 = lazy(() => import("../pages/wali/WaliLogin.jsx"));
+const WaliDashboard             = lazy(() => import("../pages/wali/WaliDashboard.jsx"));
+
+import { ROLES } from "../utils/constant.js";
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="flex justify-center items-center min-h-[60vh]">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
+      <p className="text-neutral-500 text-sm">Memuat halaman...</p>
+    </div>
+  </div>
+);
+
 const RoleBasedHomepage = () => {
-  const currentRole = localStorage.getItem("role") || ROLES.SUPER_ADMIN;
+  const currentRole = sessionStorage.getItem("role") || ROLES.SUPER_ADMIN;
 
   if (currentRole === ROLES.DIREKTUR) {
     return <DirekturHomepage />;
@@ -58,7 +65,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/wali/login",
-    element: <WaliLogin />,
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <WaliLogin />
+      </Suspense>
+    ),
   },
   {
     element: <WaliProtectedRoute />,
@@ -67,7 +78,14 @@ const router = createBrowserRouter([
         path: "/wali/dashboard",
         element: <WaliLayout />,
         children: [
-          { index: true, element: <WaliDashboard /> },
+          {
+            index: true,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <WaliDashboard />
+              </Suspense>
+            ),
+          },
         ],
       },
     ],
@@ -78,87 +96,66 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <MainLayout />,
-        children: [
-          { index: true, element: <RoleBasedHomepage /> },
-          { path: "beranda", element: <RoleBasedHomepage /> },
-        ],
+        children: [{ index: true, element: <RoleBasedHomepage /> }],
+      },
+      {
+        path: "/beranda",
+        element: <MainLayout />,
+        children: [{ index: true, element: <RoleBasedHomepage /> }],
       },
       {
         path: "/manajemen-user",
         element: <MainLayout />,
-        children: [
-          { index: true, element: <SuperAdminUserManagement /> },
-          { path: "manajemen-user", element: <SuperAdminUserManagement /> },
-        ],
+        children: [{ index: true, element: <Suspense fallback={<PageLoader />}><SuperAdminUserManagement /></Suspense> }],
       },
       {
         path: "/manajemen-siswa",
         element: <MainLayout />,
-        children: [
-          { index: true, element: <SuperAdminStudentManagement /> },
-          { path: "manajemen-siswa", element: <SuperAdminStudentManagement /> },
-        ],
+        children: [{ index: true, element: <Suspense fallback={<PageLoader />}><SuperAdminStudentManagement /></Suspense> }],
       },
-
       {
         path: "/backup",
         element: <MainLayout />,
-        children: [{ index: true, element: <BackupManagement /> }],
+        children: [{ index: true, element: <Suspense fallback={<PageLoader />}><BackupManagement /></Suspense> }],
       },
-
       {
         path: "/laporan",
         element: <MainLayout />,
-        children: [{ index: true, element: <LaporanManagement /> }],
+        children: [{ index: true, element: <Suspense fallback={<PageLoader />}><LaporanManagement /></Suspense> }],
       },
-
       {
         path: "/tahsin",
         element: <MainLayout />,
         children: [
-          { index: true, element: <TahsinManagement /> },
-          { path: "tahsin", element: <TahsinManagement /> },
-          { path: "ujian-kenaikan", element: <UjianKenaikanManagement /> },
-          { path: ":id", element: <TahsinDetail /> },
-          { path: ":id/:nis", element: <TahsinStudentDetail /> },
+          { index: true, element: <Suspense fallback={<PageLoader />}><TahsinManagement /></Suspense> },
+          { path: "ujian-kenaikan", element: <Suspense fallback={<PageLoader />}><UjianKenaikanManagement /></Suspense> },
+          { path: ":id", element: <Suspense fallback={<PageLoader />}><TahsinDetail /></Suspense> },
+          { path: ":id/:nis", element: <Suspense fallback={<PageLoader />}><TahsinStudentDetail /></Suspense> },
         ],
       },
       {
         path: "/tahfidz",
         element: <MainLayout />,
         children: [
-          { index: true, element: <TahfidzManagement /> },
-          { path: "tahfidz", element: <TahfidzManagement /> },
-          { path: ":id", element: <TahfidzDetail /> },
-          { path: ":id/:nis", element: <TahfidzStudentDetail /> },
+          { index: true, element: <Suspense fallback={<PageLoader />}><TahfidzManagement /></Suspense> },
+          { path: ":id", element: <Suspense fallback={<PageLoader />}><TahfidzDetail /></Suspense> },
+          { path: ":id/:nis", element: <Suspense fallback={<PageLoader />}><TahfidzStudentDetail /></Suspense> },
         ],
       },
-
       {
         path: "/manajemen-halaqoh",
         element: <MainLayout />,
-        children: [
-          { index: true, element: <DirekturHalaqohManagement /> },
-          { path: "manajemen-halaqoh", element: <DirekturHalaqohManagement /> },
-        ],
+        children: [{ index: true, element: <Suspense fallback={<PageLoader />}><DirekturHalaqohManagement /></Suspense> }],
       },
-
       {
         path: "/pretest",
         element: <MainLayout />,
-        children: [
-          { index: true, element: <DirekturPretestManagement /> },
-          { path: "pretest", element: <DirekturPretestManagement /> },
-        ],
+        children: [{ index: true, element: <Suspense fallback={<PageLoader />}><DirekturPretestManagement /></Suspense> }],
       },
-
       {
         path: "/tahun-ajaran",
         element: <MainLayout />,
-        children: [
-          { index: true, element: <TahunAjaranManagement /> },
-          { path: "tahun-ajaran", element: <TahunAjaranManagement /> },
-        ],
+        children: [{ index: true, element: <Suspense fallback={<PageLoader />}><TahunAjaranManagement /></Suspense> }],
       },
     ],
   },

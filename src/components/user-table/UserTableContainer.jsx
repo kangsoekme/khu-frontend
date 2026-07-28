@@ -11,6 +11,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { Checkbox } from "@/components/ui/checkbox";
+
 import UserTableItem from "./UserTableItem";
 
 import {
@@ -27,18 +29,20 @@ import UserMobileCardItem from "./UserMobileCardItem";
 
 const ITEMS_PER_PAGE = 7;
 
-function UserTableContainer({ users, onRowClick }) {
-  const [currentPage, setcurrentPage] = useState(1);
-
-  const totalPages = Math.ceil(users.length / ITEMS_PER_PAGE);
-
-  const paginatedUsers = users.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
-  );
+function UserTableContainer({
+  users,
+  onRowClick,
+  selectedUsers = [],
+  onSelectAll,
+  onSelectRow,
+  currentPage,
+  totalPages,
+  onPageChange,
+}) {
+  const paginatedUsers = users;
 
   const goToPage = (page) => {
-    if (page >= 1 && page <= totalPages) setcurrentPage(page);
+    if (page >= 1 && page <= totalPages) onPageChange(page);
   };
 
   const getPageNumbers = () => {
@@ -73,9 +77,16 @@ function UserTableContainer({ users, onRowClick }) {
         <Table>
           <TableHeader>
             <TableRow className="">
+              <TableHead className="w-12">
+                <Checkbox
+                  checked={
+                    users.length > 0 && selectedUsers.length === users.length
+                  }
+                  onCheckedChange={onSelectAll}
+                />
+              </TableHead>
               <TableHead>User</TableHead>
               <TableHead>Role</TableHead>
-              <TableHead>Last Login</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -88,7 +99,8 @@ function UserTableContainer({ users, onRowClick }) {
                   email={user.email}
                   noTelp={user.no_telp}
                   role={user.role}
-                  lastLogin={user.last_login}
+                  isSelected={selectedUsers.includes(user.id)}
+                  onToggleSelect={() => onSelectRow(user.id)}
                   onClick={() => onRowClick(user)}
                 />
               );
@@ -98,16 +110,30 @@ function UserTableContainer({ users, onRowClick }) {
       </div>
 
       <div className="flex flex-col gap-4 xl:hidden mb-4">
-        {paginatedUsers.map((user, index) => (
+        {selectedUsers.length > 0 && (
+          <div className="flex items-center justify-between px-4 py-3 bg-neutral-800 text-white rounded-lg shadow-md">
+            <span className="text-sm font-semibold">{selectedUsers.length} Terpilih</span>
+            <button 
+              onClick={() => onSelectAll(selectedUsers.length !== users.length)} 
+              className="text-sm font-medium underline underline-offset-2 hover:text-blue-300"
+            >
+              {selectedUsers.length === users.length ? "Batal Semua" : "Pilih Semua"}
+            </button>
+          </div>
+        )}
+
+        {paginatedUsers.map((user) => (
           <UserMobileCardItem
             key={user.id}
-            key={index}
             profilePhoto={user.profile_photo}
             name={user.nama}
             email={user.email}
             noTelp={user.no_telp}
             role={user.role}
             onClick={() => onRowClick(user)}
+            isSelected={selectedUsers.includes(user.id)}
+            isSelectionMode={selectedUsers.length > 0}
+            onToggleSelect={() => onSelectRow(user.id)}
           />
         ))}
       </div>

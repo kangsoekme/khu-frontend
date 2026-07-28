@@ -31,7 +31,7 @@ const chartConfig = {
 };
 
 export function ChartAreaGradient({ className, dataPerkembangan }) {
-  const chartData = dataPerkembangan || [];
+  const chartData = (dataPerkembangan || []).slice(-7);
 
   return (
     <Card className={cn("flex flex-col justify-between", className)}>

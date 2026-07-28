@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +44,13 @@ function HalaqohForm({
   onSuccess,
   defaultKategori,
 }) {
+  const [isReady, setIsReady] = useState(false);
+  useEffect(() => {
+    // Delay rendering heavy list until modal animation completes
+    const timer = setTimeout(() => setIsReady(true), 150);
+    return () => clearTimeout(timer);
+  }, []);
+
   const { data: usersData, isLoading: isLoadingUsers } = useGetUsersQuery();
   const daftarGuru =
     usersData?.data?.filter((user) => user.role === "GURU") || [];
@@ -307,6 +314,12 @@ function HalaqohForm({
             <p className="text-xs text-neutral-400 mt-1">
               Daftar siswa akan otomatis dikelompokkan sesuai metode program
             </p>
+          </div>
+        ) : !isReady ? (
+          <div className="flex flex-col gap-3 py-6 w-full animate-pulse">
+            <div className="h-10 bg-muted rounded-md w-full" />
+            <div className="h-10 bg-muted rounded-md w-full" />
+            <div className="h-32 bg-muted rounded-md w-full mt-4" />
           </div>
         ) : sortedGroupEntries.length === 0 ? (
           <p className="text-sm text-neutral-500 py-6 text-center">
