@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  frontend-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: khu-frontend-app
+    restart: always
+    ports:
+      - "5173:5173"
+    environment:
+      # Vite berjalan pada mode development dengan Hot Reload
+      - NODE_ENV=development
+    volumes:
+      # Mapping source code lokal ke dalam container agar perubahan langsung terlihat (Hot Reloading)
+      - .:/app
+      # Mengecualikan node_modules lokal agar tidak menimpa node_modules di dalam container
+      - /app/node_modules
