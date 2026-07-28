@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
+import { SearchInput } from "../../../components/ui/SearchInput";
+
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useGetHalaqohQuery } from "../../../store/api/halaqohApi";
 
@@ -26,6 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import MobileItemCard from "../../../components/ui/MobileItemCard";
 
 function TahfidzDetail() {
+  const [search, setSearch] = useState("");
   const { id } = useParams();
 
   const navigate = useNavigate();
@@ -36,8 +39,25 @@ function TahfidzDetail() {
 
   const halaqoh = responseData?.data;
 
+  const siswaList = halaqoh?.siswa || [];
+  const filteredSiswa = siswaList.filter((s) => {
+    const keyword = search.toLowerCase();
+    return (
+      s.nama?.toLowerCase().includes(keyword) ||
+      s.nis?.toLowerCase().includes(keyword)
+    );
+  });
+
   return (
     <div className="flex flex-col gap-5">
+      <div className="flex w-full gap-5">
+        <SearchInput
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Cari siswa di kelas Tahfidz ini..."
+        />
+      </div>
+
       <Table className="hidden lg:table">
         <TableHeader className="bg-neutral-surface">
           <TableRow>
@@ -48,10 +68,10 @@ function TahfidzDetail() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {halaqoh?.siswa?.length === 0 ? (
+          {filteredSiswa.length === 0 ? (
             <TableCell colSpan={5}>Belum ada siswa disini</TableCell>
           ) : (
-            halaqoh?.siswa?.map((siswa) => (
+            filteredSiswa.map((siswa) => (
               <TableRow
                 key={siswa.nis}
                 onClick={() => navigate(`/tahfidz/${id}/${siswa.nis}`)}
@@ -71,8 +91,14 @@ function TahfidzDetail() {
                   </Item>
                 </TableCell>
                 <TableCell>{siswa.riwayatKelas?.[0]?.nama_kelas}</TableCell>
-                <TableCell>Belum Memulai</TableCell>
-                <TableCell>MUMTAZ</TableCell>
+                <TableCell>
+                  {siswa?.setoranHafalan?.[0]
+                    ? `${siswa.setoranHafalan[0].surah?.nama_surah || "Surah " + siswa.setoranHafalan[0].no_surah} (${siswa.setoranHafalan[0].ayat_awal}-${siswa.setoranHafalan[0].ayat_akhir})`
+                    : "Belum Memulai"}
+                </TableCell>
+                <TableCell>
+                  {siswa?.setoranHafalan?.[0]?.predikat || "-"}
+                </TableCell>
               </TableRow>
             ))
           )}
@@ -96,8 +122,12 @@ function TahfidzDetail() {
                   {siswa?.riwayatKelas?.[0]?.nama_kelas || "-"}
                 </>
               }
-              statusText="Belum Mulai"
-              badgeText="MUMTAZ"
+              statusText={
+                siswa?.setoranHafalan?.[0]
+                  ? `${siswa.setoranHafalan[0].surah?.nama_surah || "Surah " + siswa.setoranHafalan[0].no_surah} (${siswa.setoranHafalan[0].ayat_awal}-${siswa.setoranHafalan[0].ayat_akhir})`
+                  : "Belum Memulai"
+              }
+              badgeText={siswa?.setoranHafalan?.[0]?.predikat || "-"}
               onClick={() =>
                 navigate(`/direktur/tahfidz/${siswa.id || siswa.nis}`)
               }

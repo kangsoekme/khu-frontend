@@ -7,11 +7,15 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 
-export function SearchInput() {
+export function SearchInput({ value, onChange, placeholder = "Cari data..." }) {
   return (
     <Field className="max-w-sm">
       <InputGroup>
-        <InputGroupInput id="inline-start-input" placeholder="Search..." />
+        <InputGroupInput
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+        />
         <InputGroupAddon align="inline-start">
           <SearchIcon className="text-muted-foreground" />
         </InputGroupAddon>

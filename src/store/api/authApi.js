@@ -9,9 +9,16 @@ export const authApi = baseApi.injectEndpoints({
         body: credentials,
       }),
     }),
+    loginWali: builder.mutation({
+      query: (credentials) => ({
+        url: "auth/wali/login",
+        method: "POST",
+        body: credentials,
+      }),
+    }),
   }),
 
   overrideExisting: false,
 });
 
-export const { useLoginMutation } = authApi;
+export const { useLoginMutation, useLoginWaliMutation } = authApi;

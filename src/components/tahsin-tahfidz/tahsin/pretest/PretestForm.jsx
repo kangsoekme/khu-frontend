@@ -16,84 +16,41 @@ import {
 
 import { Textarea } from "@/components/ui/textarea";
 
-import { FaMinus } from "react-icons/fa";
-
-import { FaPlus } from "react-icons/fa";
-
 import { toast } from "sonner";
 
 import { useAddPretestMutation } from "../../../../store/api/tahsinApi";
 
 function PretestForm({ initialData, onSuccess }) {
   const tahap = [
-    {
-      label: "Jilid 1",
-      value: "JILID_1",
-    },
-    {
-      label: "Jilid 2",
-      value: "JILID_2",
-    },
-    {
-      label: "Jilid 3",
-      value: "JILID_3",
-    },
-    {
-      label: "Jilid 4",
-      value: "JILID_4",
-    },
-    {
-      label: "Jilid 5",
-      value: "JILID_5",
-    },
-    {
-      label: "Jilid 6",
-      value: "JILID_6",
-    },
-    {
-      label: "Tajwid",
-      value: "TAJWID",
-    },
-    {
-      label: "Gharib",
-      value: "GHARIB",
-    },
-    {
-      label: "Al-Quran",
-      value: "ALQURAN",
-    },
+    { label: "Jilid 1", value: "JILID_1" },
+    { label: "Jilid 2", value: "JILID_2" },
+    { label: "Jilid 3", value: "JILID_3" },
+    { label: "Jilid 4", value: "JILID_4" },
+    { label: "Jilid 5", value: "JILID_5" },
+    { label: "Jilid 6", value: "JILID_6" },
+    { label: "Tilawah Juz 1-5", value: "TILAWAH_JUZ_1_5" },
+    { label: "Gharib", value: "GHARIB" },
+    { label: "Tajwid", value: "TAJWID" },
+    { label: "Al-Quran", value: "ALQURAN" },
+    { label: "Munaqosyah", value: "MUNAQOSYAH" },
   ];
-
-  const daftarNilai = ["D", "C-", "C", "C+", "B-", "B", "B+", "A", "A+"];
 
   const [addPretest, { isLoading }] = useAddPretestMutation();
   const [tahapanValue, setTahapanValue] = useState("");
-  const [nilaiIndex, setNilaiIndex] = useState(8);
 
-  const kurangNilai = () => {
-    if (nilaiIndex > 0) {
-      setNilaiIndex(nilaiIndex - 1);
-    }
-  };
-
-  const tambahNilai = () => {
-    if (nilaiIndex < daftarNilai.length - 1) {
-      setNilaiIndex(nilaiIndex + 1);
-    }
-  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
 
     if (!data.tahapan) {
-      toast.error("Mohon isis tahapan terlebih dahulu");
+      toast.error("Mohon isi tahapan terlebih dahulu");
+      return;
     }
 
     try {
       await addPretest({
         nis: data.nis,
-        nilai: data.nilai,
         keterangan: data.keterangan,
         tahapan: data.tahapan,
       }).unwrap();
@@ -137,31 +94,6 @@ function PretestForm({ initialData, onSuccess }) {
           defaultValue={initialData?.keterangan}
           className="min-h-25 break-all w-full"
         />
-      </div>
-
-      <div className="flex flex-col gap-5 items-center">
-        <Label>PENILAIAN TAHSIN</Label>
-        <div className="flex items-center gap-5">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={kurangNilai}
-          >
-            <FaMinus />
-          </Button>
-
-          <span>{daftarNilai[nilaiIndex]}</span>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={tambahNilai}
-          >
-            <FaPlus />
-          </Button>
-        </div>
-        <input type="hidden" name="nilai" value={daftarNilai[nilaiIndex]} />
       </div>
 
       <div className="flex flex-col gap-3 w-full">

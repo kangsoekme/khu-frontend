@@ -12,7 +12,7 @@ export const tahfidzApi = baseApi.injectEndpoints({
         method: "POST",
         body: hafalanData,
       }),
-      invalidatesTags: ["Student"],
+      invalidatesTags: ["Student", "Halaqoh", "Dashboard", "Laporan"],
     }),
 
     getRiwayatMurajaah: builder.query({
@@ -25,7 +25,7 @@ export const tahfidzApi = baseApi.injectEndpoints({
         method: "POST",
         body: murajaahData,
       }),
-      invalidatesTags: ["Student"],
+      invalidatesTags: ["Student", "Halaqoh", "Dashboard", "Laporan"],
     }),
   }),
 });

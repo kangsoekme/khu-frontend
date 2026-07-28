@@ -26,15 +26,14 @@ import PretestMobileCardItem from "./PretestMobileCardItem";
 const ITEMS_PER_PAGE = 7;
 
 function PretestTableContainer({ students, onRowClick }) {
+  const safeStudents = Array.isArray(students) ? students : [];
+
   const [currentPage, setCurrentPage] = useState(1);
-
-  const totalPages = Math.ceil(students.length / ITEMS_PER_PAGE);
-
-  const paginatedStudents = students.slice(
+  const totalPages = Math.ceil(safeStudents.length / ITEMS_PER_PAGE) || 1;
+  const paginatedStudents = safeStudents.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE,
   );
-
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };

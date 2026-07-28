@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import {
   Select,
@@ -17,11 +17,10 @@ import { useGetAllSurahQuery } from "../../../store/api/surahApi";
 import {
   useAddHafalanMutation,
   useAddMurajaahMutation,
+  useGetRiwayatHafalanQuery,
 } from "../../../store/api/tahfidzApi";
 
-import { FaMinus } from "react-icons/fa";
-
-import { FaPlus } from "react-icons/fa";
+import { FaMinus, FaPlus } from "react-icons/fa";
 
 import { Switch } from "@/components/ui/switch";
 
@@ -38,6 +37,10 @@ function TahfidzAssessmentForm({ nis, halaqohId, onSuccess }) {
   const [nilaiBacaan, setNilaiBacaan] = useState(80);
   const [isTarjamah, setIsTarjamah] = useState(false);
 
+  const [selectedSurah, setSelectedSurah] = useState("");
+  const [ayatAwal, setAyatAwal] = useState("");
+  const [ayatAkhir, setAyatAkhir] = useState("");
+
   const nilaiHafalan = Math.max(60, 95 - jumlahSalah * 10);
 
   const [addHafalan] = useAddHafalanMutation();
@@ -52,17 +55,90 @@ function TahfidzAssessmentForm({ nis, halaqohId, onSuccess }) {
   const kurangBacaan = () => setNilaiBacaan((p) => Math.max(0, p - 1));
   const tambahBacaan = () => setNilaiBacaan((p) => Math.min(100, p + 1));
 
+  const { data: riwayatRes } = useGetRiwayatHafalanQuery(nis);
+  const lastHafalan = riwayatRes?.data?.history?.hafalan_baru?.[0];
+
+  useEffect(() => {
+    if (!selectedSurah && allSurah.length > 0) {
+      const initSurahNo =
+        lastHafalan?.no_surah?.toString() ||
+        lastHafalan?.surah?.no_surah?.toString() ||
+        allSurah[0]?.no_surah?.toString() ||
+        "1";
+      setSelectedSurah(initSurahNo);
+
+      const surahObj =
+        allSurah.find((s) => s.no_surah.toString() === initSurahNo) ||
+        allSurah[0];
+      const maxAyat = surahObj?.jumlah_ayat || 286;
+
+      if (lastHafalan?.ayat_akhir) {
+        const nextAwal = Number(lastHafalan.ayat_akhir) + 1;
+        if (nextAwal <= maxAyat) {
+          setAyatAwal(nextAwal.toString());
+          setAyatAkhir(Math.min(maxAyat, nextAwal + 4).toString());
+        } else {
+          setAyatAwal("1");
+          setAyatAkhir(Math.min(maxAyat, 5).toString());
+        }
+      } else {
+        setAyatAwal("1");
+        setAyatAkhir(Math.min(maxAyat, 5).toString());
+      }
+    }
+  }, [allSurah, lastHafalan, selectedSurah]);
+
+  const handleSurahChange = (val) => {
+    setSelectedSurah(val);
+    const surahObj = allSurah.find((s) => s.no_surah.toString() === val);
+    const maxAyat = surahObj?.jumlah_ayat || 286;
+
+    const lastSurahNo =
+      lastHafalan?.no_surah?.toString() ||
+      lastHafalan?.surah?.no_surah?.toString();
+    if (val === lastSurahNo && lastHafalan?.ayat_akhir) {
+      const nextAwal = Number(lastHafalan.ayat_akhir) + 1;
+      if (nextAwal <= maxAyat) {
+        setAyatAwal(nextAwal.toString());
+        setAyatAkhir(Math.min(maxAyat, nextAwal + 4).toString());
+        return;
+      }
+    }
+    setAyatAwal("1");
+    setAyatAkhir(Math.min(maxAyat, 5).toString());
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const surahObj = allSurah.find((s) => s.no_surah.toString() === selectedSurah);
+    const maxAyat = surahObj?.jumlah_ayat || 286;
+    const awal = Number(ayatAwal);
+    const akhir = Number(ayatAkhir);
+
+    if (isNaN(awal) || isNaN(akhir) || awal < 1 || akhir < 1) {
+      toast.error("Ayat awal dan akhir harus diisi dengan angka valid");
+      return;
+    }
+    if (awal > maxAyat || akhir > maxAyat) {
+      toast.error(
+        `Ayat melebihi batas maksimal surah ${surahObj?.nama_surah || ""} (${maxAyat} ayat)`
+      );
+      return;
+    }
+    if (awal > akhir) {
+      toast.error("Ayat awal tidak boleh lebih besar dari ayat akhir");
+      return;
+    }
+
     const formData = new FormData(e.target);
 
     const payload = {
       nis: nis,
       nis_siswa: nis,
       halaqohId: halaqohId,
-      no_surah: Number(formData.get("hafalan_surah")),
-      ayat_awal: Number(formData.get("hafalan_ayat_awal")),
-      ayat_akhir: Number(formData.get("hafalan_ayat_akhir")),
+      no_surah: Number(selectedSurah),
+      ayat_awal: awal,
+      ayat_akhir: akhir,
       toggle_tarjamah: formData.get("toggle_tarjamah") === "true",
       jumlah_pengulangan: Number(formData.get("jumlah_pengulangan")),
       jumlah_salah: Number(formData.get("jumlah_salah")),
@@ -88,9 +164,13 @@ function TahfidzAssessmentForm({ nis, halaqohId, onSuccess }) {
         <ScrollArea className="h-100">
           <div className="flex flex-col gap-5">
             <Field>
-              <Select name="hafalan_surah">
+              <Select
+                name="hafalan_surah"
+                value={selectedSurah}
+                onValueChange={handleSurahChange}
+              >
                 <SelectTrigger className="w-full">
-                  <SelectValue />
+                  <SelectValue placeholder="Pilih Surah" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -99,15 +179,27 @@ function TahfidzAssessmentForm({ nis, halaqohId, onSuccess }) {
                         key={surah.no_surah}
                         value={surah.no_surah.toString()}
                       >
-                        {surah.no_surah}. {surah.nama_surah}
+                        {surah.no_surah}. {surah.nama_surah} ({surah.jumlah_ayat} ayat)
                       </SelectItem>
                     ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
               <div className="flex gap-5">
-                <Input name="hafalan_ayat_awal" placeholder="Ayat Awal" />
-                <Input name="hafalan_ayat_akhir" placeholder="Ayat Akhir" />
+                <Input
+                  name="hafalan_ayat_awal"
+                  type="number"
+                  placeholder="Ayat Awal"
+                  value={ayatAwal}
+                  onChange={(e) => setAyatAwal(e.target.value)}
+                />
+                <Input
+                  name="hafalan_ayat_akhir"
+                  type="number"
+                  placeholder="Ayat Akhir"
+                  value={ayatAkhir}
+                  onChange={(e) => setAyatAkhir(e.target.value)}
+                />
               </div>
             </Field>
 

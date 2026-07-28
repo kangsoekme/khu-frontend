@@ -25,6 +25,17 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import { Switch } from "@/components/ui/switch";
+
 import { toast } from "sonner";
 
 function UserForm({ className, onSuccess, initialData, isEdit }) {
@@ -34,20 +45,34 @@ function UserForm({ className, onSuccess, initialData, isEdit }) {
 
   const [showPassword, setShowPassword] = useState(false);
 
+  const [genderValue, setGenderValue] = useState(
+    initialData?.jenis_kelamin || "LAKI_LAKI",
+  );
+  const [isSertifikasi, setIsSertifikasi] = useState(
+    initialData?.is_sertifikasi || false,
+  );
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
 
+    const parsedData = {
+      ...data,
+      jenis_kelamin: genderValue,
+      is_sertifikasi:
+        data.is_sertifikasi === "true" || data.is_sertifikasi === true,
+    };
+
     try {
       if (isEdit) {
-        const finalData = { ...data, id: initialData.id };
+        const finalData = { ...parsedData, id: initialData.id };
 
         await editUser(finalData).unwrap();
         toast.success("User berhasil diperbarui");
       } else {
-        const finalData = { ...data, role: "GURU" };
+        const finalData = { ...parsedData, role: "GURU" };
 
         await addUser(finalData).unwrap();
         toast.success("User berhasil ditambahkan");
@@ -118,6 +143,22 @@ function UserForm({ className, onSuccess, initialData, isEdit }) {
             />
           </div>
         </div>
+
+        <div className="flex flex-col gap-3 w-full">
+          <Label>Jenis Kelamin</Label>
+          <Select value={genderValue} onValueChange={setGenderValue}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Pilih Jenis Kelamin" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="LAKI_LAKI">Laki-Laki (Ustadz)</SelectItem>
+                <SelectItem value="PEREMPUAN">Perempuan (Ustadzah)</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="flex flex-col gap-3 w-full">
           <Label htmlFor="password">Password</Label>
           <Input
@@ -136,7 +177,33 @@ function UserForm({ className, onSuccess, initialData, isEdit }) {
           />
           <Label>Tampilkan Password</Label>
         </div>
+
+        <div className="flex items-center justify-between p-4 border rounded-lg bg-neutral-50/50">
+          <div className="flex flex-col gap-0.5">
+            <Label
+              htmlFor="is_sertifikasi"
+              className="text-sm font-semibold text-neutral-800"
+            >
+              Sertifikasi Al-Quran / Ummi
+            </Label>
+            <p className="text-xs text-neutral-500">
+              Aktifkan jika guru sudah memiliki syahadah/sertifikasi resmi
+            </p>
+          </div>
+          <Switch
+            id="is_sertifikasi"
+            checked={isSertifikasi}
+            onCheckedChange={(checked) => setIsSertifikasi(checked)}
+          />
+          {/* Input hidden ini sangat penting agar nilai dari Switch terbaca oleh FormData! */}
+          <input
+            type="hidden"
+            name="is_sertifikasi"
+            value={isSertifikasi ? "true" : "false"}
+          />
+        </div>
       </div>
+
       <div
         className={cn(
           "grid gap-3 w-full",

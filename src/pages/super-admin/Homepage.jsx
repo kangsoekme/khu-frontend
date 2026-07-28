@@ -32,10 +32,6 @@ function Homepage() {
   const systemStatus = data?.system_status;
   const systemLogs = data?.system_logs;
 
-  const handleBackup = () => {
-    window.open("http://localhost:3000/api/backup", "_blank");
-  };
-
   return (
     <div className="flex flex-col gap-6 p-2 md:p-4 animate-in fade-in duration-500">
       {/* header */}

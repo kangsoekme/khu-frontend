@@ -24,26 +24,53 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 import PretestForm from "../../components/tahsin-tahfidz/tahsin/pretest/PretestForm";
 function PretestManagement() {
+  const [search, setSearch] = useState("");
   const { data, isLoading } = useGetStudentsQuery();
 
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery("only screen and (min-width:768px)");
 
-  if (isLoading) return <p>Memua data siswa baru...</p>;
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <p className="text-neutral-500 font-medium">
+          Memuat data siswa baru...
+        </p>
+      </div>
+    );
+  }
 
-  const newStudents = data?.data?.filter(
-    (student) => student.tahapan_tahsin === null,
+  const allStudents = Array.isArray(data?.data)
+    ? data.data
+    : Array.isArray(data)
+      ? data
+      : [];
+
+  const newStudents = allStudents.filter(
+    (student) => !student.tahapan_tahsin || student.tahapan_tahsin === "",
   );
+
+  const filteredNewStudents = newStudents.filter((s) => {
+    const keyword = search.toLowerCase();
+    return (
+      s.nama?.toLowerCase().includes(keyword) ||
+      s.nis?.toLowerCase().includes(keyword)
+    );
+  });
 
   return (
     <div className="flex flex-col gap-5">
       <div className="flex w-full gap-5">
-        <SearchInput />
+        <SearchInput
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Cari siswa pretest..."
+        />
       </div>
 
       <PretestTableContainer
-        students={newStudents}
+        students={filteredNewStudents}
         onRowClick={(student) => {
           setSelectedStudent(student);
           setOpen(true);

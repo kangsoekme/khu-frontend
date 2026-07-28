@@ -7,6 +7,8 @@ import { AlertCircleIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLoginMutation } from "../../store/api/authApi.js";
 
+import { toast } from "sonner";
+
 export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -32,27 +34,29 @@ export default function LoginPage() {
 
       localStorage.setItem("isLoggedIn", "true");
 
+      toast.success("Login sukses, Selamat Datang..");
+
       navigate("/");
     } catch (error) {
       console.log("Error login : ", error);
 
+      toast.error(error.message || "Email atau password salah");
       const serverMessage = error.data?.message || "Email atau password salah";
       setErrorMsg(serverMessage);
     }
   };
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
+    <div className="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10 relative">
       <div className="w-full max-w-sm md:max-w-4xl">
-        {errorMsg && (
-          <Alert variant="destructive" className="max-w-md">
-            <AlertCircleIcon />
-            <AlertTitle>Login Failed</AlertTitle>
-            <AlertDescription>{errorMsg}</AlertDescription>
-          </Alert>
-        )}
-
         <LoginForm onSubmit={handleSubmit} isLoading={isLoading} />
+      </div>
+      <div className="absolute bottom-8 w-full flex justify-center">
+        <img
+          src="/khu.png"
+          alt="Khoiru Ummah"
+          className="h-8 w-auto opacity-70 hover:opacity-100 transition-opacity"
+        />
       </div>
     </div>
   );

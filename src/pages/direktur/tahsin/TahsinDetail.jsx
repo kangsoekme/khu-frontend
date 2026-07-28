@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useState } from "react"; // 👈 Tambahkan useState
+import { SearchInput } from "../../../components/ui/SearchInput"; // 👈 Import SearchInput
+
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetHalaqohQuery } from "../../../store/api/halaqohApi";
+import { formatEnum } from "../../../utils/formatEnum";
 
 import { Button } from "@/components/ui/button";
 import { FaArrowLeft } from "react-icons/fa";
@@ -28,6 +31,7 @@ import MobileItemCard from "../../../components/ui/MobileItemCard";
 import { exportToExcel } from "../../../utils/exportExcel";
 
 function TahsinDetail() {
+  const [search, setSearch] = useState("");
   const { id } = useParams();
 
   const navigate = useNavigate();
@@ -38,8 +42,53 @@ function TahsinDetail() {
 
   const halaqoh = responseData?.data;
 
+  const siswaList = halaqoh?.siswa || [];
+  const filteredSiswa = siswaList.filter((s) => {
+    const keyword = search.toLowerCase();
+    return (
+      s.nama?.toLowerCase().includes(keyword) ||
+      s.nis?.toLowerCase().includes(keyword)
+    );
+  });
+
+  const getPosisiBacaan = (siswa) => {
+    const currentTahap = siswa.tahapan_tahsin || siswa?.ujianPretest?.[0]?.tahapan;
+    const lastSetoran = siswa?.setoranTahsin?.[0];
+
+    if (!lastSetoran) {
+      if (currentTahap) {
+        return `Pretest: ${formatEnum(currentTahap)}`;
+      }
+      return "Belum Memulai";
+    }
+
+    if (currentTahap && lastSetoran.tahapan !== currentTahap) {
+      if (currentTahap.startsWith("JILID_")) {
+        const jilidNum = currentTahap.split("_")[1] || "";
+        return `Jilid ${jilidNum} (Hal. 1)`;
+      }
+      return `${formatEnum(currentTahap)} (Awal)`;
+    }
+
+    if (lastSetoran.surah) {
+      return `${lastSetoran.surah.nama_surah} (${lastSetoran.ayat_awal || 1}-${lastSetoran.ayat_akhir || 1})`;
+    }
+    if (lastSetoran.jilid > 0 || lastSetoran.bab || lastSetoran.halaman) {
+      return `Jilid ${lastSetoran.jilid} (Hal. ${lastSetoran.bab || lastSetoran.halaman || "-"})`;
+    }
+    return lastSetoran.materi || formatEnum(lastSetoran.tahapan) || "Belum Memulai";
+  };
+
   return (
     <div className="flex flex-col gap-5">
+      <div className="flex w-full gap-5">
+        <SearchInput
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Cari siswa di kelas Tahsin ini..."
+        />
+      </div>
+
       <Table className="hidden lg:table">
         <TableHeader className="bg-neutral-surface">
           <TableRow>
@@ -47,38 +96,56 @@ function TahsinDetail() {
             <TableHead className="">Kelas</TableHead>
             <TableHead className="">Posisi Bacaan</TableHead>
             <TableHead className="">Nilai</TableHead>
-            <TableHead className="">Status</TableHead>
+            <TableHead className="">Tahap / Status</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {halaqoh?.siswa?.length === 0 ? (
+          {filteredSiswa.length === 0 ? (
             <TableCell colSpan={5}>Belum ada siswa disini</TableCell>
           ) : (
-            halaqoh?.siswa?.map((siswa) => (
-              <TableRow
-                key={siswa.nis}
-                onClick={() => navigate(`/tahsin/${id}/${siswa.nis}`)}
-              >
-                <TableCell>
-                  <Item>
-                    <ItemMedia>
-                      <Avatar>
-                        <AvatarImage src={siswa.avatar} className="grayscale" />
-                        <AvatarFallback>{siswa.nama.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                    </ItemMedia>
-                    <ItemContent>
-                      <ItemTitle>{siswa.nama}</ItemTitle>
-                      <ItemDescription>{siswa.nis}</ItemDescription>
-                    </ItemContent>
-                  </Item>
-                </TableCell>
-                <TableCell>{siswa.riwayatKelas?.[0]?.nama_kelas}</TableCell>
-                <TableCell>Belum Memulai</TableCell>
-                <TableCell>A+</TableCell>
-                <TableCell>LANJUT</TableCell>
-              </TableRow>
-            ))
+            filteredSiswa.map((siswa) => {
+              const lastSetoran = siswa?.setoranTahsin?.[0];
+              const posisi = getPosisiBacaan(siswa);
+              const nilai = lastSetoran?.nilai || "-";
+              const statusTahap = formatEnum(
+                siswa.tahapan_tahsin ||
+                  lastSetoran?.tahapan ||
+                  siswa.ujianPretest?.[0]?.tahapan ||
+                  "BELUM MULAI",
+              );
+
+              return (
+                <TableRow
+                  key={siswa.nis}
+                  onClick={() => navigate(`/tahsin/${id}/${siswa.nis}`)}
+                >
+                  <TableCell>
+                    <Item>
+                      <ItemMedia>
+                        <Avatar>
+                          <AvatarImage src={siswa.avatar} className="grayscale" />
+                          <AvatarFallback>
+                            {siswa.nama?.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                      </ItemMedia>
+                      <ItemContent>
+                        <ItemTitle>{siswa.nama}</ItemTitle>
+                        <ItemDescription>{siswa.nis}</ItemDescription>
+                      </ItemContent>
+                    </Item>
+                  </TableCell>
+                  <TableCell>
+                    {siswa.riwayatKelas?.[0]?.nama_kelas || "-"}
+                  </TableCell>
+                  <TableCell>{posisi}</TableCell>
+                  <TableCell className="font-semibold">{nilai}</TableCell>
+                  <TableCell className="font-medium text-primary-600">
+                    {statusTahap}
+                  </TableCell>
+                </TableRow>
+              );
+            })
           )}
         </TableBody>
       </Table>
@@ -89,24 +156,34 @@ function TahsinDetail() {
             Belum ada siswa disini
           </p>
         ) : (
-          halaqoh?.siswa?.map((siswa) => (
-            <MobileItemCard
-              key={siswa.nis}
-              avatar={siswa.avatar}
-              title={siswa.nama}
-              subtitle={
-                <>
-                  <span className="font-semibold mr-1">Kelas:</span>
-                  {siswa?.riwayatKelas?.[0]?.nama_kelas || "-"}
-                </>
-              }
-              statusText="Belum Mulai"
-              badgeText="A+"
-              onClick={() =>
-                navigate(`/direktur/tahsin/${siswa.id || siswa.nis}`)
-              }
-            />
-          ))
+          halaqoh?.siswa?.map((siswa) => {
+            const lastSetoran = siswa?.setoranTahsin?.[0];
+            const posisi = getPosisiBacaan(siswa);
+            const nilai = lastSetoran?.nilai || "-";
+            const statusTahap = formatEnum(
+              siswa.tahapan_tahsin ||
+                lastSetoran?.tahapan ||
+                siswa.ujianPretest?.[0]?.tahapan ||
+                "BELUM MULAI",
+            );
+
+            return (
+              <MobileItemCard
+                key={siswa.nis}
+                avatar={siswa.avatar}
+                title={siswa.nama}
+                subtitle={
+                  <>
+                    <span className="font-semibold mr-1">Kelas:</span>
+                    {siswa?.riwayatKelas?.[0]?.nama_kelas || "-"}
+                  </>
+                }
+                statusText={`${statusTahap} | ${posisi}`}
+                badgeText={nilai}
+                onClick={() => navigate(`/tahsin/${id}/${siswa.nis}`)}
+              />
+            );
+          })
         )}
       </div>
     </div>

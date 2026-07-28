@@ -40,6 +40,8 @@ import { FaFileImport } from "react-icons/fa";
 import { toast } from "sonner";
 
 function StudentManagement() {
+  const [search, setSearch] = useState("");
+
   const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [openEdit, setOpenEdit] = useState(false);
@@ -56,6 +58,14 @@ function StudentManagement() {
     refetch,
   } = useGetStudentsQuery();
   const students = studentsData?.data || [];
+
+  const filteredStudents = students.filter((s) => {
+    const keyword = search.toLowerCase();
+    return (
+      s.nama?.toLowerCase().includes(keyword) ||
+      s.nis?.toLowerCase().includes(keyword)
+    );
+  });
 
   const handleRowClick = (student) => {
     setSelectedStudent(student);
@@ -88,7 +98,11 @@ function StudentManagement() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex w-full gap-5">
-        <SearchInput />
+        <SearchInput
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Cari nama / NIS siswa..."
+        />
 
         <input
           type="file"
@@ -120,7 +134,7 @@ function StudentManagement() {
         <p>Memuat data siswa</p>
       ) : (
         <StudentTableContainer
-          students={students}
+          students={filteredStudents}
           onRowClick={handleRowClick}
         />
       )}

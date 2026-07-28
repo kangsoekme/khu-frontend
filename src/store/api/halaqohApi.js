@@ -18,7 +18,7 @@ export const halaqohApi = baseApi.injectEndpoints({
         method: "POST",
         body: newHalaqoh,
       }),
-      invalidatesTags: ["Halaqoh"],
+      invalidatesTags: ["Halaqoh", "Student", "Dashboard", "Laporan"],
     }),
 
     editHalaqoh: builder.mutation({
@@ -27,7 +27,7 @@ export const halaqohApi = baseApi.injectEndpoints({
         method: "PUT",
         body: updatedHalaqoh,
       }),
-      invalidatesTags: ["Halaqoh"],
+      invalidatesTags: ["Halaqoh", "Student", "Dashboard", "Laporan"],
     }),
 
     deleteHalaqoh: builder.mutation({
@@ -35,7 +35,16 @@ export const halaqohApi = baseApi.injectEndpoints({
         url: `/halaqoh/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Halaqoh"],
+      invalidatesTags: ["Halaqoh", "Student", "Dashboard", "Laporan"],
+    }),
+
+    autoGenerateHalaqoh: builder.mutation({
+      query: ({ kategori, targetSize = 11 }) => ({
+        url: "/halaqoh/auto-generate",
+        method: "POST",
+        body: { kategori, targetSize },
+      }),
+      invalidatesTags: ["Halaqoh", "Student", "Dashboard", "Laporan"],
     }),
   }),
 });
@@ -46,4 +55,5 @@ export const {
   useAddHalaqohMutation,
   useEditHalaqohMutation,
   useDeleteHalaqohMutation,
+  useAutoGenerateHalaqohMutation,
 } = halaqohApi;

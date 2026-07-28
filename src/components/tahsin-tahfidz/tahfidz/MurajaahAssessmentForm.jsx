@@ -11,13 +11,23 @@ import {
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { useGetAllSurahQuery } from "../../../store/api/surahApi";
-import { useAddMurajaahMutation } from "../../../store/api/tahfidzApi"; // ✅ Memakai Murajaah
+import {
+  useGetRiwayatMurajaahQuery,
+  useGetRiwayatHafalanQuery,
+  useAddMurajaahMutation,
+} from "../../../store/api/tahfidzApi";
 import { FaMinus, FaPlus } from "react-icons/fa";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 
 function MurajaahAssessmentForm({ nis, halaqohId, onSuccess }) {
-  const { data: surahRes } = useGetAllSurahQuery();
+  const { data: murajaahRes } = useGetRiwayatMurajaahQuery(nis);
+
+  const { data: hafalanRes } = useGetRiwayatHafalanQuery(nis);
+  const lastRef =
+    murajaahRes?.data?.history?.murajaah_baru?.[0] ||
+    hafalanRes?.data?.history?.hafalan_baru?.[0];
+
   const allSurah = surahRes?.data || [];
 
   const [jumlahSalah, setJumlahSalah] = useState(0);
@@ -64,7 +74,13 @@ function MurajaahAssessmentForm({ nis, halaqohId, onSuccess }) {
         <ScrollArea className="h-100">
           <div className="flex flex-col gap-5">
             <Field>
-              <Select name="hafalan_surah">
+              <Select
+                name="hafalan_surah"
+                defaultValue={
+                  lastRef?.no_surah?.toString() ||
+                  lastRef?.surah?.no_surah?.toString()
+                }
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
@@ -82,7 +98,13 @@ function MurajaahAssessmentForm({ nis, halaqohId, onSuccess }) {
                 </SelectContent>
               </Select>
               <div className="flex gap-5">
-                <Input name="hafalan_ayat_awal" placeholder="Ayat Awal" />
+                <Input
+                  name="hafalan_ayat_awal"
+                  placeholder="Ayat Awal"
+                  defaultValue={
+                    lastRef?.ayat_akhir ? Number(lastRef.ayat_akhir) + 1 : 1
+                  }
+                />
                 <Input name="hafalan_ayat_akhir" placeholder="Ayat Akhir" />
               </div>
             </Field>

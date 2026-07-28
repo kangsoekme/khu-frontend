@@ -9,6 +9,8 @@ import { MdGroups } from "react-icons/md";
 import { CgInsertBeforeR } from "react-icons/cg";
 import { HiOutlineDocumentReport } from "react-icons/hi";
 
+import { FaCalendarAlt } from "react-icons/fa";
+
 const MENU_BERANDA = {
   label: "Beranda",
   path: "/beranda",
@@ -69,6 +71,12 @@ const MENU_LAPORAN = {
   icon: HiOutlineDocumentReport,
 };
 
+const MENU_TAHUN_AJARAN = {
+  label: "Tahun Ajaran",
+  path: "/tahun-ajaran",
+  icon: FaCalendarAlt,
+};
+
 export const LOGOUT_MENU_ITEM = {
   label: "Logout",
   icon: RiLogoutBoxFill,
@@ -82,6 +90,7 @@ export const SIDEBAR_CONFIG = {
     MENU_TAHSIN,
     MENU_TAHFIDZ,
     MENU_BACKUP,
+    MENU_TAHUN_AJARAN,
   ],
   [ROLES.DIREKTUR]: [
     MENU_BERANDA,

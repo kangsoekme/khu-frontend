@@ -13,12 +13,44 @@ function MainLayout() {
   const navigate = useNavigate();
 
   const getPageTitle = (pathname) => {
+    const parts = pathname.split("/").filter(Boolean);
+
+    if (
+      (parts[0] === "tahsin" || parts[0] === "tahfidz") &&
+      parts.length === 3
+    ) {
+      return "Detail Siswa";
+    }
+    if (
+      (parts[0] === "tahsin" ||
+        parts[0] === "tahfidz" ||
+        parts[0] === "manajemen-halaqoh") &&
+      parts.length === 2
+    ) {
+      return "Detail Kelompok";
+    }
+    if (parts[0] === "manajemen-siswa" && parts.length === 2) {
+      return "Detail Siswa";
+    }
+
+    // Rute utama lainnya
     if (pathname.includes("manajemen-user")) return "Manajemen User";
     if (pathname.includes("manajemen-siswa")) return "Manajemen Siswa";
+    if (pathname.includes("manajemen-halaqoh")) return "Manajemen Halaqoh";
+    if (pathname.includes("tahun-ajaran")) return "Tahun Ajaran & Transisi";
+    if (
+      pathname.includes("manajemen-laporan") ||
+      pathname.includes("pusat-laporan")
+    )
+      return "Pusat Laporan";
     if (pathname.includes("tahsin")) return "Tahsin Qiraah";
     if (pathname.includes("tahfidz")) return "Tahfidz Quran";
+    if (pathname.includes("pretest")) return "Ujian Placement (Pretest)";
+    if (pathname.includes("ujian-kenaikan")) return "Ujian Kenaikan Jilid";
+    if (pathname.includes("munaqosyah")) return "Pengajuan Munaqosyah";
+    if (pathname.includes("laporan")) return "Pusat Export Laporan";
 
-    return "Homepage Dashboard";
+    return "Beranda";
   };
 
   const pageTitle = getPageTitle(location.pathname);
@@ -28,6 +60,8 @@ function MainLayout() {
   };
 
   const currentRole = localStorage.getItem("role") || ROLES.SUPER_ADMIN;
+  const rawName = localStorage.getItem("nama") || "Pengguna";
+  const currentName = rawName.split(" ").slice(0, 2).join(" ");
   const roleName = ROLES_NAMES[currentRole];
 
   const closeSidebar = () => {
@@ -46,7 +80,7 @@ function MainLayout() {
           {/* logo native desktop */}
           <div className="hidden xl:flex xl:items-center xl:px-8 xl:pl-10">
             <img
-              src="src/assets/img/khu.png"
+              src="public\khu.png"
               alt=""
               srcSet=""
               className="xl:h-9 2xl:h-11"
@@ -93,6 +127,7 @@ function MainLayout() {
         <div className="bg-neutral-bg col-span-5 row-start-1 flex items-center justify-end xl:col-start-2">
           <Topbar
             onLogoClick={toggleSidebar}
+            nama={currentName}
             role={roleName}
             title={pageTitle}
           />

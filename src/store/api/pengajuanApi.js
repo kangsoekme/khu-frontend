@@ -13,7 +13,7 @@ export const pengajuanApi = baseApi.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["Pengajuan"],
+      invalidatesTags: ["Pengajuan", "Student", "Dashboard"],
     }),
   }),
 });

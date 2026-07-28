@@ -38,8 +38,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { FaFileExcel } from "react-icons/fa";
-import { FaFilePdf } from "react-icons/fa6";
 import ChartPerkembangan from "../../../components/tahsin-tahfidz/ChartPerkembangan";
 import {
   useGetRiwayatHafalanQuery,
@@ -49,6 +47,8 @@ import TahfidzAssessmentForm from "../../../components/tahsin-tahfidz/tahfidz/Ta
 import MurajaahAssessmentForm from "../../../components/tahsin-tahfidz/tahfidz/MurajaahAssessmentForm";
 
 import { BASE_API_URL } from "../../../store/baseApi";
+import { toast } from "sonner";
+import { FaDownload } from "react-icons/fa";
 
 import { MobileHistoryCard } from "../../../components/ui/MobileHistoryCard";
 
@@ -58,8 +58,9 @@ function TahfidzStudentDetail() {
 
   const [openHafalan, setOpenHafalan] = useState(false);
   const [openMurajaah, setOpenMurajaah] = useState(false);
+  const [activeTab, setActiveTab] = useState("hafalan");
 
-  const isDesktop = useMediaQuery("(min-width:768px");
+  const isDesktop = useMediaQuery("(min-width: 768px)");
   const { data: studentRes, isLoading: isLoadingStudent } =
     useGetStudentQuery(nis);
   const { data: riwayatRes, isLoading: isLoadingRiwayat } =
@@ -74,6 +75,21 @@ function TahfidzStudentDetail() {
   const student = studentRes?.data;
   const riwayatList = riwayatRes?.data?.history?.hafalan_baru || [];
   const murajaahList = murajaahRes?.data?.history?.murajaah_baru || [];
+
+  const chartData = [...(riwayatList || [])].reverse().map((item, idx) => {
+    const dateVal = item.timestamp || item.tanggal;
+    const dateStr = dateVal
+      ? new Date(dateVal).toLocaleDateString("id-ID", {
+          day: "2-digit",
+          month: "short",
+        })
+      : `P-${idx + 1}`;
+    return {
+      date: dateStr,
+      ayat:
+        Number(item.ayat_akhir) || Number(item.jumlah_ayat) || (idx + 1) * 5,
+    };
+  });
 
   const summary = riwayatRes?.data?.history?.summary;
 
@@ -155,7 +171,14 @@ function TahfidzStudentDetail() {
         </div>
 
         <div className="xl:col-span-3 w-full h-full min-h-100">
-          <ChartPerkembangan className="h-full" />
+          <ChartPerkembangan
+            className="h-full"
+            data={chartData}
+            title="Grafik Hafalan Tahfidz"
+            desc="Pergerakan jumlah ayat akhir yang dihafalkan siswa"
+            dataKey="ayat"
+            label="Capai Ayat Akhir"
+          />
         </div>
       </div>
       <Card>

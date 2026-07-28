@@ -3,7 +3,12 @@ import { useGetStudentsQuery } from "../../store/api/studentsApi";
 import {
   useGetAllHalaqohQuery,
   useDeleteHalaqohMutation,
+  useAddHalaqohMutation,
+  useAutoGenerateHalaqohMutation,
 } from "../../store/api/halaqohApi";
+
+import { BASE_API_URL } from "../../store/baseApi";
+
 import HalaqohForm from "../../components/halaqoh/HalaqohForm";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,13 +41,18 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { Badge } from "@/components/ui/badge";
+import { formatEnum } from "../../utils/formatEnum";
+
+import { toast } from "sonner";
+import { useGetUsersQuery } from "../../store/api/usersApi";
 
 function HalaqohManagement() {
   const { data: studentObj, isLoading: isStudentLoading } =
     useGetStudentsQuery();
   const { data: halaqohObj, isLoading: isHalaqohLoading } =
     useGetAllHalaqohQuery();
-  const [deleteHalaqoh] = useDeleteHalaqohMutation();
+  const [autoGenerateHalaqoh, { isLoading: isGenerating }] =
+    useAutoGenerateHalaqohMutation();
 
   const [openForm, setOpenForm] = useState(false);
   const [selectedHalaqoh, setSelectedHalaqoh] = useState(null);
@@ -56,24 +66,118 @@ function HalaqohManagement() {
 
   const waitingStudent = allStudents.filter((student) => {
     if (activeTab === "TAHSIN") {
-      return (
-        student.tahapan_tahsin !== null && student.halaqoh_tahsin_id === null
-      );
+      const hasTahsinProgressOrPretest =
+        (student.ujianPretest && student.ujianPretest.length > 0) ||
+        (student.setoranTahsin && student.setoranTahsin.length > 0) ||
+        student.tahapan_tahsin !== null;
+
+      return student.halaqoh_tahsin_id === null && hasTahsinProgressOrPretest;
     } else {
       return student.halaqoh_tahfidz_id === null;
     }
   });
 
-  const groupedStudents = waitingStudent.reduce((acc, student) => {
+  const sortedStudents = [...waitingStudent].sort((a, b) => {
+    if (activeTab === "TAHSIN") {
+      const hasSetoranA = a.setoranTahsin && a.setoranTahsin.length > 0;
+      const hasSetoranB = b.setoranTahsin && b.setoranTahsin.length > 0;
+      if (hasSetoranA && !hasSetoranB) return -1;
+      if (!hasSetoranA && hasSetoranB) return 1;
+      if (hasSetoranA && hasSetoranB) {
+        const halA = Number(
+          a.setoranTahsin[0]?.bab || a.setoranTahsin[0]?.halaman || 0,
+        );
+        const halB = Number(
+          b.setoranTahsin[0]?.bab || b.setoranTahsin[0]?.halaman || 0,
+        );
+        return halA - halB;
+      }
+      return 0;
+    } else {
+      const surahA = Number(a.setoranHafalan?.[0]?.no_surah || 0);
+      const surahB = Number(b.setoranHafalan?.[0]?.no_surah || 0);
+      if (surahA !== surahB) return surahB - surahA;
+      return (
+        Number(a.setoranHafalan?.[0]?.ayat_akhir || 0) -
+        Number(b.setoranHafalan?.[0]?.ayat_akhir || 0)
+      );
+    }
+  });
+
+  const groupedStudents = sortedStudents.reduce((acc, student) => {
+    let rawKey = "BELUM MULAI";
+    if (activeTab === "TAHSIN") {
+      rawKey =
+        student.tahapan_tahsin ||
+        student.setoranTahsin?.[0]?.tahapan ||
+        student.ujianPretest?.[0]?.tahapan ||
+        "🌟 BELUM MULAI / BELUM ADA TAHAPAN";
+    } else {
+      rawKey = student.setoranHafalan?.[0]?.surah?.nama_surah
+        ? `Juz 30 (Qs. ${student.setoranHafalan[0].surah.nama_surah})`
+        : student.setoranHafalan?.[0]?.no_surah
+        ? `Juz 30 (Surah ke-${student.setoranHafalan[0].no_surah})`
+        : "🌟 SISWA BARU (BELUM ADA SETORAN)";
+    }
     const key =
-      activeTab === "TAHSIN"
-        ? student.tahapan_tahsin
-        : student.riwayatKelas?.[0]?.nama_kelas || "Belum ada kelas";
+      activeTab === "TAHSIN" && !rawKey.includes("🌟")
+        ? formatEnum(rawKey)
+        : rawKey;
 
     if (!acc[key]) acc[key] = [];
     acc[key].push(student);
     return acc;
   }, {});
+
+  const handleAutoGenerate = async () => {
+    if (
+      !confirm(
+        `Apakah Anda yakin ingin membuat kelompok ${activeTab} otomatis oleh server?`,
+      )
+    )
+      return;
+
+    try {
+      const res = await autoGenerateHalaqoh({
+        kategori: activeTab,
+        targetSize: 11,
+      }).unwrap();
+      toast.success(
+        `${res.data?.length || "Beberapa"} Kelompok Halaqoh berhasil dibentuk otomatis!`,
+      );
+    } catch (err) {
+      console.error(err);
+      toast.error(err.data?.message || "Gagal membuat kelompok otomatis");
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      const token = localStorage.getItem("token") || "";
+      // Gunakan fetch untuk mengunduh file binary dari backend berserta header Authorization
+      const response = await fetch(
+        `${BASE_API_URL}/export/halaqoh?kategori=${activeTab}`,
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      if (!response.ok) throw new Error("Gagal mengunduh file Excel");
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Pembagian_Kelompok_${activeTab}_2024_2025.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success("File Excel pembagian halaqoh berhasil diunduh!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Gagal mengunduh Laporan Excel");
+    }
+  };
 
   const handleAddClick = () => {
     setSelectedHalaqoh(null);
@@ -87,21 +191,39 @@ function HalaqohManagement() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-end gap-5">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 w-full">
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
           defaultValue="TAHSIN"
-          className="p-0-"
+          className="w-full lg:w-auto"
         >
-          <TabsList>
-            <TabsTrigger value="TAHSIN">Tahsin Qiraah</TabsTrigger>
-            <TabsTrigger value="TAHFIDZ">Tahfidz Quran</TabsTrigger>
+          <TabsList className="flex w-full lg:w-auto">
+            <TabsTrigger value="TAHSIN" className="flex-1">Tahsin Qiraah</TabsTrigger>
+            <TabsTrigger value="TAHFIDZ" className="flex-1">Tahfidz Quran</TabsTrigger>
           </TabsList>
         </Tabs>
-        <Button onClick={handleAddClick}>
-          <FaPlus className="mr-2" /> Buat Halaqoh
-        </Button>
+
+        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+          <Button onClick={handleAddClick} className="w-full sm:w-auto flex-1 sm:flex-none">
+            <FaPlus className="mr-2" /> Buat Halaqoh
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={handleAutoGenerate}
+            disabled={isGenerating}
+            className="w-full sm:w-auto flex-1 sm:flex-none font-semibold shadow-xs"
+          >
+            {isGenerating ? "Membentuk..." : `Buat Otomatis (${activeTab})`}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleExportExcel}
+            className="w-full sm:w-auto flex-1 sm:flex-none font-semibold shadow-xs"
+          >
+            Ekspor Excel
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
@@ -129,7 +251,16 @@ function HalaqohManagement() {
                         <ItemTitle>{siswa.nama}</ItemTitle>
                         <ItemDescription>
                           {siswa.nis} |{" "}
-                          {siswa.riwayatKelas?.[0]?.nama_kelas || "-"}
+                          {activeTab === "TAHSIN"
+                            ? siswa.setoranTahsin?.[0]?.bab ||
+                              siswa.setoranTahsin?.[0]?.halaman
+                              ? `Hal. ${siswa.setoranTahsin[0].bab || siswa.setoranTahsin[0].halaman}`
+                              : siswa.setoranTahsin?.[0]?.materi
+                              ? siswa.setoranTahsin[0].materi
+                              : `Pretest: ${formatEnum(siswa.ujianPretest?.[0]?.tahapan || siswa.tahapan_tahsin || "BELUM MULAI")}`
+                            : siswa.setoranHafalan?.[0]?.surah?.nama_surah
+                              ? `Qs. ${siswa.setoranHafalan[0].surah.nama_surah} (${siswa.setoranHafalan[0].ayat_akhir})`
+                              : "Siswa Baru"}
                         </ItemDescription>
                       </ItemContent>
                     </Item>
@@ -147,37 +278,39 @@ function HalaqohManagement() {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-5">
-            {allHalaqoh.map((halaqoh) => (
-              <Item
-                key={halaqoh.id}
-                onClick={() => handleEditClick(halaqoh)}
-                variant="outline"
-              >
-                <ItemContent className="w-full">
-                  <div className="flex justify-between items-start w-full">
-                    <div className="">
-                      <ItemTitle>{halaqoh.nama_halaqoh}</ItemTitle>
-                      <ItemDescription>
-                        {halaqoh.guru?.nama} | {halaqoh.siswa?.length || 0}{" "}
-                        Siswa
-                      </ItemDescription>
-                    </div>
+            {allHalaqoh
+              .filter((h) => h.kategori === activeTab)
+              .map((halaqoh) => (
+                <Item
+                  key={halaqoh.id}
+                  onClick={() => handleEditClick(halaqoh)}
+                  variant="outline"
+                >
+                  <ItemContent className="w-full">
+                    <div className="flex justify-between items-start w-full">
+                      <div className="">
+                        <ItemTitle>{halaqoh.nama_halaqoh}</ItemTitle>
+                        <ItemDescription>
+                          {halaqoh.guru?.nama} | {halaqoh.siswa?.length || 0}{" "}
+                          Siswa
+                        </ItemDescription>
+                      </div>
 
-                    <div className="flex flex-col items-end gap-2">
-                      <Badge
-                        variant={
-                          halaqoh.kategori === "TAHSIN"
-                            ? "default"
-                            : "secondary"
-                        }
-                      >
-                        {halaqoh.kategori}
-                      </Badge>
+                      <div className="flex flex-col items-end gap-2">
+                        <Badge
+                          variant={
+                            halaqoh.kategori === "TAHSIN"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
+                          {halaqoh.kategori}
+                        </Badge>
+                      </div>
                     </div>
-                  </div>
-                </ItemContent>
-              </Item>
-            ))}
+                  </ItemContent>
+                </Item>
+              ))}
           </CardContent>
         </Card>
 
@@ -192,6 +325,7 @@ function HalaqohManagement() {
             <HalaqohForm
               initialData={selectedHalaqoh}
               studentsList={waitingStudent}
+              defaultKategori={activeTab}
               onSuccess={() => setOpenForm(false)}
             />
           </DialogContent>

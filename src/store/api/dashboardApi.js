@@ -1,17 +1,17 @@
 import { baseApi } from "../baseApi";
 
 export const dashboardApi = baseApi.injectEndpoints({
-  endpoints: (buider) => ({
-    getSuperAdminDashboard: buider.query({
+  endpoints: (builder) => ({
+    getSuperAdminDashboard: builder.query({
       query: () => `/dashboard/super-admin`,
       providesTags: ["Dashboard"],
     }),
-    getDirekturDashboard: buider.query({
+    getDirekturDashboard: builder.query({
       query: () => `/dashboard/direktur`,
       providesTags: ["Dashboard"],
     }),
 
-    getGuruDashboard: buider.query({
+    getGuruDashboard: builder.query({
       query: () => `/dashboard/guru`,
       providesTags: ["Dashboard"],
     }),

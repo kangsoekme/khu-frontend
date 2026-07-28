@@ -13,7 +13,7 @@ export const usersApi = baseApi.injectEndpoints({
         method: "POST",
         body: userData,
       }),
-      invalidatesTags: ["User"],
+      invalidatesTags: ["User", "Halaqoh", "Dashboard"],
     }),
 
     editUser: builder.mutation({
@@ -22,7 +22,7 @@ export const usersApi = baseApi.injectEndpoints({
         method: "PUT",
         body: sisaData,
       }),
-      invalidatesTags: ["User"],
+      invalidatesTags: ["User", "Halaqoh", "Dashboard"],
     }),
 
     deleteUser: builder.mutation({
@@ -30,7 +30,7 @@ export const usersApi = baseApi.injectEndpoints({
         url: `/user/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["User"],
+      invalidatesTags: ["User", "Halaqoh", "Dashboard"],
     }),
   }),
 

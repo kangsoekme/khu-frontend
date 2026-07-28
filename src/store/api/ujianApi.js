@@ -4,7 +4,7 @@ export const ujianApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getRiwayatUjian: builder.query({
       query: (nis) => `/ujian/tahsin/${nis}`,
-      providesTags: ["Student"],
+      providesTags: ["Ujian", "Student"],
     }),
 
     addUjianKenaikan: builder.mutation({
@@ -13,7 +13,14 @@ export const ujianApi = baseApi.injectEndpoints({
         method: "POST",
         body: ujianData,
       }),
-      invalidatesTags: ["Pengajuan", "Student"],
+      invalidatesTags: [
+        "Pengajuan",
+        "Student",
+        "Halaqoh",
+        "Dashboard",
+        "Ujian",
+        "Laporan",
+      ],
     }),
   }),
 });

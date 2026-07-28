@@ -51,7 +51,7 @@ function Sidebar({ role, onLogout }) {
 
             <button
               onClick={onLogout}
-              className="group flex gap-2 items-center h-17 justify-center rounded-sm flex-row xl:gap-4 xl:h-10"
+              className="group flex gap-2 items-center h-17 justify-center rounded-sm flex-row xl:gap-4 xl:h-10 cursor-pointer"
             >
               <LOGOUT_MENU_ITEM.icon className="font-normal text-neutral-textmuted xl:text-sm 2xl:text-base" />
               <span className="text-xs text-center xl:text-sm 2xl:text-base">

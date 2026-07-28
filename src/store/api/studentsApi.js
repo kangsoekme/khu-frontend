@@ -17,7 +17,14 @@ export const studentsApi = baseApi.injectEndpoints({
         method: "POST",
         body: studentData,
       }),
-      invalidatesTags: ["Student"],
+      invalidatesTags: [
+        "Student",
+        "Halaqoh",
+        "Dashboard",
+        "Pengajuan",
+        "Ujian",
+        "Laporan",
+      ],
     }),
 
     editStudent: builder.mutation({
@@ -26,7 +33,14 @@ export const studentsApi = baseApi.injectEndpoints({
         method: "PUT",
         body: restData,
       }),
-      invalidatesTags: ["Student"],
+      invalidatesTags: [
+        "Student",
+        "Halaqoh",
+        "Dashboard",
+        "Pengajuan",
+        "Ujian",
+        "Laporan",
+      ],
     }),
 
     deleteStudent: builder.mutation({
@@ -34,7 +48,14 @@ export const studentsApi = baseApi.injectEndpoints({
         url: `/student/${nis}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Student"],
+      invalidatesTags: [
+        "Student",
+        "Halaqoh",
+        "Dashboard",
+        "Pengajuan",
+        "Ujian",
+        "Laporan",
+      ],
     }),
 
     importStudent: builder.mutation({
@@ -43,7 +64,14 @@ export const studentsApi = baseApi.injectEndpoints({
         method: "POST",
         body: formData,
       }),
-      invalidatesTags: ["Student"],
+      invalidatesTags: [
+        "Student",
+        "Halaqoh",
+        "Dashboard",
+        "Pengajuan",
+        "Ujian",
+        "Laporan",
+      ],
     }),
   }),
 

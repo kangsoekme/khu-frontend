@@ -1,13 +1,10 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
-
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -17,64 +14,64 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 
-export const description = "A simple area chart";
+export function ChartPerkembangan({
+  className,
+  data = [],
+  title = "Grafik Perkembangan Siswa",
+  desc = "Riwayat capaian dari waktu ke waktu",
+  dataKey = "score",
+  label = "Nilai / Capaian",
+}) {
+  const chartConfig = {
+    [dataKey]: {
+      label: label,
+      color: "var(--chart-1)",
+    },
+  };
 
-const chartData = [
-  { month: "January", desktop: 186 },
-  { month: "February", desktop: 305 },
-  { month: "March", desktop: 237 },
-  { month: "April", desktop: 73 },
-  { month: "May", desktop: 209 },
-  { month: "June", desktop: 214 },
-];
-
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--chart-1)",
-  },
-};
-
-export function ChartPerkembangan({ className }) {
   return (
     <Card className={`flex flex-col ${className}`}>
       <CardHeader>
-        <CardTitle>Area Chart</CardTitle>
-        <CardDescription>
-          Showing total visitors for the last 6 months
-        </CardDescription>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{desc}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
-        <ChartContainer config={chartConfig} className="h-full min-h-75 w-full">
-          <AreaChart
-            accessibilityLayer
-            data={chartData}
-            margin={{
-              left: 12,
-              right: 12,
-            }}
+        {data.length === 0 ? (
+          <div className="flex h-full min-h-60 items-center justify-center text-sm font-medium text-neutral-400 border border-dashed rounded-lg my-4">
+            Belum ada riwayat setoran untuk ditampilkan di grafik
+          </div>
+        ) : (
+          <ChartContainer
+            config={chartConfig}
+            className="h-full min-h-75 w-full"
           >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="month"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tickFormatter={(value) => value.slice(0, 3)}
-            />
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent indicator="line" />}
-            />
-            <Area
-              dataKey="desktop"
-              type="natural"
-              fill="var(--color-desktop)"
-              fillOpacity={0.4}
-              stroke="var(--color-desktop)"
-            />
-          </AreaChart>
-        </ChartContainer>
+            <AreaChart
+              accessibilityLayer
+              data={data}
+              margin={{ left: 12, right: 12 }}
+            >
+              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+              />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent indicator="line" />}
+              />
+              <Area
+                dataKey={dataKey}
+                type="natural"
+                fill="#0D8ABC"
+                fillOpacity={0.3}
+                stroke="#0D8ABC"
+                strokeWidth={3}
+              />
+            </AreaChart>
+          </ChartContainer>
+        )}
       </CardContent>
     </Card>
   );

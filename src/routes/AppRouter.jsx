@@ -29,6 +29,13 @@ import TahfidzStudentDetail from "../pages/direktur/tahfidz/TahfidzStudentDetail
 import UjianKenaikanManagement from "../pages/direktur/tahsin/UjianKenaikanManagement.jsx";
 import BackupManagement from "../pages/super-admin/BackupManagement.jsx";
 import LaporanManagement from "../pages/direktur/LaporanManagement.jsx";
+import TahunAjaranManagement from "../pages/direktur/TahunAjaranManajemen.jsx";
+
+// WALI
+import WaliLogin from "../pages/wali/WaliLogin.jsx";
+import WaliDashboard from "../pages/wali/WaliDashboard.jsx";
+import WaliLayout from "../layout/WaliLayout.jsx";
+import WaliProtectedRoute from "./WaliProtectedRoute.jsx";
 
 const RoleBasedHomepage = () => {
   const currentRole = localStorage.getItem("role") || ROLES.SUPER_ADMIN;
@@ -48,6 +55,22 @@ const router = createBrowserRouter([
   {
     path: "/login",
     element: <LoginPage />,
+  },
+  {
+    path: "/wali/login",
+    element: <WaliLogin />,
+  },
+  {
+    element: <WaliProtectedRoute />,
+    children: [
+      {
+        path: "/wali/dashboard",
+        element: <WaliLayout />,
+        children: [
+          { index: true, element: <WaliDashboard /> },
+        ],
+      },
+    ],
   },
   {
     element: <ProtectedRoute />,
@@ -126,6 +149,15 @@ const router = createBrowserRouter([
         children: [
           { index: true, element: <DirekturPretestManagement /> },
           { path: "pretest", element: <DirekturPretestManagement /> },
+        ],
+      },
+
+      {
+        path: "/tahun-ajaran",
+        element: <MainLayout />,
+        children: [
+          { index: true, element: <TahunAjaranManagement /> },
+          { path: "tahun-ajaran", element: <TahunAjaranManagement /> },
         ],
       },
     ],

@@ -8,16 +8,24 @@ import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
 import { useAjukanUjianMutation } from "../../../store/api/pengajuanApi";
+import { BASE_API_URL } from "../../../store/baseApi";
 import { toast } from "sonner";
-
 import {
   FaArrowLeft,
-  FaDownload,
   FaCalendarCheck,
   FaGraduationCap,
+  FaEllipsisV,
+  FaEdit,
+  FaTrash,
 } from "react-icons/fa";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -64,13 +72,69 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import ChartPerkembangan from "../../../components/tahsin-tahfidz/ChartPerkembangan";
 import TahsinAssessmentForm from "../../../components/tahsin-tahfidz/tahsin/TahsinAssessmentForm";
 import { MobileHistoryCard } from "../../../components/ui/MobileHistoryCard";
+import { useDeleteTahsinMutation } from "../../../store/api/tahsinApi";
+import {
+  cekKelengkapanPengajuan,
+  getKategoriTahapan,
+} from "../../../utils/tahsinCompletion";
+import { formatEnum } from "../../../utils/formatEnum";
+
+// Helper: Format laporan bacaan untuk ditampilkan (title + subtitle)
+// Mengembalikan string dinamis berdasarkan jenis setoran (buku / quran / keduanya)
+const formatLaporanBacaan = (riwayat) => {
+  const laporan = riwayat?.laporan_bacaan || {};
+  const kategori = getKategoriTahapan(riwayat?.tahapan);
+
+  const parts = [];
+
+  // Komponen BUKU (Jilid UMMI / Gharib / Tajwid)
+  const hasBuku =
+    laporan.jilid !== null &&
+    laporan.jilid !== undefined &&
+    laporan.bab !== null &&
+    laporan.bab !== undefined;
+
+  if (hasBuku) {
+    const isGharibOrTajwid = kategori === "GANDA";
+    const labelBuku = isGharibOrTajwid
+      ? formatEnum(riwayat.tahapan)
+      : laporan.jilid === 0
+        ? "Buku"
+        : `Jilid ${laporan.jilid}`;
+    parts.push({
+      label: labelBuku,
+      sub: `Halaman ${laporan.bab ?? "-"}`,
+    });
+  }
+
+  // Komponen Al-QURAN (surah + ayat)
+  if (laporan.surah) {
+    parts.push({
+      label: laporan.surah,
+      sub: `Ayat ${laporan.ayat_awal ?? "-"} - ${laporan.ayat_akhir ?? "-"}`,
+    });
+  }
+
+  // Fallback format lama (jilid_surah + ayat)
+  if (parts.length === 0 && laporan.jilid_surah != null) {
+    const isNumber = !isNaN(Number(laporan.jilid_surah));
+    parts.push({
+      label: isNumber ? `Jilid ${laporan.jilid_surah}` : laporan.jilid_surah,
+      sub: laporan.ayat ? `Halaman/Ayat ${laporan.ayat}` : "-",
+    });
+  }
+
+  return parts;
+};
 
 function TahsinStudentDetail() {
   const [ajukanUjian, { isLoading: isMengajukan }] = useAjukanUjianMutation();
+  const [deleteTahsin, { isLoading: isDeleting }] = useDeleteTahsinMutation();
   const { nis } = useParams();
   const currentRole = localStorage.getItem("role");
 
   const [openForm, setOpenForm] = useState(false);
+  const [editData, setEditData] = useState(null);
   const [openPengajuan, setOpenPengajuan] = useState(false);
 
   const isDesktop = useMediaQuery("(min-width:768px");
@@ -88,6 +152,40 @@ function TahsinStudentDetail() {
   const riwayatList = riwayatRes?.data?.history || [];
   const summary = riwayatRes?.data?.summary;
 
+  // Cek kelengkapan pengajuan ujian: HANYA boleh jika tahapan saat ini selesai.
+  const statusPengajuan = cekKelengkapanPengajuan(
+    riwayatList,
+    student?.tahapan_tahsin,
+  );
+
+  const chartData = [...riwayatList].reverse().map((item, idx) => {
+    const gradeMap = {
+      "A+": 98,
+      A: 90,
+      "B+": 85,
+      B: 80,
+      "B-": 75,
+      "C+": 70,
+      C: 65,
+      "C-": 60,
+      D: 50,
+    };
+    const gradeVal = item.nilai_tahsin || item.nilai;
+    const numScore = gradeMap[gradeVal] || 75;
+    const dateVal = item.timestamp || item.tanggal;
+    const dateStr = dateVal
+      ? new Date(dateVal).toLocaleDateString("id-ID", {
+          day: "2-digit",
+          month: "short",
+        })
+      : `P-${idx + 1}`;
+    return {
+      date: dateStr,
+      score: numScore,
+      nilai: gradeVal,
+    };
+  });
+
   const handleAjukanUjian = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -104,6 +202,20 @@ function TahsinStudentDetail() {
     } catch (error) {
       toast.error(error?.data?.message || "Gagal mengajukan ujian");
       console.error(error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (
+      window.confirm("Apakah Anda yakin ingin menghapus riwayat setoran ini?")
+    ) {
+      try {
+        await deleteTahsin(id).unwrap();
+        toast.success("Riwayat berhasil dihapus!");
+      } catch (error) {
+        toast.error("Gagal menghapus riwayat");
+        console.error("Error delete: ", error);
+      }
     }
   };
 
@@ -133,10 +245,13 @@ function TahsinStudentDetail() {
               </div>
             </CardContent>
           </Card>
-          <div className="flex gap-5">
+          <div className="flex flex-wrap gap-3">
             {currentRole === "GURU" && (
               <Button
-                onClick={() => setOpenForm(true)}
+                onClick={() => {
+                  setEditData(null);
+                  setOpenForm(true);
+                }}
                 className="flex-1 h-12 flex"
               >
                 <FaCalendarCheck className="text-2xl" /> Tambah Penilaian
@@ -145,10 +260,15 @@ function TahsinStudentDetail() {
             {currentRole === "GURU" && (
               <Button
                 onClick={() => setOpenPengajuan(true)}
-                disabled={isMengajukan}
-                className="flex-1 h-12 flex bg-orange-600"
+                disabled={isMengajukan || !statusPengajuan.bolehAjukan}
+                title={statusPengajuan.alasan}
+                className="flex-1 h-12 flex bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isMengajukan ? "Mengajukan..." : "Ajukan Ujian Kenaikan"}
+                {isMengajukan
+                  ? "Mengajukan..."
+                  : statusPengajuan.bolehAjukan
+                    ? "Ajukan Ujian Kenaikan"
+                    : "Belum Bisa Ajukan Ujian"}
               </Button>
             )}
           </div>
@@ -187,7 +307,14 @@ function TahsinStudentDetail() {
         </div>
 
         <div className="xl:col-span-3 w-full h-full min-h-100">
-          <ChartPerkembangan className="col-span-2" />
+          <ChartPerkembangan
+            className="col-span-2"
+            data={chartData}
+            title="Grafik Nilai Tahsin"
+            desc="Pergerakan grafik berdasarkan nilai setoran harian siswa"
+            dataKey="score"
+            label="Skor Perkembangan"
+          />
         </div>
       </div>
       <Card>
@@ -199,77 +326,107 @@ function TahsinStudentDetail() {
             <TableHeader>
               <TableRow>
                 <TableHead>HARI / TANGGAL</TableHead>
-                <TableHead>HAFALAN PENDEK</TableHead>
                 <TableHead>LAPORAN BACAAN</TableHead>
                 <TableHead>NILAI</TableHead>
                 <TableHead>STATUS</TableHead>
                 <TableHead>KETERANGAN</TableHead>
+                {currentRole === "GURU" && <TableHead>AKSI</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {riwayatList.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-5">
+                  <TableCell colSpan={6} className="text-center py-5">
                     Belum ada riwayat setoran tahsin
                   </TableCell>
                 </TableRow>
               ) : (
-                riwayatList.map((riwayat) => (
-                  <TableRow>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-semibold uppercase">
-                          {new Date(riwayat.timestamp).toLocaleDateString(
-                            "id-ID",
-                            { weekday: "long" },
+                riwayatList.map((riwayat) => {
+                  const laporanParts = formatLaporanBacaan(riwayat);
+                  return (
+                    <TableRow key={riwayat.id}>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-semibold uppercase">
+                            {new Date(riwayat.timestamp).toLocaleDateString(
+                              "id-ID",
+                              { weekday: "long" },
+                            )}
+                          </span>
+                          <span className="text-neutral-textmuted">
+                            {new Date(riwayat.timestamp).toLocaleDateString(
+                              "id-ID",
+                              {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                              },
+                            )}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-10">
+                          {laporanParts.length === 0 ? (
+                            <span className="text-neutral-textmuted">-</span>
+                          ) : (
+                            laporanParts.map((part, i) => (
+                              <div key={i} className="flex flex-col">
+                                <span
+                                  className={`font-bold ${part.label.startsWith("Jilid") || part.label === "Gharib" || part.label === "Tajwid" ? "text-primary-600" : "text-emerald-600"}`}
+                                >
+                                  {part.label}
+                                </span>
+                                <span className="text-neutral-textmuted">
+                                  {part.sub}
+                                </span>
+                              </div>
+                            ))
                           )}
-                        </span>
-                        <span className="text-neutral-textmuted">
-                          {new Date(riwayat.timestamp).toLocaleDateString(
-                            "id-ID",
-                            { day: "numeric", month: "long", year: "numeric" },
-                          )}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-medium">
-                          {riwayat.hafalan_surah?.surah || "-"}
-                        </span>
-                        <span className="text-neutral-textmuted">
-                          {riwayat.hafalan_surah?.ayat_awal || "-"} -
-                          {riwayat.hafalan_surah?.ayat_akhir || "-"}
-                        </span>
-                      </div>
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="flex flex-col">
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-bold text-lg">
+                        {riwayat.nilai_tahsin || "-"}
+                      </TableCell>
+                      <TableCell>
                         <span className="font-bold text-primary-600">
-                          {typeof riwayat.laporan_bacaan?.jilid_surah ===
-                          "number"
-                            ? `JILID ${riwayat.laporan_bacaan.jilid_surah}`
-                            : riwayat.laporan_bacaan?.jilid_surah || "-"}
+                          {riwayat.status_kelanjutan || ""}
                         </span>
-                        <span className="text-neutral-textmuted">
-                          {riwayat.laporan_bacaan?.ayat || "-"}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-bold text-lg">
-                      {riwayat.nilai_tahsin || "-"}
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-bold text-primary-600">
-                        {riwayat.status_kelanjutan || ""}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-sm max-w-50 truncate">
-                      {riwayat.keterangan || "-"}
-                    </TableCell>
-                  </TableRow>
-                ))
+                      </TableCell>
+                      <TableCell className="text-sm max-w-50 truncate">
+                        {riwayat.keterangan || "-"}
+                      </TableCell>
+                      {currentRole === "GURU" && (
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <FaEllipsisV />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setEditData(riwayat);
+                                  setOpenForm(true);
+                                }}
+                                className="cursor-pointer"
+                              >
+                                <FaEdit className="mr-2" /> Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDelete(riwayat.id)}
+                                className="text-red-600 cursor-pointer focus:bg-red-50 focus:text-red-700"
+                              >
+                                <FaTrash className="mr-2" /> Hapus
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>
@@ -280,31 +437,44 @@ function TahsinStudentDetail() {
                 Belum ada riwayat setoran
               </p>
             ) : (
-              riwayatList.map((riwayat, index) => (
-                <MobileHistoryCard
-                  key={index}
-                  day={new Date(riwayat.timestamp).toLocaleDateString("id-ID", {
-                    weekday: "long",
-                  })}
-                  date={new Date(riwayat.timestamp).toLocaleDateString(
-                    "id-ID",
-                    {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    },
-                  )}
-                  titleInformation1={"Setoran"}
-                  title1={riwayat.laporan_bacaan.jilid_surah || "-"}
-                  subtitle1={riwayat.laporan_bacaan?.ayat}
-                  titleInformation2={"Hafalan Pendek"}
-                  title2={riwayat.hafalan_surah?.surah || "-"}
-                  subtitle2={`${riwayat.hafalan_surah?.ayat_awal} -
-                ${riwayat.hafalan_surah?.ayat_akhir}`}
-                  badgeText={riwayat.nilai_tahsin}
-                  description={riwayat.keterangan}
-                />
-              ))
+              riwayatList.map((riwayat, index) => {
+                const parts = formatLaporanBacaan(riwayat);
+                return (
+                  <MobileHistoryCard
+                    key={index}
+                    day={new Date(riwayat.timestamp).toLocaleDateString(
+                      "id-ID",
+                      { weekday: "long" },
+                    )}
+                    date={new Date(riwayat.timestamp).toLocaleDateString(
+                      "id-ID",
+                      { day: "numeric", month: "long", year: "numeric" },
+                    )}
+                    titleInformation1={
+                      parts[0]?.label?.startsWith("Jilid") ||
+                      parts[0]?.label === "Gharib" ||
+                      parts[0]?.label === "Tajwid"
+                        ? "Buku"
+                        : "Al-Quran"
+                    }
+                    title1={parts[0]?.label || "-"}
+                    subtitle1={parts[0]?.sub || "-"}
+                    titleInformation2={
+                      parts[1]
+                        ? parts[1]?.label?.startsWith("Jilid") ||
+                          parts[1]?.label === "Gharib" ||
+                          parts[1]?.label === "Tajwid"
+                          ? "Buku"
+                          : "Al-Quran"
+                        : undefined
+                    }
+                    title2={parts[1]?.label}
+                    subtitle2={parts[1]?.sub}
+                    badgeText={riwayat.nilai_tahsin}
+                    description={riwayat.keterangan}
+                  />
+                );
+              })
             )}
           </div>
         </CardContent>
@@ -314,13 +484,16 @@ function TahsinStudentDetail() {
         <Dialog open={openForm} onOpenChange={setOpenForm}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Tambah Setoran Bacaan</DialogTitle>
+              <DialogTitle>
+                {editData ? "Edit Setoran Bacaan" : "Tambah Setoran Bacaan"}
+              </DialogTitle>
             </DialogHeader>
             <TahsinAssessmentForm
               nis={nis}
               halaqohId={student?.halaqoh_tahsin?.id}
               tahapan={student?.tahapan_tahsin}
               lastRiwayat={riwayatList[0]}
+              editData={editData}
               onSuccess={() => setOpenForm(false)}
             />
           </DialogContent>
@@ -329,8 +502,20 @@ function TahsinStudentDetail() {
         <Drawer open={openForm} onOpenChange={setOpenForm}>
           <DrawerContent>
             <DrawerHeader>
-              <DrawerTitle>Tambah Setorah Bacaan</DrawerTitle>
+              <DrawerTitle>
+                {editData ? "Edit Setoran Bacaan" : "Tambah Setoran Bacaan"}
+              </DrawerTitle>
             </DrawerHeader>
+            <div className="p-4">
+              <TahsinAssessmentForm
+                nis={nis}
+                halaqohId={student?.halaqoh_tahsin?.id}
+                tahapan={student?.tahapan_tahsin}
+                lastRiwayat={riwayatList[0]}
+                editData={editData}
+                onSuccess={() => setOpenForm(false)}
+              />
+            </div>
           </DrawerContent>
         </Drawer>
       )}
@@ -345,6 +530,16 @@ function TahsinStudentDetail() {
             onSubmit={handleAjukanUjian}
             className="flex flex-col gap-4"
           >
+            {/* Info status kelengkapan pengajuan */}
+            <div
+              className={`rounded-lg border p-3 text-sm ${statusPengajuan.bolehAjukan ? "border-emerald-300 bg-emerald-50 text-emerald-800" : "border-amber-300 bg-amber-50 text-amber-800"}`}
+            >
+              <p className="font-semibold">
+                Tahapan saat ini: {formatEnum(student?.tahapan_tahsin)}
+              </p>
+              <p>{statusPengajuan.alasan}</p>
+            </div>
+
             <Select name="tahapan_baru" required className="w-full">
               <SelectTrigger>
                 <SelectValue placeholder="Pilih tahapan / jilid" />
@@ -358,14 +553,26 @@ function TahsinStudentDetail() {
                   <SelectItem value="JILID_4">Jilid 4</SelectItem>
                   <SelectItem value="JILID_5">Jilid 5</SelectItem>
                   <SelectItem value="JILID_6">Jilid 6</SelectItem>
+                  <SelectItem value="TILAWAH_JUZ_1_5">
+                    Tilawah Juz 1-5
+                  </SelectItem>
                   <SelectItem value="TAJWID">Tajwid</SelectItem>
                   <SelectItem value="GHARIB">Gharib</SelectItem>
                   <SelectItem value="ALQURAN">Al-Quran</SelectItem>
+                  <SelectItem value="MUNAQOSYAH">Munaqosyah</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
-            <Button type="submit" disabled={isMengajukan} className="w-full">
-              {isMengajukan ? "Menyimpan..." : "Kirim Pengajuan"}
+            <Button
+              type="submit"
+              disabled={isMengajukan || !statusPengajuan.bolehAjukan}
+              className="w-full"
+            >
+              {isMengajukan
+                ? "Menyimpan..."
+                : statusPengajuan.bolehAjukan
+                  ? "Kirim Pengajuan"
+                  : "Belum Bisa Ajukan"}
             </Button>
           </form>
         </DialogContent>

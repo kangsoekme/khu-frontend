@@ -1,73 +1,165 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAddTahsinMutation } from "../../../store/api/tahsinApi";
+import { useAddTahsinMutation, useEditTahsinMutation } from "../../../store/api/tahsinApi";
 import { toast } from "sonner";
+import { formatEnum } from "../../../utils/formatEnum";
+import { getKategoriTahapan } from "../../../utils/tahsinCompletion";
 
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 
-import { FaMinus } from "react-icons/fa";
-
-import { FaPlus } from "react-icons/fa";
-
+import { FaMinus, FaPlus } from "react-icons/fa";
 import { Textarea } from "@/components/ui/textarea";
-
-import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { useGetAllSurahQuery } from "../../../store/api/surahApi";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 function TahsinAssessmentForm({
   nis,
   halaqohId,
   tahapan,
   lastRiwayat,
+  editData,
   onSuccess,
 }) {
-  const [addTahsin, { isLoading }] = useAddTahsinMutation();
+  const [addTahsin] = useAddTahsinMutation();
+  const [editTahsin] = useEditTahsinMutation();
   const { data: surahRes } = useGetAllSurahQuery();
   const allSurah = surahRes?.data || [];
+  const surahJuz30 = allSurah.filter(
+    (s) => s.no_surah >= 78 && s.no_surah <= 114,
+  );
   const daftarNilai = ["D", "C-", "C", "C+", "B-", "B", "B+", "A", "A+"];
 
-  const [nilaiIndex, setNilaiIndex] = useState(8);
+  const initialNilaiIndex =
+    editData && daftarNilai.indexOf(editData.nilai_tahsin) !== -1
+      ? daftarNilai.indexOf(editData.nilai_tahsin)
+      : 8;
+  const [nilaiIndex, setNilaiIndex] = useState(initialNilaiIndex);
 
-  const isAlQuran = tahapan === "ALQURAN";
+  // Klasifikasi tahapan: BUKU (jilid 1-6), GANDA (Gharib/Tajwid), QURAN (Tilawah/Al-Quran/Munaqosyah)
+  const kategori = getKategoriTahapan(tahapan);
+  const isGharibOrTajwid = kategori === "GANDA";
+  const isAlQuran = kategori === "QURAN";
 
-  const defaultJilid = tahapan?.includes("JILID")
-    ? tahapan.replace("JILID_", "")
+  // ===========================================================================
+  // DEFAULT VALUE - LAPORAN BACAAN: BUKU (Jilid 1-6 atau Gharib/Tajwid)
+  // ===========================================================================
+  const rawJilidVal = editData
+    ? editData.laporan_bacaan?.jilid || editData.laporan_bacaan?.jilid_surah
+    : lastRiwayat?.laporan_bacaan?.jilid ||
+      (tahapan?.includes("JILID") ? tahapan.replace("JILID_", "") : "");
+
+  const jilidNum =
+    !isNaN(Number(rawJilidVal)) && rawJilidVal !== ""
+      ? Number(rawJilidVal)
+      : tahapan?.includes("JILID")
+        ? Number(tahapan.replace("JILID_", ""))
+        : 0;
+
+  const displayJilidText = isGharibOrTajwid
+    ? formatEnum(tahapan)
+    : jilidNum > 0
+      ? `Jilid ${jilidNum}`
+      : typeof rawJilidVal === "string" &&
+          rawJilidVal.toLowerCase().includes("jilid")
+        ? rawJilidVal
+        : rawJilidVal || formatEnum(tahapan) || "";
+
+  // Halaman buku: ambil dari setoran sebelumnya +1 (hanya jika ada data sebelumnya)
+  const lastBukuHalaman = editData
+    ? Number(editData.laporan_bacaan?.bab) || 0
+    : Number(lastRiwayat?.laporan_bacaan?.bab) || 0;
+  const nextBukuHalaman = editData
+    ? lastBukuHalaman
+    : lastBukuHalaman > 0
+      ? lastBukuHalaman + 1
+      : 1;
+
+  // ===========================================================================
+  // DEFAULT VALUE - LAPORAN BACAAN: Al-QURAN (surah + ayat)
+  // Logika +1 untuk ayat awal (lanjutan dari ayat_akhir sebelumnya)
+  // ===========================================================================
+  const defaultQuranSurah = editData?.laporan_bacaan?.surah
+    ? allSurah.find(
+        (s) => s.nama_surah === editData.laporan_bacaan.surah,
+      )?.no_surah.toString()
+    : !editData &&
+        lastRiwayat?.laporan_bacaan?.surah &&
+        (kategori === "QURAN" || kategori === "GANDA")
+      ? allSurah.find(
+          (s) => s.nama_surah === lastRiwayat.laporan_bacaan.surah,
+        )?.no_surah.toString()
+      : undefined;
+
+  const lastQuranAyatAkhir = editData
+    ? Number(editData.laporan_bacaan?.ayat_akhir) || 0
+    : Number(lastRiwayat?.laporan_bacaan?.ayat_akhir) || 0;
+  const nextQuranAyatAwal = editData
+    ? Number(editData.laporan_bacaan?.ayat_awal) || ""
+    : lastQuranAyatAkhir > 0
+      ? lastQuranAyatAkhir + 1
+      : 1;
+
+  const defaultQuranAyatAkhir = editData
+    ? editData.laporan_bacaan?.ayat_akhir || ""
+    : "";
+
+  // ===========================================================================
+  // DEFAULT VALUE - HAFALAN PENDEK (Surah Juz 30) - tetap dipertahankan
+  // ===========================================================================
+  const defaultHafalanSurah = editData?.hafalan_surah?.surah
+    ? allSurah.find(
+        (s) => s.nama_surah === editData.hafalan_surah.surah,
+      )?.no_surah.toString()
+    : undefined;
+
+  const lastHafalanAyat = editData
+    ? Number(editData.hafalan_surah?.ayat_akhir) || 0
+    : Number(lastRiwayat?.hafalan_surah?.ayat_akhir) || 0;
+  const nextHafalanAyatAwal = editData
+    ? editData.hafalan_surah?.ayat_awal || ""
+    : lastHafalanAyat > 0
+      ? lastHafalanAyat + 1
+      : 1;
+  const defaultHafalanAyatAkhir = editData
+    ? editData.hafalan_surah?.ayat_akhir || ""
     : "";
 
   const kurangNilai = () => {
-    if (nilaiIndex > 0) {
-      setNilaiIndex(nilaiIndex - 1);
-    }
+    if (nilaiIndex > 0) setNilaiIndex(nilaiIndex - 1);
   };
-
   const tambahNilai = () => {
-    if (nilaiIndex < daftarNilai.length - 1) {
-      setNilaiIndex(nilaiIndex + 1);
-    }
+    if (nilaiIndex < daftarNilai.length - 1) setNilaiIndex(nilaiIndex + 1);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const formData = new FormData(e.target);
+
+    if (isGharibOrTajwid) {
+      const hasBuku = Boolean(formData.get("bab"));
+      const hasAlquran = Boolean(formData.get("no_surah"));
+      if (!hasBuku && !hasAlquran) {
+        toast.error("Gagal! Minimal isi Halaman Buku ATAU Surah Al-Quran");
+        return;
+      }
+    }
 
     const payload = {
       halaqohId,
       tahapan: tahapan,
       no_surah: Number(formData.get("no_surah")) || null,
-      hafalan_surah: Number(formData.get("hafalan_surah")),
-      hafalan_ayat_awal: Number(formData.get("hafalan_ayat_awal")),
-      hafalan_ayat_akhir: Number(formData.get("hafalan_ayat_akhir")),
+      hafalan_surah: Number(formData.get("hafalan_surah")) || null,
+      hafalan_ayat_awal: Number(formData.get("hafalan_ayat_awal")) || null,
+      hafalan_ayat_akhir: Number(formData.get("hafalan_ayat_akhir")) || null,
       jilid: Number(formData.get("jilid")) || 0,
       bab: Number(formData.get("bab")) || null,
       ayat_awal: Number(formData.get("ayat_awal")) || 0,
@@ -78,8 +170,13 @@ function TahsinAssessmentForm({
     };
 
     try {
-      await addTahsin({ nis, ...payload }).unwrap();
-      toast.success("Penilaian tahsin berhasil disimpan!");
+      if (editData) {
+        await editTahsin({ id: editData.id, ...payload }).unwrap();
+        toast.success("Penilaian berhasil diperbarui!");
+      } else {
+        await addTahsin({ nis, ...payload }).unwrap();
+        toast.success("Penilaian tahsin berhasil disimpan!");
+      }
       if (onSuccess) onSuccess();
     } catch (error) {
       toast.error(error?.data?.message || "Gagal menyimpan penilaian");
@@ -88,119 +185,213 @@ function TahsinAssessmentForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5 text-left">
-      <div className="flex flex-col gap-5">
-        <Field>
-          <FieldLabel>Hafalan Surah Pendek</FieldLabel>
-          <Select name="hafalan_surah">
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {allSurah.map((surah) => (
-                  <SelectItem
-                    key={surah.no_surah}
-                    value={surah.no_surah.toString()}
-                  >
-                    {surah.no_surah}. {surah.nama_surah}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <div className="flex gap-5">
-            <Input name="hafalan_ayat_awal" placeholder="Ayat Awal" />
-            <Input name="hafalan_ayat_akhir" placeholder="Ayat Akhir" />
-          </div>
-        </Field>
-        <Field>
-          <FieldLabel>Laporan Bacaan</FieldLabel>
-          {!isAlQuran ? (
+    <ScrollArea className="max-h-[75vh] pr-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5 text-left pb-4">
+        <div className="flex flex-col gap-5">
+          {/* HAFALAN PENDEK - Surah Juz 30 (opsional) */}
+          <Field>
+            <FieldLabel>Hafalan Surah Pendek</FieldLabel>
+            <Select name="hafalan_surah" defaultValue={defaultHafalanSurah}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Pilih Surah" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {surahJuz30.map((surah) => (
+                    <SelectItem
+                      key={surah.no_surah}
+                      value={surah.no_surah.toString()}
+                    >
+                      {surah.no_surah}. {surah.nama_surah}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
             <div className="flex gap-5">
               <Input
-                placeholder="Jilid"
-                name="jilid"
-                type="number"
-                readOnly
-                defaultValue={
-                  lastRiwayat?.laporan_bacaan?.jilid_surah || defaultJilid
-                }
+                name="hafalan_ayat_awal"
+                placeholder="Ayat Awal"
+                defaultValue={nextHafalanAyatAwal}
               />
-              <Input name="bab" placeholder="Halaman : 10" />
+              <Input
+                name="hafalan_ayat_akhir"
+                placeholder="Ayat Akhir"
+                defaultValue={defaultHafalanAyatAkhir}
+              />
             </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              <Select
-                name="no_surah"
-                defaultValue={
-                  lastRiwayat?.laporan_bacaan?.jilid_surah
-                    ? allSurah
-                        .find(
-                          (s) =>
-                            s.nama_surah ===
-                            lastRiwayat.laporan_bacaan.jilid_surah,
-                        )
-                        ?.no_surah.toString()
-                    : undefined
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {allSurah.map((surah) => (
-                      <SelectItem
-                        key={surah.no_surah}
-                        value={surah.no_surah.toString()}
-                      >
-                        {surah.no_surah}. {surah.nama_surah}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <div className="flex gap-5">
-                <Input name="ayat_awal" placeholder="Ayat Awal" />
-                <Input name="ayat_akhir" placeholder="Ayat Akhir" />
-              </div>
-            </div>
-          )}
-        </Field>
-        <Field>
-          <FieldLabel>PENILAIAN TAHSIN</FieldLabel>
-          <div className="flex flex-col gap-5 items-center">
-            <div className="flex items-center gap-5">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={kurangNilai}
-              >
-                <FaMinus />
-              </Button>
+          </Field>
 
-              <span>{daftarNilai[nilaiIndex]}</span>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={tambahNilai}
-              >
-                <FaPlus />
-              </Button>
+          {/* LAPORAN BACAAN - dinamis sesuai kategori tahapan */}
+          <Field>
+            <FieldLabel>Laporan Bacaan</FieldLabel>
+            {isGharibOrTajwid ? (
+              /* ============ GHARIB / TAJWID ============ */
+              /* Bisa berisi BUKU (Gharib/Tajwid) DAN/ATAU Al-Quran */
+              <div className="flex flex-col gap-4 border p-4 rounded-lg bg-neutral-50/50">
+                <div className="flex flex-col gap-2">
+                  <span className="text-sm font-semibold">
+                    Buku {formatEnum(tahapan)}
+                  </span>
+                  <div className="flex gap-5">
+                    <input type="hidden" name="jilid" value={jilidNum} />
+                    <Input
+                      placeholder="Jilid"
+                      type="text"
+                      readOnly
+                      value={displayJilidText}
+                      className="bg-neutral-100 font-medium"
+                    />
+                    <Input
+                      name="bab"
+                      type="number"
+                      placeholder="Halaman"
+                      defaultValue={nextBukuHalaman}
+                    />
+                  </div>
+                </div>
+
+                <div className="relative my-2">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-neutral-300" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-neutral-50/50 px-2 text-neutral-500 font-semibold">
+                      DAN / ATAU
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <span className="text-sm font-semibold">Al-Quran</span>
+                  <Select name="no_surah" defaultValue={defaultQuranSurah}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Pilih Surah" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {allSurah.map((surah) => (
+                          <SelectItem
+                            key={surah.no_surah}
+                            value={surah.no_surah.toString()}
+                          >
+                            {surah.no_surah}. {surah.nama_surah}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  <div className="flex gap-5">
+                    <Input
+                      name="ayat_awal"
+                      placeholder="Ayat Awal"
+                      defaultValue={nextQuranAyatAwal}
+                    />
+                    <Input
+                      name="ayat_akhir"
+                      placeholder="Ayat Akhir"
+                      defaultValue={defaultQuranAyatAkhir}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : !isAlQuran ? (
+              /* ============ BUKU UMMI (Jilid 1-6) ============ */
+              <div className="flex gap-5">
+                <input type="hidden" name="jilid" value={jilidNum} />
+                <Input
+                  placeholder="Jilid"
+                  type="text"
+                  readOnly
+                  value={displayJilidText}
+                  className="bg-neutral-100 font-medium"
+                />
+                <Input
+                  name="bab"
+                  type="number"
+                  placeholder="Halaman"
+                  defaultValue={nextBukuHalaman}
+                />
+              </div>
+            ) : (
+              /* ============ AL-QURAN / TILAWAH / MUNAQOSYAH ============ */
+              <div className="flex flex-col gap-3">
+                <Select name="no_surah" defaultValue={defaultQuranSurah}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Pilih Surah" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {allSurah.map((surah) => (
+                        <SelectItem
+                          key={surah.no_surah}
+                          value={surah.no_surah.toString()}
+                        >
+                          {surah.no_surah}. {surah.nama_surah}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <div className="flex gap-5">
+                  <Input
+                    name="ayat_awal"
+                    placeholder="Ayat Awal"
+                    defaultValue={nextQuranAyatAwal}
+                  />
+                  <Input
+                    name="ayat_akhir"
+                    placeholder="Ayat Akhir"
+                    defaultValue={defaultQuranAyatAkhir}
+                  />
+                </div>
+              </div>
+            )}
+          </Field>
+
+          <Field>
+            <FieldLabel>PENILAIAN TAHSIN</FieldLabel>
+            <div className="flex flex-col gap-5 items-center">
+              <div className="flex items-center gap-5">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={kurangNilai}
+                >
+                  <FaMinus />
+                </Button>
+                <span className="font-bold text-xl w-8 text-center">
+                  {daftarNilai[nilaiIndex]}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={tambahNilai}
+                >
+                  <FaPlus />
+                </Button>
+                </div>
+              <input type="hidden" name="nilai" value={daftarNilai[nilaiIndex]} />
             </div>
-            <input type="hidden" name="nilai" value={daftarNilai[nilaiIndex]} />
-          </div>
-        </Field>
-        <Field>
-          <FieldLabel>Keterangan</FieldLabel>
-          <Textarea name="keterangan" className="min-h-25 break-all w-full" />
-        </Field>
-        <Button>Tambah Setoran</Button>
-      </div>
-    </form>
+          </Field>
+
+          <Field>
+            <FieldLabel>Keterangan</FieldLabel>
+            <Textarea
+              name="keterangan"
+              className="min-h-25 break-all w-full"
+              defaultValue={
+                editData?.keterangan !== "-" ? editData?.keterangan : ""
+              }
+            />
+          </Field>
+
+          <Button>{editData ? "Simpan Perubahan" : "Tambah Setoran"}</Button>
+        </div>
+      </form>
+    </ScrollArea>
   );
 }
 

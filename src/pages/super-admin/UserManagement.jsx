@@ -56,6 +56,8 @@ function UserManagement() {
   const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
+  const [search, setSearch] = useState("");
+
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
@@ -63,14 +65,19 @@ function UserManagement() {
 
   const users = usersData?.data || [];
 
-  const filteredUser =
+  const roleFiltered =
     activeRole === "semua"
       ? users
       : users.filter((user) => user.role === activeRole);
 
-  if (isLoading) {
-    return <div className="p-10 text-center">Sedang mengambil data users</div>;
-  }
+  const filteredUser = roleFiltered.filter((u) => {
+    const keyword = search.toLowerCase();
+    return (
+      u.nama?.toLowerCase().includes(keyword) ||
+      u.email?.toLowerCase().includes(keyword) ||
+      u.no_telp?.toLowerCase().includes(keyword)
+    );
+  });
 
   if (isError) {
     return (
@@ -89,7 +96,11 @@ function UserManagement() {
     <>
       <div className="flex flex-col gap-5">
         <div className="flex w-full gap-5">
-          <SearchInput />
+          <SearchInput
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Cari nama / email / no. telp..."
+          />
           <Button onClick={() => setOpen(true)}>
             <span className="hidden xl:block">Tambah User</span>
             <FaPlus className="xl:hidden" />

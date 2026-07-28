@@ -86,7 +86,12 @@ function UjianTableContainer({ dataPengajuan, onRowClick }) {
                 nis={pengajuan.siswa.nis}
                 waliSiswa={pengajuan.guru.nama}
                 kelas={pengajuan.siswa.riwayatKelas?.[0]?.nama_kelas || "-"}
-                onClick={() => onRowClick(pengajuan.siswa)}
+                onClick={() =>
+                  onRowClick({
+                    ...pengajuan.siswa,
+                    tahapan_tujuan: pengajuan.tahapan,
+                  })
+                }
               />
             ))}
           </TableBody>
@@ -103,7 +108,12 @@ function UjianTableContainer({ dataPengajuan, onRowClick }) {
             nis={pengajuan.siswa.nis}
             waliSiswa={pengajuan.guru.nama}
             kelas={pengajuan.siswa.riwayatKelas?.[0]?.nama_kelas || "-"}
-            onClick={() => onRowClick(pengajuan.siswa)}
+            onClick={() =>
+              onRowClick({
+                ...pengajuan.siswa,
+                tahapan_tujuan: pengajuan.tahapan,
+              })
+            }
           />
         ))}
       </div>
