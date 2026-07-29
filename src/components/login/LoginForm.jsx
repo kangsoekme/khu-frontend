@@ -74,7 +74,7 @@ export function LoginForm({ className, onSubmit, isLoading, ...props }) {
           </form>
           <div className="relative hidden bg-muted md:block">
             <img
-              src="src/assets/img/khu-gedung.jpeg"
+              src="/khu-gedung.jpeg" 
               alt="Image"
               className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale opacity-60"
             />
