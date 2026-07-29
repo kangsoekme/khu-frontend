@@ -80,7 +80,7 @@ function MainLayout() {
           {/* logo native desktop */}
           <div className="hidden xl:flex xl:items-center xl:px-8 xl:pl-10">
             <img
-              src="public\khu.png"
+              src="\khu.png"
               alt=""
               srcSet=""
               className="xl:h-9 2xl:h-11"
@@ -108,7 +108,7 @@ function MainLayout() {
             >
               <div className=" flex items-center  h-[calc(100vh/12)] shrink-0">
                 <img
-                  src="src/assets/img/khu.png"
+                  src="/khu.png"
                   alt=""
                   srcSet=""
                   className="h-8 xl:h-9 2xl:h-11"
