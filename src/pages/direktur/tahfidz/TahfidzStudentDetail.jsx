@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { useState } from "react";
 import { FaCalendarCheck } from "react-icons/fa";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useGetStudentQuery } from "../../../store/api/studentsApi";
 
 import {
@@ -42,13 +42,29 @@ import ChartPerkembangan from "../../../components/tahsin-tahfidz/ChartPerkemban
 import {
   useGetRiwayatHafalanQuery,
   useGetRiwayatMurajaahQuery,
+  useDeleteMurajaahMutation,
 } from "../../../store/api/tahfidzApi";
 import TahfidzAssessmentForm from "../../../components/tahsin-tahfidz/tahfidz/TahfidzAssessmentForm";
 import MurajaahAssessmentForm from "../../../components/tahsin-tahfidz/tahfidz/MurajaahAssessmentForm";
-
-import { BASE_API_URL } from "../../../store/baseApi";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { FaEllipsisV, FaEdit, FaTrash } from "react-icons/fa";
 import { toast } from "sonner";
-import { FaDownload } from "react-icons/fa";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 
 import { MobileHistoryCard } from "../../../components/ui/MobileHistoryCard";
 
@@ -58,7 +74,10 @@ function TahfidzStudentDetail() {
 
   const [openHafalan, setOpenHafalan] = useState(false);
   const [openMurajaah, setOpenMurajaah] = useState(false);
-  const [activeTab, setActiveTab] = useState("hafalan");
+
+  const [murajaahToEdit, setMurajaahToEdit] = useState(null);
+  const [murajaahToDelete, setMurajaahToDelete] = useState(null);
+  const [deleteMurajaah] = useDeleteMurajaahMutation();
 
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const { data: studentRes, isLoading: isLoadingStudent } =
@@ -67,6 +86,18 @@ function TahfidzStudentDetail() {
     useGetRiwayatHafalanQuery(nis);
   const { data: murajaahRes, isLoading: isLoadingMurajaah } =
     useGetRiwayatMurajaahQuery(nis);
+
+  const handleDeleteMurajaah = async () => {
+    if (!murajaahToDelete) return;
+    try {
+      await deleteMurajaah(murajaahToDelete.id).unwrap();
+      toast.success("Riwayat murajaah berhasil dihapus");
+    } catch (error) {
+      toast.error("Gagal menghapus riwayat murajaah");
+    } finally {
+      setMurajaahToDelete(null);
+    }
+  };
 
   if (isLoadingStudent || isLoadingRiwayat || isLoadingMurajaah) {
     return <p>Memuat profil dan riwayat siswa</p>;
@@ -131,7 +162,10 @@ function TahfidzStudentDetail() {
                   <FaCalendarCheck className="text-2xl" /> Tambah Penilaian
                 </Button>
                 <Button
-                  onClick={() => setOpenMurajaah(true)}
+                  onClick={() => {
+                    setMurajaahToEdit(null);
+                    setOpenMurajaah(true);
+                  }}
                   className="flex-1 h-12 flex "
                 >
                   <FaCalendarCheck className="text-2xl" /> Tambah Murajaah
@@ -217,7 +251,7 @@ function TahfidzStudentDetail() {
                     </TableRow>
                   ) : (
                     riwayatList.map((riwayat) => (
-                      <TableRow>
+                      <TableRow key={riwayat.id}>
                         <TableCell>
                           <div className="flex flex-col">
                             <span className="font-semibold uppercase">
@@ -326,7 +360,7 @@ function TahfidzStudentDetail() {
                     </TableRow>
                   ) : (
                     murajaahList.map((murajaah) => (
-                      <TableRow>
+                      <TableRow key={murajaah.id}>
                         <TableCell>
                           <div className="flex flex-col">
                             <span className="font-semibold uppercase">
@@ -369,6 +403,37 @@ function TahfidzStudentDetail() {
                         <TableCell className="">
                           <Badge className="text">{murajaah.predikat}</Badge>
                         </TableCell>
+                        {currentRole === "GURU" && (
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <span className="sr-only">Open menu</span>
+                                  <FaEllipsisV className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setMurajaahToEdit(murajaah);
+                                    setOpenMurajaah(true);
+                                  }}
+                                  className="cursor-pointer"
+                                >
+                                  <FaEdit className="mr-2 h-4 w-4 text-primary-600" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => setMurajaahToDelete(murajaah)}
+                                  className="cursor-pointer text-red-600 focus:bg-red-50 focus:text-red-700"
+                                >
+                                  <FaTrash className="mr-2 h-4 w-4" />
+                                  Hapus
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        )}
                       </TableRow>
                     ))
                   )}
@@ -403,6 +468,12 @@ function TahfidzStudentDetail() {
                         value: murajaah.nilai_hafalan || "0",
                       }}
                       badgeText={murajaah.predikat}
+                      showActions={currentRole === "GURU"}
+                      onEdit={() => {
+                        setMurajaahToEdit(murajaah);
+                        setOpenMurajaah(true);
+                      }}
+                      onDelete={() => setMurajaahToDelete(murajaah)}
                     />
                   ))
                 )}
@@ -432,14 +503,16 @@ function TahfidzStudentDetail() {
         <Drawer open={openHafalan} onOpenChange={setOpenHafalan}>
           <DrawerContent>
             <DrawerHeader>
-              <DrawerTitle>Tambah Setorah Hafalan</DrawerTitle>
+              <DrawerTitle>Tambah Setoran Hafalan</DrawerTitle>
             </DrawerHeader>
-            <TahfidzAssessmentForm
-              nis={nis}
-              halaqohId={student?.halaqoh_tahfidz?.id}
-              lastRiwayat={riwayatList[0]}
-              onSuccess={() => setOpenHafalan(false)}
-            />
+            <div className="px-4">
+              <TahfidzAssessmentForm
+                nis={nis}
+                halaqohId={student?.halaqoh_tahfidz?.id}
+                lastRiwayat={riwayatList[0]}
+                onSuccess={() => setOpenHafalan(false)}
+              />
+            </div>
           </DrawerContent>
         </Drawer>
       )}
@@ -448,31 +521,73 @@ function TahfidzStudentDetail() {
         <Dialog open={openMurajaah} onOpenChange={setOpenMurajaah}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Tambah Setoran Murajaah</DialogTitle>
+              <DialogTitle>{murajaahToEdit ? "Edit Setoran Murajaah" : "Tambah Setoran Murajaah"}</DialogTitle>
             </DialogHeader>
             <MurajaahAssessmentForm
               nis={nis}
               halaqohId={student?.halaqoh_tahfidz?.id}
-              lastRiwayat={murajaahList[0]}
-              onSuccess={() => setOpenMurajaah(false)}
+              editData={murajaahToEdit}
+              onSuccess={() => {
+                setOpenMurajaah(false);
+                setMurajaahToEdit(null);
+              }}
             />
           </DialogContent>
         </Dialog>
       ) : (
-        <Drawer open={openMurajaah} onOpenChange={setOpenMurajaah}>
+        <Drawer 
+          open={openMurajaah} 
+          onOpenChange={(val) => {
+            setOpenMurajaah(val);
+            if (!val) setMurajaahToEdit(null);
+          }}
+        >
           <DrawerContent>
             <DrawerHeader>
-              <DrawerTitle>Tambah Setorah Murajaah</DrawerTitle>
+              <DrawerTitle>{murajaahToEdit ? "Edit Setoran Murajaah" : "Tambah Setoran Murajaah"}</DrawerTitle>
             </DrawerHeader>
-            <MurajaahAssessmentForm
-              nis={nis}
-              halaqohId={student?.halaqoh_tahfidz?.id}
-              lastRiwayat={murajaahList[0]}
-              onSuccess={() => setOpenMurajaah(false)}
-            />
+            <div className="px-4 pb-8">
+              <MurajaahAssessmentForm
+                nis={nis}
+                halaqohId={student?.halaqoh_tahfidz?.id}
+                editData={murajaahToEdit}
+                onSuccess={() => {
+                  setOpenMurajaah(false);
+                  setMurajaahToEdit(null);
+                }}
+              />
+            </div>
           </DrawerContent>
         </Drawer>
       )}
+
+      <AlertDialog
+        open={!!murajaahToDelete}
+        onOpenChange={(val) => {
+          if (!val) setMurajaahToDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Riwayat Murajaah?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tindakan ini tidak dapat dibatalkan. Riwayat setoran murajaah akan dihapus permanen.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={(e) => {
+                e.preventDefault();
+                handleDeleteMurajaah();
+              }}
+            >
+              Ya, Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -72,7 +72,7 @@ function UserForm({ className, onSuccess, initialData, isEdit }) {
 
     try {
       if (isEdit) {
-        const finalData = { ...parsedData, id: initialData.id };
+        const finalData = { ...parsedData, id: initialData?.id };
 
         await editUser(finalData).unwrap();
         toast.success("User berhasil diperbarui");
@@ -94,7 +94,7 @@ function UserForm({ className, onSuccess, initialData, isEdit }) {
 
   const handleDelete = async () => {
     try {
-      await deleteUser(initialData.id).unwrap();
+      await deleteUser(initialData?.id).unwrap();
       toast.success("User berhasil dihapus");
 
       if (onSuccess) {
@@ -108,9 +108,9 @@ function UserForm({ className, onSuccess, initialData, isEdit }) {
 
   const showDeleteButton =
     isEdit &&
-    initialData.role !== "SUPER_ADMIN" &&
+    initialData?.role !== "SUPER_ADMIN" &&
     isEdit &&
-    initialData.role !== "DIREKTUR";
+    initialData?.role !== "DIREKTUR";
 
   if (!isReady) {
     return (
@@ -128,7 +128,8 @@ function UserForm({ className, onSuccess, initialData, isEdit }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className={cn("grid items-start gap-6", className)}
+      autoComplete="off"
+      className={cn("grid items-start gap-6 h-full", className)}
     >
       <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-3">
@@ -138,7 +139,7 @@ function UserForm({ className, onSuccess, initialData, isEdit }) {
             id="nama"
             name="nama"
             placeholder="Ahmad Fulan"
-            defaultValue={initialData?.nama}
+            defaultValue={isEdit ? initialData?.nama : ""}
           />
         </div>
         <div className="flex gap-3">
@@ -148,7 +149,8 @@ function UserForm({ className, onSuccess, initialData, isEdit }) {
               id="email"
               name="email"
               placeholder="example@mail.com"
-              defaultValue={initialData?.email}
+              autoComplete="new-password"
+              defaultValue={isEdit ? initialData?.email : ""}
             />
           </div>
           <div className="flex flex-col gap-3 w-full">
@@ -157,7 +159,7 @@ function UserForm({ className, onSuccess, initialData, isEdit }) {
               id="no_telp"
               name="no_telp"
               placeholder="08123456789"
-              defaultValue={initialData?.no_telp}
+              defaultValue={isEdit ? initialData?.no_telp : ""}
             />
           </div>
         </div>
@@ -184,7 +186,8 @@ function UserForm({ className, onSuccess, initialData, isEdit }) {
             name="password"
             type={showPassword ? "text" : "password"}
             placeholder="********"
-            defaultValue={initialData?.password}
+            autoComplete="new-password"
+            defaultValue={isEdit ? initialData?.password : ""}
           />
         </div>
         <div className="flex items-center w-full gap-3 justify-end">
@@ -224,7 +227,7 @@ function UserForm({ className, onSuccess, initialData, isEdit }) {
 
       <div
         className={cn(
-          "grid gap-3 w-full",
+          "grid gap-3 w-full sticky bottom-0 bg-background pt-4 pb-2 border-t mt-auto z-10 md:static md:p-0 md:border-0 md:mt-4 md:bg-transparent",
           showDeleteButton ? "grid-cols-2" : "grid-cols-1",
         )}
       >

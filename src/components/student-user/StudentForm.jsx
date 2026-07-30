@@ -78,7 +78,7 @@ function StudentForm({ className, onSuccess, initialData, isEdit }) {
 
     try {
       if (isEdit) {
-        const finalData = { ...data, nis: initialData.nis };
+        const finalData = { ...data, nis: initialData?.nis };
         await editStudent(finalData).unwrap();
         toast.success("Siswa berhasil diperbarui");
       } else {
@@ -92,13 +92,13 @@ function StudentForm({ className, onSuccess, initialData, isEdit }) {
       }
     } catch (error) {
       console.log("Error tambah siswa : ", error);
-      toast.error(error.data?.mesage || "Gagal menambahkan siswa");
+      toast.error(error.data?.message || "Gagal menambahkan siswa");
     }
   };
 
   const handleDelete = async () => {
     try {
-      await deleteStudent(initialData.nis).unwrap();
+      await deleteStudent(initialData?.nis).unwrap();
       toast.success("Siswa berhasil dihapus");
 
       if (onSuccess) {
@@ -106,7 +106,7 @@ function StudentForm({ className, onSuccess, initialData, isEdit }) {
       }
     } catch (error) {
       console.log("Error hapus siswa : ", error);
-      toast.error(error.data?.mesage || "Gagal menghapus siswa");
+      toast.error(error.data?.message || "Gagal menghapus siswa");
     }
   };
 
@@ -114,7 +114,7 @@ function StudentForm({ className, onSuccess, initialData, isEdit }) {
 
   return (
     <form
-      className={cn("grid items-start gap-6", className)}
+      className={cn("grid items-start gap-6 h-full", className)}
       onSubmit={handleSubmit}
     >
       <div className="flex flex-col gap-5">
@@ -239,7 +239,7 @@ function StudentForm({ className, onSuccess, initialData, isEdit }) {
       </div>
       <div
         className={cn(
-          "grid gap-3 w-full",
+          "grid gap-3 w-full sticky bottom-0 bg-background pt-4 pb-2 border-t mt-auto z-10 md:static md:p-0 md:border-0 md:mt-4 md:bg-transparent",
           showDeleteButton ? "grid-cols-2" : "grid-cols-1",
         )}
       >

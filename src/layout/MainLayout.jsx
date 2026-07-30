@@ -49,6 +49,7 @@ function MainLayout() {
     if (pathname.includes("ujian-kenaikan")) return "Ujian Kenaikan Jilid";
     if (pathname.includes("munaqosyah")) return "Pengajuan Munaqosyah";
     if (pathname.includes("laporan")) return "Pusat Export Laporan";
+    if (pathname.includes("backup")) return "Pencadangan";
 
     return "Beranda";
   };
@@ -69,7 +70,7 @@ function MainLayout() {
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem("isLoggedIn");
+    sessionStorage.clear();
     navigate("/login");
   };
 

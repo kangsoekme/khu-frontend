@@ -1,8 +1,8 @@
 import { toast } from "sonner";
 import { useDeleteBulkUsersMutation } from "../../store/api/usersApi.js";
 
-import React, { use } from "react";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
 import { Button } from "@/components/ui/button";
@@ -16,27 +16,19 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerDescription,
-  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
 } from "@/components/ui/drawer";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -48,7 +40,6 @@ import UserForm from "../../components/student-user/UserForm.jsx";
 
 import { FaPlus } from "react-icons/fa6";
 import { FaFilter } from "react-icons/fa";
-import { ChevronDownIcon } from "lucide-react";
 
 import { useGetUsersQuery } from "../../store/api/usersApi.js";
 
@@ -175,23 +166,26 @@ function UserManagement() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <UserTableContainer
-          users={filteredUser}
-          onRowClick={handleRowClick}
-          selectedUsers={selectedUsers}
-          onSelectAll={handleSelectAll}
-          onSelectRow={handleSelectRow}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={(page) => setCurrentPage(page)}
-        />
+        {isLoading ? (
+          <p className="text-center py-10 text-neutral-500">Memuat data user...</p>
+        ) : isError ? (
+          <p className="text-center py-10 text-red-500">Gagal memuat data. Silakan coba lagi nanti.</p>
+        ) : (
+          <UserTableContainer
+            users={filteredUser}
+            onRowClick={handleRowClick}
+            selectedUsers={selectedUsers}
+            onSelectAll={handleSelectAll}
+            onSelectRow={handleSelectRow}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
+        )}
 
         {/* add user */}
         {isDesktop && (
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger
-              render={<Button variant="outline">Edit Profile</Button>}
-            />
             <DialogContent className="sm:max-w-130">
               <DialogHeader>
                 <DialogTitle>Tambah User</DialogTitle>
@@ -206,9 +200,6 @@ function UserManagement() {
 
         {!isDesktop && (
           <Drawer open={open} onOpenChange={setOpen}>
-            <DrawerTrigger
-              render={<Button variant="outline">Edit Profile</Button>}
-            />
             <DrawerContent>
               <DrawerHeader className="text-left">
                 <DrawerTitle>Tambah User</DrawerTitle>
@@ -226,9 +217,6 @@ function UserManagement() {
         {/* edit user */}
         {isDesktop && (
           <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-            <DialogTrigger
-              render={<Button variant="outline">Edit Profile</Button>}
-            />
             <DialogContent className="sm:max-w-130">
               <DialogHeader>
                 <DialogTitle>Edit User</DialogTitle>
@@ -247,9 +235,6 @@ function UserManagement() {
 
         {!isDesktop && (
           <Drawer open={openEdit} onOpenChange={setOpenEdit}>
-            <DrawerTrigger
-              render={<Button variant="outline">Edit Profile</Button>}
-            />
             <DrawerContent>
               <DrawerHeader className="text-left">
                 <DrawerTitle>Edit User</DrawerTitle>

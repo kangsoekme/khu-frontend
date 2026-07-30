@@ -15,14 +15,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { FaSearch } from "react-icons/fa";
 import { BASE_API_URL } from "../../store/baseApi";
 
 const getFilenameTimestamp = () => {
   const d = new Date();
-  const pad = (n) => n.toString().padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
+  const pad = (n) => n.toString().padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
 };
 
 import { toast } from "sonner";
@@ -42,12 +46,16 @@ function LaporanManagement() {
   const [openStudentPopover, setOpenStudentPopover] = useState(false);
   const [periodeType, setPeriodeType] = useState("semester");
   const [selectedBulan, setSelectedBulan] = useState(
-    new Date().toISOString().slice(0, 7)
+    new Date().toISOString().slice(0, 7),
   );
 
   const { data: studentsRes } = useGetStudentsQuery();
   const students = studentsRes?.data || [];
-  const filteredStudents = students.filter(s => s.nama.toLowerCase().includes(searchStudent.toLowerCase()) || s.nis.includes(searchStudent));
+  const filteredStudents = students.filter(
+    (s) =>
+      s.nama?.toLowerCase().includes(searchStudent.toLowerCase()) ||
+      s.nis?.includes(searchStudent),
+  );
 
   const handleDownload = async (kategori) => {
     try {
@@ -64,7 +72,7 @@ function LaporanManagement() {
         {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       if (!response.ok) throw new Error("Gagal mengunduh laporan");
@@ -75,9 +83,7 @@ function LaporanManagement() {
       a.href = url;
       const infoPeriode =
         periodeType === "bulanan" ? `_BULANAN_${selectedBulan}` : `_SEMESTERAN`;
-      a.download = `Laporan_Jamai_${kategori.toUpperCase()}${infoPeriode}_${
-        getFilenameTimestamp()
-      }.xlsx`;
+      a.download = `Laporan_Jamai_${kategori.toUpperCase()}${infoPeriode}_${getFilenameTimestamp()}.xlsx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -191,17 +197,15 @@ function LaporanManagement() {
   };
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      {/* ==================================================== */}
-      {/* KONFIGURASI PERIODE LAPORAN JAMAI                    */}
-      {/* ==================================================== */}
+    <div className="flex flex-col gap-6">
       <Card className="border-border shadow-sm bg-blue-50/50">
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-semibold text-blue-900">
             ⚙️ Konfigurasi Periode Laporan Jamai (Halaqoh & Kelas)
           </CardTitle>
           <CardDescription className="text-xs text-blue-700">
-            Pilih apakah laporan Jamai diunduh berdasarkan keseluruhan semester aktif atau rekapitulasi khusus per bulan.
+            Pilih apakah laporan Jamai diunduh berdasarkan keseluruhan semester
+            aktif atau rekapitulasi khusus per bulan.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col sm:flex-row items-center gap-4">
@@ -342,11 +346,17 @@ function LaporanManagement() {
             </p>
             {/* ✔️ Hapus duplikasi div flex-col di sini */}
             <div className="flex flex-col gap-2 mt-auto">
-              <Popover open={openStudentPopover} onOpenChange={setOpenStudentPopover}>
+              <Popover
+                open={openStudentPopover}
+                onOpenChange={setOpenStudentPopover}
+              >
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full h-9 justify-start text-xs font-normal border-neutral-300">
-                    {selectedNis 
-                      ? `${selectedNis} - ${students.find(s => s.nis === selectedNis)?.nama || ""}` 
+                  <Button
+                    variant="outline"
+                    className="w-full h-9 justify-start text-xs font-normal border-neutral-300"
+                  >
+                    {selectedNis
+                      ? `${selectedNis} - ${students.find((s) => s.nis === selectedNis)?.nama || ""}`
                       : "Pilih Siswa..."}
                   </Button>
                 </PopoverTrigger>
@@ -354,29 +364,35 @@ function LaporanManagement() {
                   <div className="flex flex-col gap-1 p-2">
                     <div className="relative">
                       <FaSearch className="absolute left-2.5 top-2.5 h-3 w-3 text-neutral-400" />
-                      <input 
-                        type="text" 
-                        placeholder="Cari NIS / Nama..." 
-                        className="h-8 w-full pl-8 pr-3 border border-neutral-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-purple-500" 
-                        value={searchStudent} 
-                        onChange={e => setSearchStudent(e.target.value)} 
+                      <input
+                        type="text"
+                        placeholder="Cari NIS / Nama..."
+                        className="h-8 w-full pl-8 pr-3 border border-neutral-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                        value={searchStudent}
+                        onChange={(e) => setSearchStudent(e.target.value)}
                         autoFocus
                       />
                     </div>
                     <div className="max-h-60 overflow-y-auto flex flex-col mt-1 scrollbar-thin">
-                      {filteredStudents.length > 0 ? filteredStudents.map(s => (
-                         <div 
-                           key={s.nis} 
-                           className="p-2 text-xs hover:bg-neutral-100 cursor-pointer rounded text-left transition-colors" 
-                           onClick={() => { 
-                             setSelectedNis(s.nis); 
-                             setOpenStudentPopover(false); 
-                             setSearchStudent("");
-                           }}
-                         >
-                           {s.nis} - {s.nama}
-                         </div>
-                      )) : <div className="p-2 text-xs text-neutral-500 text-center">Tidak ditemukan</div>}
+                      {filteredStudents.length > 0 ? (
+                        filteredStudents.map((s) => (
+                          <div
+                            key={s.nis}
+                            className="p-2 text-xs hover:bg-neutral-100 cursor-pointer rounded text-left transition-colors"
+                            onClick={() => {
+                              setSelectedNis(s.nis);
+                              setOpenStudentPopover(false);
+                              setSearchStudent("");
+                            }}
+                          >
+                            {s.nis} - {s.nama}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-2 text-xs text-neutral-500 text-center">
+                          Tidak ditemukan
+                        </div>
+                      )}
                     </div>
                   </div>
                 </PopoverContent>

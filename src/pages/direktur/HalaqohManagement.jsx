@@ -13,10 +13,7 @@ import HalaqohForm from "../../components/halaqoh/HalaqohForm";
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardAction,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -37,6 +34,25 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import { useMediaQuery } from "@/hooks/use-media-query";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -44,7 +60,6 @@ import { Badge } from "@/components/ui/badge";
 import { formatEnum } from "../../utils/formatEnum";
 
 import { toast } from "sonner";
-import { useGetUsersQuery } from "../../store/api/usersApi";
 
 function HalaqohManagement() {
   const [activeTab, setActiveTab] = useState("TAHSIN");
@@ -58,9 +73,10 @@ function HalaqohManagement() {
 
   const [openForm, setOpenForm] = useState(false);
   const [selectedHalaqoh, setSelectedHalaqoh] = useState(null);
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
-  const allHalaqoh = halaqohObj?.data || [];
-  const waitingStudent = studentObj?.data || [];
+  const allHalaqoh = useMemo(() => halaqohObj?.data || [], [halaqohObj?.data]);
+  const waitingStudent = useMemo(() => studentObj?.data || [], [studentObj?.data]);
 
   const groupedStudents = useMemo(() => {
     const sortedStudents = [...waitingStudent].sort((a, b) => {
@@ -119,12 +135,6 @@ function HalaqohManagement() {
   if (isStudentLoading || isHalaqohLoading) return <p>Memuat data..</p>;
 
   const handleAutoGenerate = async () => {
-    if (
-      !confirm(
-        `Apakah Anda yakin ingin membuat kelompok ${activeTab} otomatis oleh server?`,
-      )
-    )
-      return;
 
     try {
       const res = await autoGenerateHalaqoh({
@@ -197,14 +207,31 @@ function HalaqohManagement() {
           <Button onClick={handleAddClick} className="w-full sm:w-auto flex-1 sm:flex-none">
             <FaPlus className="mr-2" /> Buat Halaqoh
           </Button>
-          <Button
-            variant="secondary"
-            onClick={handleAutoGenerate}
-            disabled={isGenerating}
-            className="w-full sm:w-auto flex-1 sm:flex-none font-semibold shadow-xs"
-          >
-            {isGenerating ? "Membentuk..." : `Buat Otomatis (${activeTab})`}
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="secondary"
+                disabled={isGenerating}
+                className="w-full sm:w-auto flex-1 sm:flex-none font-semibold shadow-xs"
+              >
+                {isGenerating ? "Membentuk..." : `Buat Otomatis (${activeTab})`}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Konfirmasi Pembuatan Otomatis</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Apakah Anda yakin ingin membuat kelompok {activeTab} otomatis oleh server?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogAction onClick={handleAutoGenerate}>
+                  Buat Otomatis
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <Button
             variant="outline"
             onClick={handleExportExcel}
@@ -303,22 +330,42 @@ function HalaqohManagement() {
           </CardContent>
         </Card>
 
-        <Dialog open={openForm} onOpenChange={setOpenForm}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {selectedHalaqoh ? "Edit Halaqoh" : "Buat Halaqoh Baru"}
-              </DialogTitle>
-            </DialogHeader>
+        {isDesktop ? (
+          <Dialog open={openForm} onOpenChange={setOpenForm}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {selectedHalaqoh ? "Edit Halaqoh" : "Buat Halaqoh Baru"}
+                </DialogTitle>
+              </DialogHeader>
 
-            <HalaqohForm
-              initialData={selectedHalaqoh}
-              studentsList={waitingStudent}
-              defaultKategori={activeTab}
-              onSuccess={() => setOpenForm(false)}
-            />
-          </DialogContent>
-        </Dialog>
+              <HalaqohForm
+                initialData={selectedHalaqoh}
+                studentsList={waitingStudent}
+                defaultKategori={activeTab}
+                onSuccess={() => setOpenForm(false)}
+              />
+            </DialogContent>
+          </Dialog>
+        ) : (
+          <Drawer open={openForm} onOpenChange={setOpenForm}>
+            <DrawerContent>
+              <DrawerHeader className="text-left">
+                <DrawerTitle>
+                  {selectedHalaqoh ? "Edit Halaqoh" : "Buat Halaqoh Baru"}
+                </DrawerTitle>
+              </DrawerHeader>
+              <div className="px-4">
+                <HalaqohForm
+                  initialData={selectedHalaqoh}
+                  studentsList={waitingStudent}
+                  defaultKategori={activeTab}
+                  onSuccess={() => setOpenForm(false)}
+                />
+              </div>
+            </DrawerContent>
+          </Drawer>
+        )}
       </div>
     </div>
   );

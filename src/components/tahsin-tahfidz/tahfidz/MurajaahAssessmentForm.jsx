@@ -15,26 +15,29 @@ import {
   useGetRiwayatMurajaahQuery,
   useGetRiwayatHafalanQuery,
   useAddMurajaahMutation,
+  useEditMurajaahMutation,
 } from "../../../store/api/tahfidzApi";
 import { FaMinus, FaPlus } from "react-icons/fa";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 
-function MurajaahAssessmentForm({ nis, halaqohId, onSuccess }) {
+function MurajaahAssessmentForm({ nis, halaqohId, editData, onSuccess }) {
   const { data: murajaahRes } = useGetRiwayatMurajaahQuery(nis);
-
   const { data: hafalanRes } = useGetRiwayatHafalanQuery(nis);
+  const { data: surahRes } = useGetAllSurahQuery();
+
   const lastRef =
     murajaahRes?.data?.history?.murajaah_baru?.[0] ||
     hafalanRes?.data?.history?.hafalan_baru?.[0];
 
   const allSurah = surahRes?.data || [];
 
-  const [jumlahSalah, setJumlahSalah] = useState(0);
-  const [nilaiBacaan, setNilaiBacaan] = useState(80);
+  const [jumlahSalah, setJumlahSalah] = useState(editData?.jumlah_salah || 0);
+  const [nilaiBacaan, setNilaiBacaan] = useState(editData?.nilai_bacaan || 80);
 
   const nilaiHafalan = Math.max(60, 95 - jumlahSalah * 10);
-  const [addMurajaah] = useAddMurajaahMutation();
+  const [addMurajaah, { isLoading: isAdding }] = useAddMurajaahMutation();
+  const [editMurajaah, { isLoading: isEditing }] = useEditMurajaahMutation();
 
   const kurangSalah = () => setJumlahSalah((p) => Math.max(0, p - 1));
   const tambahSalah = () => setJumlahSalah((p) => Math.min(20, p + 1));
@@ -59,11 +62,16 @@ function MurajaahAssessmentForm({ nis, halaqohId, onSuccess }) {
     };
 
     try {
-      await addMurajaah(payload).unwrap();
+      if (editData) {
+        await editMurajaah({ id: editData.id, ...payload }).unwrap();
+        toast.success("Setoran murajaah berhasil diupdate");
+      } else {
+        await addMurajaah(payload).unwrap();
+        toast.success("Setoran murajaah berhasil disimpan");
+      }
       if (onSuccess) onSuccess();
-      toast.success("Setoran murajaah berhasil disimpan");
     } catch (error) {
-      toast.error("Setoran gagal disimpan");
+      toast.error(editData ? "Setoran gagal diupdate" : "Setoran gagal disimpan");
       console.error("Gagal menyimpan setoran : ", error);
     }
   };
@@ -77,8 +85,10 @@ function MurajaahAssessmentForm({ nis, halaqohId, onSuccess }) {
               <Select
                 name="hafalan_surah"
                 defaultValue={
-                  lastRef?.no_surah?.toString() ||
-                  lastRef?.surah?.no_surah?.toString()
+                  editData
+                    ? editData.surah?.no_surah?.toString() || editData.no_surah?.toString()
+                    : lastRef?.no_surah?.toString() ||
+                      lastRef?.surah?.no_surah?.toString()
                 }
               >
                 <SelectTrigger className="w-full">
@@ -102,10 +112,14 @@ function MurajaahAssessmentForm({ nis, halaqohId, onSuccess }) {
                   name="hafalan_ayat_awal"
                   placeholder="Ayat Awal"
                   defaultValue={
-                    lastRef?.ayat_akhir ? Number(lastRef.ayat_akhir) + 1 : 1
+                    editData
+                      ? editData.ayat_awal
+                      : lastRef?.ayat_akhir
+                        ? Number(lastRef.ayat_akhir) + 1
+                        : 1
                   }
                 />
-                <Input name="hafalan_ayat_akhir" placeholder="Ayat Akhir" />
+                <Input name="hafalan_ayat_akhir" placeholder="Ayat Akhir" defaultValue={editData ? editData.ayat_akhir : ""} />
               </div>
             </Field>
             <Field>
@@ -182,7 +196,11 @@ function MurajaahAssessmentForm({ nis, halaqohId, onSuccess }) {
             </Field>
           </div>
         </ScrollArea>
-        <Button>Tambah Setoran Murajaah</Button>
+        <div className="sticky bottom-0 bg-background pt-4 pb-2 border-t mt-auto z-10 md:static md:p-0 md:border-0 md:mt-4 md:bg-transparent">
+          <Button type="submit" disabled={isAdding || isEditing} className="w-full">
+            {isAdding || isEditing ? "Menyimpan..." : editData ? "Update Setoran Murajaah" : "Tambah Setoran Murajaah"}
+          </Button>
+        </div>
       </div>
     </form>
   );

@@ -13,7 +13,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 
 import {
@@ -22,7 +21,6 @@ import {
   DrawerDescription,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
 } from "@/components/ui/drawer";
 
 import StudentForm from "../../components/student-user/StudentForm.jsx";
@@ -169,7 +167,9 @@ function StudentManagement() {
         </Button>
       </div>
       {isLoading ? (
-        <p>Memuat data siswa</p>
+        <p className="text-center py-10 text-neutral-500">Memuat data siswa...</p>
+      ) : isError ? (
+        <p className="text-center py-10 text-red-500">Gagal memuat data. Silakan coba lagi nanti.</p>
       ) : (
         <StudentTableContainer
           students={filteredStudents}
@@ -186,9 +186,6 @@ function StudentManagement() {
       {/* tambah siswa */}
       {isDesktop && (
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger
-            render={<Button variant="outline">Edit Profile</Button>}
-          />
           <DialogContent className="sm:max-w-130">
             <DialogHeader>
               <DialogTitle>Tambah Siswa</DialogTitle>
@@ -203,9 +200,6 @@ function StudentManagement() {
 
       {!isDesktop && (
         <Drawer open={open} onOpenChange={setOpen}>
-          <DrawerTrigger
-            render={<Button variant="outline">Edit Profile</Button>}
-          />
           <DrawerContent>
             <DrawerHeader className="text-left">
               <DrawerTitle>Tambah Siswa</DrawerTitle>
@@ -223,9 +217,6 @@ function StudentManagement() {
       {/* edit siswa */}
       {isDesktop && (
         <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-          <DialogTrigger
-            render={<Button variant="outline">Edit Profile</Button>}
-          />
           <DialogContent className="sm:max-w-130">
             <DialogHeader>
               <DialogTitle>Edit Siswa</DialogTitle>
@@ -244,9 +235,6 @@ function StudentManagement() {
 
       {!isDesktop && (
         <Drawer open={openEdit} onOpenChange={setOpenEdit}>
-          <DrawerTrigger
-            render={<Button variant="outline">Edit Profile</Button>}
-          />
           <DrawerContent>
             <DrawerHeader className="text-left">
               <DrawerTitle>Edit Siswa</DrawerTitle>

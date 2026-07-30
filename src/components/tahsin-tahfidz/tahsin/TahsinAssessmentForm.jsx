@@ -38,8 +38,8 @@ function TahsinAssessmentForm({
     return () => clearTimeout(timer);
   }, []);
 
-  const [addTahsin] = useAddTahsinMutation();
-  const [editTahsin] = useEditTahsinMutation();
+  const [addTahsin, { isLoading: isAdding }] = useAddTahsinMutation();
+  const [editTahsin, { isLoading: isEditing }] = useEditTahsinMutation();
   const { data: surahRes } = useGetAllSurahQuery();
   const allSurah = surahRes?.data || [];
   const surahJuz30 = allSurah.filter(
@@ -216,12 +216,13 @@ function TahsinAssessmentForm({
   }
 
   return (
-    <div className="overflow-y-auto max-h-[75vh]">
+    <div className="h-full flex flex-col">
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col gap-5 text-left pb-4"
+        className="flex flex-col h-full text-left"
       >
-        <div className="flex flex-col gap-5 px-4 lg:px-0">
+        <ScrollArea className="flex-1 overflow-y-auto pr-4 -mr-4">
+          <div className="flex flex-col gap-5 pb-4">
           {/* HAFALAN PENDEK - Surah Juz 30 (opsional) */}
           <Field>
             <FieldLabel>Hafalan Surah Pendek</FieldLabel>
@@ -426,8 +427,11 @@ function TahsinAssessmentForm({
             />
           </Field>
 
-          <Button type="submit" className="w-full shadow-xs mt-2">
-            Simpan Penilaian
+          </div>
+        </ScrollArea>
+        <div className="sticky bottom-0 bg-background pt-4 pb-2 border-t mt-auto z-10 md:static md:p-0 md:border-0 md:mt-4 md:bg-transparent">
+          <Button type="submit" disabled={isAdding || isEditing} className="w-full shadow-xs">
+            {isAdding || isEditing ? "Menyimpan..." : editData ? "Update Penilaian" : "Simpan Penilaian"}
           </Button>
         </div>
       </form>

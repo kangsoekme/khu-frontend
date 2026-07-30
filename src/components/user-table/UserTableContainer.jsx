@@ -152,7 +152,7 @@ function UserTableContainer({
           {getPageNumbers().map((page, index) =>
             page === "..." ? (
               <PaginationItem key={`ellipsis-${index}`}>
-                <PaginationElipsis />
+                <PaginationEllipsis />
               </PaginationItem>
             ) : (
               <PaginationItem key={page}>

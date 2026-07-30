@@ -63,7 +63,7 @@ function PretestForm({ initialData, onSuccess }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+    <form onSubmit={handleSubmit} className="flex flex-col h-full gap-5">
       <div className="flex flex-col gap-5">
         <Label htmlFor="email">Nama Lengkap</Label>
         <Input
@@ -117,9 +117,11 @@ function PretestForm({ initialData, onSuccess }) {
         </>
       </div>
 
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? "Menyimpan..." : "Simpan Hasil Pretest"}{" "}
-      </Button>
+      <div className="sticky bottom-0 bg-background pt-4 pb-2 border-t mt-auto z-10 md:static md:p-0 md:border-0 md:mt-4 md:bg-transparent">
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? "Menyimpan..." : "Simpan Hasil Pretest"}
+        </Button>
+      </div>
     </form>
   );
 }

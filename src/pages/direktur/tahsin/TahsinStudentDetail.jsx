@@ -1,7 +1,7 @@
 import React from "react";
 import { useState } from "react";
 
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useGetStudentQuery } from "../../../store/api/studentsApi";
 import { useGetRiwayatTahsinQuery } from "../../../store/api/tahsinApi";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,16 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -37,10 +47,8 @@ import {
 
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -67,7 +75,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 import ChartPerkembangan from "../../../components/tahsin-tahfidz/ChartPerkembangan";
 import TahsinAssessmentForm from "../../../components/tahsin-tahfidz/tahsin/TahsinAssessmentForm";
@@ -136,8 +143,9 @@ function TahsinStudentDetail() {
   const [openForm, setOpenForm] = useState(false);
   const [editData, setEditData] = useState(null);
   const [openPengajuan, setOpenPengajuan] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
 
-  const isDesktop = useMediaQuery("(min-width:768px");
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const { data: studentRes, isLoading: isLoadingStudent } =
     useGetStudentQuery(nis);
@@ -208,13 +216,12 @@ function TahsinStudentDetail() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (
-      window.confirm("Apakah Anda yakin ingin menghapus riwayat setoran ini?")
-    ) {
+  const handleDelete = async () => {
+    if (deleteId) {
       try {
-        await deleteTahsin(id).unwrap();
+        await deleteTahsin(deleteId).unwrap();
         toast.success("Riwayat berhasil dihapus!");
+        setDeleteId(null);
       } catch (error) {
         toast.error("Gagal menghapus riwayat");
         console.error("Error delete: ", error);
@@ -420,7 +427,10 @@ function TahsinStudentDetail() {
                                 <FaEdit className="mr-2" /> Edit
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                onClick={() => handleDelete(riwayat.id)}
+                                onSelect={(e) => {
+                                  e.preventDefault();
+                                  setDeleteId(riwayat.id);
+                                }}
                                 className="text-red-600 cursor-pointer focus:bg-red-50 focus:text-red-700"
                               >
                                 <FaTrash className="mr-2" /> Hapus
@@ -482,7 +492,7 @@ function TahsinStudentDetail() {
                       setEditData(riwayat);
                       setOpenForm(true);
                     }}
-                    onDelete={() => handleDelete(riwayat.id)}
+                    onDelete={() => setDeleteId(riwayat.id)}
                   />
                 );
               })
@@ -531,63 +541,144 @@ function TahsinStudentDetail() {
         </Drawer>
       )}
 
-      <Dialog open={openPengajuan} onOpenChange={setOpenPengajuan}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Ajukan Ujian Kenaikan</DialogTitle>
-          </DialogHeader>
-          <form
-            action=""
-            onSubmit={handleAjukanUjian}
-            className="flex flex-col gap-4"
-          >
-            {/* Info status kelengkapan pengajuan */}
-            <div
-              className={`rounded-lg border p-3 text-sm ${statusPengajuan.bolehAjukan ? "border-emerald-300 bg-emerald-50 text-emerald-800" : "border-amber-300 bg-amber-50 text-amber-800"}`}
+      {isDesktop ? (
+        <Dialog open={openPengajuan} onOpenChange={setOpenPengajuan}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Ajukan Ujian Kenaikan</DialogTitle>
+            </DialogHeader>
+            <form
+              action=""
+              onSubmit={handleAjukanUjian}
+              className="flex flex-col gap-4"
             >
-              <p className="font-semibold">
-                Tahapan saat ini: {formatEnum(student?.tahapan_tahsin)}
-              </p>
-              <p>{statusPengajuan.alasan}</p>
+              {/* Info status kelengkapan pengajuan */}
+              <div
+                className={`rounded-lg border p-3 text-sm ${statusPengajuan.bolehAjukan ? "border-emerald-300 bg-emerald-50 text-emerald-800" : "border-amber-300 bg-amber-50 text-amber-800"}`}
+              >
+                <p className="font-semibold">
+                  Tahapan saat ini: {formatEnum(student?.tahapan_tahsin)}
+                </p>
+                <p>{statusPengajuan.alasan}</p>
+              </div>
+
+              <Select name="tahapan_baru" required className="w-full">
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih tahapan / jilid" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="JILID_1">Jilid 1</SelectItem>
+                    <SelectItem value="JILID_2">Jilid 2</SelectItem>
+                    <SelectItem value="JILID_3">Jilid 3</SelectItem>
+                    <SelectItem value="JILID_4">Jilid 4</SelectItem>
+                    <SelectItem value="JILID_5">Jilid 5</SelectItem>
+                    <SelectItem value="JILID_6">Jilid 6</SelectItem>
+                    <SelectItem value="TILAWAH_JUZ_1_5">
+                      Tilawah Juz 1-5
+                    </SelectItem>
+                    <SelectItem value="TAJWID">Tajwid</SelectItem>
+                    <SelectItem value="GHARIB">Gharib</SelectItem>
+                    <SelectItem value="ALQURAN">Al-Quran</SelectItem>
+                    <SelectItem value="MUNAQOSYAH">Munaqosyah</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <Button
+                type="submit"
+                disabled={isMengajukan || !statusPengajuan.bolehAjukan}
+                className="w-full"
+              >
+                {isMengajukan
+                  ? "Menyimpan..."
+                  : statusPengajuan.bolehAjukan
+                    ? "Kirim Pengajuan"
+                    : "Belum Bisa Ajukan"}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <Drawer open={openPengajuan} onOpenChange={setOpenPengajuan}>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>Ajukan Ujian Kenaikan</DrawerTitle>
+            </DrawerHeader>
+            <div className="p-4">
+              <form
+                action=""
+                onSubmit={handleAjukanUjian}
+                className="flex flex-col gap-4"
+              >
+                {/* Info status kelengkapan pengajuan */}
+                <div
+                  className={`rounded-lg border p-3 text-sm ${statusPengajuan.bolehAjukan ? "border-emerald-300 bg-emerald-50 text-emerald-800" : "border-amber-300 bg-amber-50 text-amber-800"}`}
+                >
+                  <p className="font-semibold">
+                    Tahapan saat ini: {formatEnum(student?.tahapan_tahsin)}
+                  </p>
+                  <p>{statusPengajuan.alasan}</p>
+                </div>
+
+                <Select name="tahapan_baru" required className="w-full">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih tahapan / jilid" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="JILID_1">Jilid 1</SelectItem>
+                      <SelectItem value="JILID_2">Jilid 2</SelectItem>
+                      <SelectItem value="JILID_3">Jilid 3</SelectItem>
+                      <SelectItem value="JILID_4">Jilid 4</SelectItem>
+                      <SelectItem value="JILID_5">Jilid 5</SelectItem>
+                      <SelectItem value="JILID_6">Jilid 6</SelectItem>
+                      <SelectItem value="TILAWAH_JUZ_1_5">
+                        Tilawah Juz 1-5
+                      </SelectItem>
+                      <SelectItem value="TAJWID">Tajwid</SelectItem>
+                      <SelectItem value="GHARIB">Gharib</SelectItem>
+                      <SelectItem value="ALQURAN">Al-Quran</SelectItem>
+                      <SelectItem value="MUNAQOSYAH">Munaqosyah</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <div className="sticky bottom-0 bg-background pt-2 pb-4 mt-auto z-10">
+                  <Button
+                    type="submit"
+                    disabled={isMengajukan || !statusPengajuan.bolehAjukan}
+                    className="w-full"
+                  >
+                    {isMengajukan
+                      ? "Menyimpan..."
+                      : statusPengajuan.bolehAjukan
+                        ? "Kirim Pengajuan"
+                        : "Belum Bisa Ajukan"}
+                  </Button>
+                </div>
+              </form>
             </div>
+          </DrawerContent>
+        </Drawer>
+      )}
 
-            <Select name="tahapan_baru" required className="w-full">
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih tahapan / jilid" />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="JILID_1">Jilid 1</SelectItem>
-                  <SelectItem value="JILID_2">Jilid 2</SelectItem>
-                  <SelectItem value="JILID_3">Jilid 3</SelectItem>
-                  <SelectItem value="JILID_4">Jilid 4</SelectItem>
-                  <SelectItem value="JILID_5">Jilid 5</SelectItem>
-                  <SelectItem value="JILID_6">Jilid 6</SelectItem>
-                  <SelectItem value="TILAWAH_JUZ_1_5">
-                    Tilawah Juz 1-5
-                  </SelectItem>
-                  <SelectItem value="TAJWID">Tajwid</SelectItem>
-                  <SelectItem value="GHARIB">Gharib</SelectItem>
-                  <SelectItem value="ALQURAN">Al-Quran</SelectItem>
-                  <SelectItem value="MUNAQOSYAH">Munaqosyah</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            <Button
-              type="submit"
-              disabled={isMengajukan || !statusPengajuan.bolehAjukan}
-              className="w-full"
-            >
-              {isMengajukan
-                ? "Menyimpan..."
-                : statusPengajuan.bolehAjukan
-                  ? "Kirim Pengajuan"
-                  : "Belum Bisa Ajukan"}
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Riwayat Setoran?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus riwayat setoran ini? Tindakan ini tidak dapat dikembalikan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white">
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

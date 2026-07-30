@@ -8,7 +8,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PiExamFill } from "react-icons/pi";
 
 import { FaNoteSticky } from "react-icons/fa6";
-import { Button } from "@/components/ui/button";
 
 import {
   Card,
@@ -21,9 +20,7 @@ import { useNavigate } from "react-router-dom";
 
 import {
   Item,
-  ItemActions,
   ItemContent,
-  ItemDescription,
   ItemMedia,
   ItemTitle,
 } from "@/components/ui/item";
@@ -55,7 +52,7 @@ function Homepage() {
           </CardHeader>
           <CardContent>
             <p className="text-6xl font-bold">
-              {summary?.guru?.total +
+              {(summary?.guru?.total || 0) +
                 (data?.chart_skema_pengguna?.find((x) => x.role === "direktur")
                   ?.total || 0)}
             </p>

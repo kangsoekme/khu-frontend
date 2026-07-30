@@ -105,15 +105,11 @@ function Homepage() {
                   </p>
                 </div>
               ) : (
-                alert.slice(0, 4).map((item, index) => (
+                alerts.slice(0, 4).map((item, index) => (
                   <Item key={index} variant="outline">
                     <ItemMedia>
                       <Avatar>
-                        <AvatarImage
-                          src={item.siswa.avatar}
-                          className="grayscale"
-                        />
-                        <AvatarFallback>{item.siswa.charAt(0)}</AvatarFallback>
+                        <AvatarFallback>{item.siswa?.charAt(0)}</AvatarFallback>
                       </Avatar>
                     </ItemMedia>
                     <ItemContent className="gap-1">

@@ -27,6 +27,21 @@ export const tahfidzApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Student", "Halaqoh", "Dashboard", "Laporan"],
     }),
+    editMurajaah: builder.mutation({
+      query: ({ id, ...murajaahData }) => ({
+        url: `/assessment/tahfidz/murajaah/setoran/${id}`,
+        method: "PUT",
+        body: murajaahData,
+      }),
+      invalidatesTags: ["Student", "Halaqoh", "Dashboard", "Laporan"],
+    }),
+    deleteMurajaah: builder.mutation({
+      query: (id) => ({
+        url: `/assessment/tahfidz/murajaah/setoran/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Student", "Halaqoh", "Dashboard", "Laporan"],
+    }),
   }),
 });
 
@@ -35,4 +50,6 @@ export const {
   useAddHafalanMutation,
   useGetRiwayatMurajaahQuery,
   useAddMurajaahMutation,
+  useEditMurajaahMutation,
+  useDeleteMurajaahMutation,
 } = tahfidzApi;

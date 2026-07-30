@@ -40,7 +40,7 @@ function TahsinManagement() {
 
       const rows = result.data || result || [];
       if (rows.length === 0) {
-        toast.alert("Tidak ada data yang di export");
+        toast.warning("Tidak ada data yang di export");
       }
 
       exportToExcel(rows, "Laporan_Perkembangan_Tahsin", "Tahsin");

@@ -157,12 +157,12 @@ function TahsinDetail() {
       </Table>
 
       <div className="flex flex-col gap-2 lg:hidden">
-        {halaqoh?.siswa?.length === 0 ? (
+        {filteredSiswa.length === 0 ? (
           <p className="text-center text-sm text-neutral-400">
             Belum ada siswa disini
           </p>
         ) : (
-          halaqoh?.siswa?.map((siswa) => {
+          filteredSiswa.map((siswa) => {
             const lastSetoran = siswa?.setoranTahsin?.[0];
             const posisi = getPosisiBacaan(siswa);
             const statusTahap = formatEnum(

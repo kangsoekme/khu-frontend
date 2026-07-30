@@ -81,7 +81,7 @@ function TahfidzDetail() {
                     <ItemMedia>
                       <Avatar>
                         <AvatarImage src={siswa.avatar} className="grayscale" />
-                        <AvatarFallback>{siswa.nama.charAt(0)}</AvatarFallback>
+                        <AvatarFallback>{siswa.nama?.charAt(0)}</AvatarFallback>
                       </Avatar>
                     </ItemMedia>
                     <ItemContent>
@@ -106,12 +106,12 @@ function TahfidzDetail() {
       </Table>
 
       <div className="flex flex-col gap-3 lg:hidden">
-        {halaqoh?.siswa?.length === 0 ? (
+        {filteredSiswa.length === 0 ? (
           <p className="text-center text-sm text-neutral-400">
             Belum ada siswa disini
           </p>
         ) : (
-          halaqoh?.siswa?.map((siswa) => (
+          filteredSiswa.map((siswa) => (
             <MobileItemCard
               key={siswa.nis}
               avatar={siswa.avatar}

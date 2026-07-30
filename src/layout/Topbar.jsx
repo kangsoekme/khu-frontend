@@ -45,6 +45,7 @@ function Topbar({ onLogoClick, role, title, nama }) {
       pretest: "Ujian Placement",
       "ujian-kenaikan": "Ujian Kenaikan Jilid",
       munaqosyah: "Pengajuan Munaqosyah",
+      backup: "Pencadangan",
     };
     return (
       customMap[value] ||

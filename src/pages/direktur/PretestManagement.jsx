@@ -1,7 +1,5 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { useMediaQuery } from "@/hooks/use-media-query";
-
-import { useState, useMemo } from "react";
 import { useGetWaitingPretestQuery } from "../../store/api/studentsApi";
 import { SearchInput } from "../../components/ui/SearchInput";
 import PretestTableContainer from "../../components/tahsin-tahfidz/tahsin/pretest/PretestTableContainer";
@@ -20,7 +18,6 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/drawer";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import PretestForm from "../../components/tahsin-tahfidz/tahsin/pretest/PretestForm";
@@ -33,13 +30,12 @@ function PretestManagement() {
   const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery("only screen and (min-width:768px)");
 
-  const allStudents = Array.isArray(data?.data)
-    ? data.data
-    : Array.isArray(data)
-      ? data
-      : [];
-
   const filteredNewStudents = useMemo(() => {
+    const allStudents = Array.isArray(data?.data)
+      ? data.data
+      : Array.isArray(data)
+        ? data
+        : [];
     if (!search) return allStudents;
     const keyword = search.toLowerCase();
     return allStudents.filter(
@@ -47,7 +43,7 @@ function PretestManagement() {
         s.nama?.toLowerCase().includes(keyword) ||
         s.nis?.toLowerCase().includes(keyword)
     );
-  }, [allStudents, search]);
+  }, [data, search]);
 
   if (isLoading) {
     return (
@@ -101,7 +97,7 @@ function PretestManagement() {
       )}
 
       {!isDesktop && (
-        <Drawer>
+        <Drawer open={open} onOpenChange={setOpen}>
           <DrawerContent>
             <DrawerHeader>
               <DrawerTitle>Input Nilai Placement</DrawerTitle>

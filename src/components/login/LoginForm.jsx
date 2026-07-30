@@ -25,7 +25,7 @@ export function LoginForm({ className, onSubmit, isLoading, ...props }) {
     >
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8" onSubmit={onSubmit}>
+          <form className="p-6 md:p-8" onSubmit={onSubmit} autoComplete="off">
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center">
                 <h1 className="text-2xl font-bold">Welcome back</h1>
@@ -39,6 +39,7 @@ export function LoginForm({ className, onSubmit, isLoading, ...props }) {
                   id="email"
                   name="email"
                   type="email"
+                  autoComplete="off"
                   placeholder="m@example.com"
                   required
                   disabled={isLoading}
@@ -51,6 +52,7 @@ export function LoginForm({ className, onSubmit, isLoading, ...props }) {
                 <Input
                   id="password"
                   name="password"
+                  autoComplete="new-password"
                   type={showPassword ? "text" : "password"}
                   placeholder="********"
                   required
@@ -74,7 +76,7 @@ export function LoginForm({ className, onSubmit, isLoading, ...props }) {
           </form>
           <div className="relative hidden bg-muted md:block">
             <img
-              src="/khu-gedung.jpeg" 
+              src="/khu-gedung.jpeg"
               alt="Image"
               className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale opacity-60"
             />

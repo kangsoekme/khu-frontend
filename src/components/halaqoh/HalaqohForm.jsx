@@ -110,7 +110,7 @@ function HalaqohForm({
       if (onSuccess) onSuccess();
     } catch (error) {
       console.log("Error tambah siswa : ", error);
-      toast.error(error.data?.mesage || "Gagal membuat halaqoh");
+      toast.error(error.data?.message || "Gagal membuat halaqoh");
     }
   };
   const waitingStudents = allStudents.filter((student) => {
@@ -367,7 +367,7 @@ function HalaqohForm({
                             </span>
                             <span className="text-[11px] text-neutral-400 font-medium">
                               NIS: {student.nis} |{" "}
-                              {student.riwayatKelas?.[0].nama_kelas || "-"}
+                              {student.riwayatKelas?.[0]?.nama_kelas || "-"}
                             </span>
                           </div>
                         </div>

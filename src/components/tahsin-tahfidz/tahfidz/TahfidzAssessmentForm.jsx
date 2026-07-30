@@ -16,7 +16,6 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { useGetAllSurahQuery } from "../../../store/api/surahApi";
 import {
   useAddHafalanMutation,
-  useAddMurajaahMutation,
   useGetRiwayatHafalanQuery,
 } from "../../../store/api/tahfidzApi";
 
@@ -24,7 +23,7 @@ import { FaMinus, FaPlus } from "react-icons/fa";
 
 import { Switch } from "@/components/ui/switch";
 
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { toast } from "sonner";
 
@@ -49,8 +48,8 @@ function TahfidzAssessmentForm({ nis, halaqohId, onSuccess }) {
 
   const nilaiHafalan = Math.max(60, 95 - jumlahSalah * 10);
 
-  const [addHafalan] = useAddHafalanMutation();
-  const [addMurajaah] = useAddMurajaahMutation();
+  const [addHafalan, { isLoading: isAdding }] = useAddHafalanMutation();
+
 
   const kurangPengulangan = () => setPengulangan((p) => Math.max(0, p - 1));
   const tambahPengulangan = () => setPengulangan((p) => Math.min(100, p + 1));
@@ -342,7 +341,11 @@ function TahfidzAssessmentForm({ nis, halaqohId, onSuccess }) {
             </Field>
           </div>
         </ScrollArea>
-        <Button>Tambah Setoran</Button>
+        <div className="sticky bottom-0 bg-background pt-4 pb-2 border-t mt-auto z-10 md:static md:p-0 md:border-0 md:mt-4 md:bg-transparent">
+          <Button type="submit" disabled={isAdding} className="w-full shadow-xs">
+            {isAdding ? "Menyimpan..." : "Tambah Setoran Hafalan"}
+          </Button>
+        </div>
       </div>
     </form>
   );

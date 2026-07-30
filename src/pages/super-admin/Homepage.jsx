@@ -47,7 +47,7 @@ function Homepage() {
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold">
-              {summary?.guru?.total +
+              {(summary?.guru?.total || 0) +
                 (data?.chart_skema_pengguna?.find((x) => x.role === "direktur")
                   ?.total || 0)}
             </p>
