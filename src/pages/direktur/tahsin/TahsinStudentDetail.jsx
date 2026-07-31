@@ -46,6 +46,16 @@ import {
 } from "@/components/ui/table";
 
 import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+
+import {
   Card,
   CardContent,
   CardDescription,
@@ -144,6 +154,9 @@ function TahsinStudentDetail() {
   const [editData, setEditData] = useState(null);
   const [openPengajuan, setOpenPengajuan] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 7;
 
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
@@ -159,6 +172,57 @@ function TahsinStudentDetail() {
   const student = studentRes?.data;
   const riwayatList = riwayatRes?.data?.history || [];
   const summary = riwayatRes?.data?.summary;
+  
+  const paginatedRiwayat = riwayatList.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const renderPagination = (page, total, setPage) => {
+    const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
+    if (totalPages <= 1) return null;
+
+    const getPageNumbers = () => {
+      if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
+      if (page <= 3) return [1, 2, 3, 4, "...", totalPages];
+      if (page >= totalPages - 2) return [1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+      return [1, "...", page - 1, page, page + 1, "...", totalPages];
+    };
+
+    return (
+      <Pagination className="mt-6 mb-2">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              href="#"
+              onClick={(e) => { e.preventDefault(); if (page > 1) setPage(page - 1); }}
+              className={page === 1 ? "pointer-events-none opacity-50" : ""}
+            />
+          </PaginationItem>
+          {getPageNumbers().map((p, index) =>
+            p === "..." ? (
+              <PaginationItem key={`ellipsis-${index}`}>
+                <PaginationEllipsis />
+              </PaginationItem>
+            ) : (
+              <PaginationItem key={p}>
+                <PaginationLink href="#" isActive={p === page} onClick={(e) => { e.preventDefault(); setPage(p); }}>
+                  {p}
+                </PaginationLink>
+              </PaginationItem>
+            )
+          )}
+          <PaginationItem>
+            <PaginationNext
+              href="#"
+              onClick={(e) => { e.preventDefault(); if (page < totalPages) setPage(page + 1); }}
+              className={page === totalPages ? "pointer-events-none opacity-50" : ""}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    );
+  };
 
   // Cek kelengkapan pengajuan ujian: HANYA boleh jika tahapan saat ini selesai.
   const statusPengajuan = cekKelengkapanPengajuan(
@@ -351,7 +415,7 @@ function TahsinStudentDetail() {
                   </TableCell>
                 </TableRow>
               ) : (
-                riwayatList.map((riwayat) => {
+                paginatedRiwayat.map((riwayat) => {
                   const laporanParts = formatLaporanBacaan(riwayat);
                   return (
                     <TableRow key={riwayat.id}>
@@ -452,7 +516,7 @@ function TahsinStudentDetail() {
                 Belum ada riwayat setoran
               </p>
             ) : (
-              riwayatList.map((riwayat, index) => {
+              paginatedRiwayat.map((riwayat, index) => {
                 const parts = formatLaporanBacaan(riwayat);
                 return (
                   <MobileHistoryCard
@@ -498,6 +562,7 @@ function TahsinStudentDetail() {
               })
             )}
           </div>
+          {renderPagination(currentPage, riwayatList.length, setCurrentPage)}
         </CardContent>
       </Card>
 

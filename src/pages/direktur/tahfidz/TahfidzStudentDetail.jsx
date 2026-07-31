@@ -9,6 +9,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { useState } from "react";
 import { FaCalendarCheck } from "react-icons/fa";
 import { useParams } from "react-router-dom";
@@ -79,6 +88,10 @@ function TahfidzStudentDetail() {
   const [murajaahToDelete, setMurajaahToDelete] = useState(null);
   const [deleteMurajaah] = useDeleteMurajaahMutation();
 
+  const [currentPageHafalan, setCurrentPageHafalan] = useState(1);
+  const [currentPageMurajaah, setCurrentPageMurajaah] = useState(1);
+  const ITEMS_PER_PAGE = 7;
+
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const { data: studentRes, isLoading: isLoadingStudent } =
     useGetStudentQuery(nis);
@@ -102,10 +115,65 @@ function TahfidzStudentDetail() {
   if (isLoadingStudent || isLoadingRiwayat || isLoadingMurajaah) {
     return <p>Memuat profil dan riwayat siswa</p>;
   }
-
   const student = studentRes?.data;
   const riwayatList = riwayatRes?.data?.history?.hafalan_baru || [];
   const murajaahList = murajaahRes?.data?.history?.murajaah_baru || [];
+
+  const paginatedHafalan = riwayatList.slice(
+    (currentPageHafalan - 1) * ITEMS_PER_PAGE,
+    currentPageHafalan * ITEMS_PER_PAGE
+  );
+
+  const paginatedMurajaah = murajaahList.slice(
+    (currentPageMurajaah - 1) * ITEMS_PER_PAGE,
+    currentPageMurajaah * ITEMS_PER_PAGE
+  );
+
+  const renderPagination = (page, total, setPage) => {
+    const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
+    if (totalPages <= 1) return null;
+
+    const getPageNumbers = () => {
+      if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
+      if (page <= 3) return [1, 2, 3, 4, "...", totalPages];
+      if (page >= totalPages - 2) return [1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+      return [1, "...", page - 1, page, page + 1, "...", totalPages];
+    };
+
+    return (
+      <Pagination className="mt-6 mb-2">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              href="#"
+              onClick={(e) => { e.preventDefault(); if (page > 1) setPage(page - 1); }}
+              className={page === 1 ? "pointer-events-none opacity-50" : ""}
+            />
+          </PaginationItem>
+          {getPageNumbers().map((p, index) =>
+            p === "..." ? (
+              <PaginationItem key={`ellipsis-${index}`}>
+                <PaginationEllipsis />
+              </PaginationItem>
+            ) : (
+              <PaginationItem key={p}>
+                <PaginationLink href="#" isActive={p === page} onClick={(e) => { e.preventDefault(); setPage(p); }}>
+                  {p}
+                </PaginationLink>
+              </PaginationItem>
+            )
+          )}
+          <PaginationItem>
+            <PaginationNext
+              href="#"
+              onClick={(e) => { e.preventDefault(); if (page < totalPages) setPage(page + 1); }}
+              className={page === totalPages ? "pointer-events-none opacity-50" : ""}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    );
+  };
 
   const chartData = [...(riwayatList || [])]
     .slice(0, 7)
@@ -250,7 +318,7 @@ function TahfidzStudentDetail() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    riwayatList.map((riwayat) => (
+                    paginatedHafalan.map((riwayat) => (
                       <TableRow key={riwayat.id}>
                         <TableCell>
                           <div className="flex flex-col">
@@ -306,7 +374,7 @@ function TahfidzStudentDetail() {
                     Belum ada riwayat setoran
                   </p>
                 ) : (
-                  riwayatList.map((riwayat, index) => (
+                  paginatedHafalan.map((riwayat, index) => (
                     <MobileHistoryCard
                       key={index}
                       day={new Date(riwayat.timestamp).toLocaleDateString(
@@ -339,6 +407,7 @@ function TahfidzStudentDetail() {
                   ))
                 )}
               </div>
+              {renderPagination(currentPageHafalan, riwayatList.length, setCurrentPageHafalan)}
             </TabsContent>
             <TabsContent value="murajaah">
               <Table className="hidden lg:table">
@@ -359,7 +428,7 @@ function TahfidzStudentDetail() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    murajaahList.map((murajaah) => (
+                    paginatedMurajaah.map((murajaah) => (
                       <TableRow key={murajaah.id}>
                         <TableCell>
                           <div className="flex flex-col">
@@ -445,7 +514,7 @@ function TahfidzStudentDetail() {
                     Belum ada murajaah setoran
                   </p>
                 ) : (
-                  murajaahList.map((murajaah, index) => (
+                  paginatedMurajaah.map((murajaah, index) => (
                     <MobileHistoryCard
                       key={index}
                       day={new Date(murajaah.timestamp).toLocaleDateString(
@@ -478,6 +547,7 @@ function TahfidzStudentDetail() {
                   ))
                 )}
               </div>
+              {renderPagination(currentPageMurajaah, murajaahList.length, setCurrentPageMurajaah)}
             </TabsContent>
           </Tabs>
         </CardContent>

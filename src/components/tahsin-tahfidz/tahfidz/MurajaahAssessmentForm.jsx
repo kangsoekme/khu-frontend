@@ -51,7 +51,6 @@ function MurajaahAssessmentForm({ nis, halaqohId, editData, onSuccess }) {
     const formData = new FormData(e.target);
 
     const payload = {
-      nis: nis,
       nis_siswa: nis,
       halaqohId: halaqohId,
       no_surah: Number(formData.get("hafalan_surah")),

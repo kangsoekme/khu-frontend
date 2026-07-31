@@ -25,6 +25,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { useState } from "react";
 import { MobileHistoryCard } from "../../components/ui/MobileHistoryCard";
 import { FaCalendarCheck } from "react-icons/fa";
 
@@ -57,6 +67,72 @@ export default function WaliDashboard() {
   const tahfidzSummary = riwayatHafalanRes?.data?.history?.summary;
   
   const riwayatMurajaahList = riwayatMurajaahRes?.data?.history?.murajaah_baru || [];
+
+  const ITEMS_PER_PAGE = 7;
+  const [currentPageTahsin, setCurrentPageTahsin] = useState(1);
+  const [currentPageHafalan, setCurrentPageHafalan] = useState(1);
+  const [currentPageMurajaah, setCurrentPageMurajaah] = useState(1);
+
+  const paginatedTahsin = riwayatTahsinList.slice(
+    (currentPageTahsin - 1) * ITEMS_PER_PAGE,
+    currentPageTahsin * ITEMS_PER_PAGE
+  );
+
+  const paginatedHafalan = riwayatHafalanList.slice(
+    (currentPageHafalan - 1) * ITEMS_PER_PAGE,
+    currentPageHafalan * ITEMS_PER_PAGE
+  );
+
+  const paginatedMurajaah = riwayatMurajaahList.slice(
+    (currentPageMurajaah - 1) * ITEMS_PER_PAGE,
+    currentPageMurajaah * ITEMS_PER_PAGE
+  );
+
+  const renderPagination = (page, total, setPage) => {
+    const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
+    if (totalPages <= 1) return null;
+
+    const getPageNumbers = () => {
+      if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
+      if (page <= 3) return [1, 2, 3, 4, "...", totalPages];
+      if (page >= totalPages - 2) return [1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+      return [1, "...", page - 1, page, page + 1, "...", totalPages];
+    };
+
+    return (
+      <Pagination className="mt-6 mb-2">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              href="#"
+              onClick={(e) => { e.preventDefault(); if (page > 1) setPage(page - 1); }}
+              className={page === 1 ? "pointer-events-none opacity-50" : ""}
+            />
+          </PaginationItem>
+          {getPageNumbers().map((p, index) =>
+            p === "..." ? (
+              <PaginationItem key={`ellipsis-${index}`}>
+                <PaginationEllipsis />
+              </PaginationItem>
+            ) : (
+              <PaginationItem key={p}>
+                <PaginationLink href="#" isActive={p === page} onClick={(e) => { e.preventDefault(); setPage(p); }}>
+                  {p}
+                </PaginationLink>
+              </PaginationItem>
+            )
+          )}
+          <PaginationItem>
+            <PaginationNext
+              href="#"
+              onClick={(e) => { e.preventDefault(); if (page < totalPages) setPage(page + 1); }}
+              className={page === totalPages ? "pointer-events-none opacity-50" : ""}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    );
+  };
 
   const prepareChartDataTahsin = (list) => {
     return [...(list || [])].reverse().map((item, idx) => {
@@ -210,7 +286,7 @@ export default function WaliDashboard() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    riwayatTahsinList.map((riwayat, i) => (
+                    paginatedTahsin.map((riwayat, i) => (
                       <TableRow key={i}>
                         <TableCell>
                           <div className="flex flex-col">
@@ -293,7 +369,7 @@ export default function WaliDashboard() {
                 </TableBody>
               </Table>
               <div className="flex flex-col lg:hidden mt-4 gap-6">
-                {riwayatTahsinList.map((riwayat, i) => (
+                {paginatedTahsin.map((riwayat, i) => (
                   <MobileHistoryCard
                     key={i}
                     day={new Date(riwayat.timestamp).toLocaleDateString("id-ID", { weekday: "long" })}
@@ -323,6 +399,7 @@ export default function WaliDashboard() {
                   />
                 ))}
               </div>
+              {renderPagination(currentPageTahsin, riwayatTahsinList.length, setCurrentPageTahsin)}
             </CardContent>
           </Card>
         </TabsContent>
@@ -403,7 +480,7 @@ export default function WaliDashboard() {
                             </TableCell>
                           </TableRow>
                         ) : (
-                          riwayatHafalanList.map((riwayat, i) => (
+                          paginatedHafalan.map((riwayat, i) => (
                             <TableRow key={i}>
                               <TableCell>
                                 <div className="flex flex-col">
@@ -445,7 +522,7 @@ export default function WaliDashboard() {
                       </TableBody>
                   </Table>
                   <div className="flex flex-col lg:hidden mt-4 gap-6">
-                    {riwayatHafalanList.map((riwayat, i) => (
+                    {paginatedHafalan.map((riwayat, i) => (
                        <MobileHistoryCard
                           key={i}
                           day={new Date(riwayat.tanggal || riwayat.timestamp).toLocaleDateString("id-ID", { weekday: "long" })}
@@ -465,6 +542,7 @@ export default function WaliDashboard() {
                         />
                     ))}
                   </div>
+                  {renderPagination(currentPageHafalan, riwayatHafalanList.length, setCurrentPageHafalan)}
                 </TabsContent>
 
                 <TabsContent value="murajaah">
@@ -486,7 +564,7 @@ export default function WaliDashboard() {
                             </TableCell>
                           </TableRow>
                         ) : (
-                          riwayatMurajaahList.map((murajaah, i) => (
+                          paginatedMurajaah.map((murajaah, i) => (
                             <TableRow key={i}>
                               <TableCell>
                                 <div className="flex flex-col">
@@ -528,7 +606,7 @@ export default function WaliDashboard() {
                       </TableBody>
                   </Table>
                   <div className="flex flex-col lg:hidden mt-4 gap-6">
-                    {riwayatMurajaahList.map((murajaah, i) => (
+                    {paginatedMurajaah.map((murajaah, i) => (
                        <MobileHistoryCard
                           key={i}
                           day={new Date(murajaah.tanggal || murajaah.timestamp).toLocaleDateString("id-ID", { weekday: "long" })}
@@ -548,6 +626,7 @@ export default function WaliDashboard() {
                         />
                     ))}
                   </div>
+                  {renderPagination(currentPageMurajaah, riwayatMurajaahList.length, setCurrentPageMurajaah)}
                 </TabsContent>
               </Tabs>
             </CardContent>
