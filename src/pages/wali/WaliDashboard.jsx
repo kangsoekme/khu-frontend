@@ -39,7 +39,7 @@ import { MobileHistoryCard } from "../../components/ui/MobileHistoryCard";
 import { FaCalendarCheck } from "react-icons/fa";
 
 export default function WaliDashboard() {
-  const nis = sessionStorage.getItem("nis");
+  const nis = localStorage.getItem("nis");
 
   const { data: studentRes, isLoading: isLoadingStudent } =
     useGetStudentQuery(nis);

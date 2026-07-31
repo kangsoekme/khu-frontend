@@ -43,7 +43,7 @@ function UjianKenaikanManagement() {
   const handleDownloadMunaqosyah = async () => {
     try {
       setIsDownloading(true);
-      const token = sessionStorage.getItem("token");
+      const token = localStorage.getItem("token");
       const response = await fetch(`${BASE_API_URL}/export/munaqosyah`, {
         method: "GET",
         headers: { Authorization: `Bearer ${token}` },

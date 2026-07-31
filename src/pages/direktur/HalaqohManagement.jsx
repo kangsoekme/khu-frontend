@@ -152,7 +152,7 @@ function HalaqohManagement() {
 
   const handleExportExcel = async () => {
     try {
-      const token = sessionStorage.getItem("token") || "";
+      const token = localStorage.getItem("token") || "";
       // Gunakan fetch untuk mengunduh file binary dari backend berserta header Authorization
       const response = await fetch(
         `${BASE_API_URL}/export/halaqoh?kategori=${activeTab}`,

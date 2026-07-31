@@ -60,8 +60,8 @@ function MainLayout() {
     setSidebarOpen((prev) => !prev);
   };
 
-  const currentRole = sessionStorage.getItem("role") || ROLES.SUPER_ADMIN;
-  const rawName = sessionStorage.getItem("nama") || "Pengguna";
+  const currentRole = localStorage.getItem("role") || ROLES.SUPER_ADMIN;
+  const rawName = localStorage.getItem("nama") || "Pengguna";
   const currentName = rawName.split(" ").slice(0, 2).join(" ");
   const roleName = ROLES_NAMES[currentRole];
 
@@ -70,7 +70,7 @@ function MainLayout() {
   };
 
   const handleLogout = () => {
-    sessionStorage.clear();
+    localStorage.clear();
     navigate("/login");
   };
 

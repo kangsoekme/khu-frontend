@@ -25,11 +25,14 @@ export default function WaliLogin() {
     try {
       const response = await loginWaliApi({ nis, password }).unwrap();
 
-      sessionStorage.setItem("token", response.data.token);
-      sessionStorage.setItem("role", response.data.role);
-      sessionStorage.setItem("nama", response.data.nama);
-      sessionStorage.setItem("nis", response.data.nis);
-      sessionStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("role", response.data.role);
+      localStorage.setItem("nama", response.data.nama);
+      localStorage.setItem("nis", response.data.nis);
+      localStorage.setItem("isLoggedIn", "true");
+
+      const expiresAt = Date.now() + 12 * 60 * 60 * 1000;
+      localStorage.setItem("session_expires_at", expiresAt.toString());
 
       toast.success("Login sukses, Selamat Datang..");
       navigate("/wali/dashboard");

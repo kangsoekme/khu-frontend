@@ -60,7 +60,7 @@ function LaporanManagement() {
   const handleDownload = async (kategori) => {
     try {
       setLoadingType(kategori);
-      const token = sessionStorage.getItem("token");
+      const token = localStorage.getItem("token");
       const queryParams = new URLSearchParams({
         kategori,
         periode: periodeType,
@@ -104,7 +104,7 @@ function LaporanManagement() {
     }
     try {
       setLoadingType("individu");
-      const token = sessionStorage.getItem("token");
+      const token = localStorage.getItem("token");
       const selectedStudent = students.find((s) => s.nis === selectedNis);
       const response = await fetch(
         `${BASE_API_URL}/export/individual/${selectedNis}`,
@@ -137,7 +137,7 @@ function LaporanManagement() {
   const handleDownloadUmmiWord = async () => {
     try {
       setLoadingType("ummi-word");
-      const token = sessionStorage.getItem("token");
+      const token = localStorage.getItem("token");
       const response = await fetch(`${BASE_API_URL}/export/ummi-word`, {
         method: "GET",
         headers: { Authorization: `Bearer ${token}` },
@@ -168,7 +168,7 @@ function LaporanManagement() {
     }
     try {
       setLoadingType("individu-word");
-      const token = sessionStorage.getItem("token");
+      const token = localStorage.getItem("token");
       const selectedStudent = students.find((s) => s.nis === selectedNis);
       const response = await fetch(
         `${BASE_API_URL}/export/individual-word/${selectedNis}`,

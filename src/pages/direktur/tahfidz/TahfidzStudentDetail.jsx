@@ -79,7 +79,7 @@ import { MobileHistoryCard } from "../../../components/ui/MobileHistoryCard";
 
 function TahfidzStudentDetail() {
   const { nis } = useParams();
-  const currentRole = sessionStorage.getItem("role");
+  const currentRole = localStorage.getItem("role");
 
   const [openHafalan, setOpenHafalan] = useState(false);
   const [openMurajaah, setOpenMurajaah] = useState(false);

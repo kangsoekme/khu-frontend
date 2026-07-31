@@ -148,7 +148,7 @@ function TahsinStudentDetail() {
   const [ajukanUjian, { isLoading: isMengajukan }] = useAjukanUjianMutation();
   const [deleteTahsin, { isLoading: isDeleting }] = useDeleteTahsinMutation();
   const { nis } = useParams();
-  const currentRole = sessionStorage.getItem("role");
+  const currentRole = localStorage.getItem("role");
 
   const [openForm, setOpenForm] = useState(false);
   const [editData, setEditData] = useState(null);

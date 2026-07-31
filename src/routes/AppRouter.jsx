@@ -45,7 +45,7 @@ const PageLoader = () => (
 );
 
 const RoleBasedHomepage = () => {
-  const currentRole = sessionStorage.getItem("role") || ROLES.SUPER_ADMIN;
+  const currentRole = localStorage.getItem("role") || ROLES.SUPER_ADMIN;
 
   if (currentRole === ROLES.DIREKTUR) {
     return <DirekturHomepage />;
