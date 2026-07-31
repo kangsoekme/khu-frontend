@@ -50,6 +50,11 @@ export default function WaliDashboard() {
   const { data: riwayatMurajaahRes, isLoading: isLoadingMurajaah } =
     useGetRiwayatMurajaahQuery(nis);
 
+  const ITEMS_PER_PAGE = 7;
+  const [currentPageTahsin, setCurrentPageTahsin] = useState(1);
+  const [currentPageHafalan, setCurrentPageHafalan] = useState(1);
+  const [currentPageMurajaah, setCurrentPageMurajaah] = useState(1);
+
   if (
     isLoadingStudent ||
     isLoadingTahsin ||
@@ -67,11 +72,6 @@ export default function WaliDashboard() {
   const tahfidzSummary = riwayatHafalanRes?.data?.history?.summary;
   
   const riwayatMurajaahList = riwayatMurajaahRes?.data?.history?.murajaah_baru || [];
-
-  const ITEMS_PER_PAGE = 7;
-  const [currentPageTahsin, setCurrentPageTahsin] = useState(1);
-  const [currentPageHafalan, setCurrentPageHafalan] = useState(1);
-  const [currentPageMurajaah, setCurrentPageMurajaah] = useState(1);
 
   const paginatedTahsin = riwayatTahsinList.slice(
     (currentPageTahsin - 1) * ITEMS_PER_PAGE,
