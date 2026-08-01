@@ -207,7 +207,7 @@ function StudentManagement() {
                 Tambah data siswa untuk kebutuhan komputasi
               </DrawerDescription>
             </DrawerHeader>
-            <ScrollArea className="max-h-[60vh]">
+            <ScrollArea className="flex-1 overflow-y-auto">
               <StudentForm className="p-4" onSuccess={() => setOpen(false)} />
             </ScrollArea>
           </DrawerContent>
@@ -242,7 +242,7 @@ function StudentManagement() {
                 Tambah data siswa untuk kebutuhan komputasi
               </DrawerDescription>
             </DrawerHeader>
-            <ScrollArea className="max-h-[60vh]">
+            <ScrollArea className="flex-1 overflow-y-auto">
               <StudentForm
                 className="p-4"
                 initialData={selectedStudent}

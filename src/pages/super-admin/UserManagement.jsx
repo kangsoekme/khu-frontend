@@ -207,7 +207,7 @@ function UserManagement() {
                   Tambah data user untuk kebutuhan komputasi
                 </DrawerDescription>
               </DrawerHeader>
-              <ScrollArea className="max-h-[60vh]">
+              <ScrollArea className="flex-1 overflow-y-auto">
                 <UserForm className="p-4" onSuccess={() => setOpen(false)} />
               </ScrollArea>
             </DrawerContent>
@@ -242,7 +242,7 @@ function UserManagement() {
                   Tambah data user untuk kebutuhan komputasi
                 </DrawerDescription>
               </DrawerHeader>
-              <ScrollArea className="max-h-[60vh]">
+              <ScrollArea className="flex-1 overflow-y-auto">
                 <UserForm
                   className="p-4"
                   initialData={selectedUser}

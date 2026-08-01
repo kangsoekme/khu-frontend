@@ -78,7 +78,7 @@ function MurajaahAssessmentForm({ nis, halaqohId, editData, onSuccess }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5 text-left">
       <div className="flex flex-col gap-5">
-        <ScrollArea className="max-h-[60vh]">
+        <ScrollArea className="flex-1 overflow-y-auto">
           <div className="flex flex-col gap-5">
             <Field>
               <Select
