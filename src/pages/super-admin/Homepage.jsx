@@ -33,7 +33,7 @@ function Homepage() {
   const systemLogs = data?.system_logs;
 
   return (
-    <div className="flex flex-col gap-6 p-2 md:p-4 animate-in fade-in duration-500">
+    <div className="flex flex-col gap-6 md:p-4 animate-in fade-in duration-500">
       {/* header */}
 
       {/* quick stats */}
