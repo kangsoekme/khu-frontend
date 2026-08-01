@@ -8,6 +8,11 @@ import { store } from "./store/store.js";
 
 import { Toaster } from "@/components/ui/sonner";
 
+// Auto-reload saat ada chunk Vite lama yang sudah terhapus di server (deploy baru)
+window.addEventListener("vite:preloadError", () => {
+  window.location.reload();
+});
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <Provider store={store}>

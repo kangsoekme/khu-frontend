@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, useRouteError } from "react-router-dom";
 import React, { lazy, Suspense } from "react";
 
 // global
@@ -58,10 +58,36 @@ const RoleBasedHomepage = () => {
   return <SuperAdminHomepage />;
 };
 
+const GlobalErrorBoundary = () => {
+  const error = useRouteError();
+  console.error("Route error:", error);
+
+  if (error && error.message && error.message.toLowerCase().includes("fetch dynamically imported module")) {
+    window.location.reload();
+    return <p className="text-center p-10">Menerapkan pembaruan sistem...</p>;
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
+      <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+        <h2 className="text-2xl font-bold text-red-600 mb-4">Terjadi Kesalahan</h2>
+        <p className="text-gray-600 mb-6">{error?.message || "Terjadi kesalahan sistem."}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors"
+        >
+          Muat Ulang Halaman
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const router = createBrowserRouter([
   {
     path: "/login",
     element: <LoginPage />,
+    errorElement: <GlobalErrorBoundary />
   },
   {
     path: "/wali/login",
@@ -70,9 +96,11 @@ const router = createBrowserRouter([
         <WaliLogin />
       </Suspense>
     ),
+    errorElement: <GlobalErrorBoundary />
   },
   {
     element: <WaliProtectedRoute />,
+    errorElement: <GlobalErrorBoundary />,
     children: [
       {
         path: "/wali/dashboard",
@@ -92,6 +120,7 @@ const router = createBrowserRouter([
   },
   {
     element: <ProtectedRoute />,
+    errorElement: <GlobalErrorBoundary />,
     children: [
       {
         path: "/",

@@ -239,7 +239,7 @@ function StudentForm({ className, onSuccess, initialData, isEdit }) {
       </div>
       <div
         className={cn(
-          "grid gap-3 w-full sticky bottom-0 bg-background pt-4 pb-2 border-t mt-auto z-10 md:static md:p-0 md:border-0 md:mt-4 md:bg-transparent",
+          "grid gap-3 w-full mt-6",
           showDeleteButton ? "grid-cols-2" : "grid-cols-1",
         )}
       >

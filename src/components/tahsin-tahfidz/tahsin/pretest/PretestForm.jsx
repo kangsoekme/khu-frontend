@@ -117,7 +117,7 @@ function PretestForm({ initialData, onSuccess }) {
         </>
       </div>
 
-      <div className="sticky bottom-0 bg-background pt-4 pb-2 border-t mt-auto z-10 md:static md:p-0 md:border-0 md:mt-4 md:bg-transparent">
+      <div className="mt-6">
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? "Menyimpan..." : "Simpan Hasil Pretest"}
         </Button>
