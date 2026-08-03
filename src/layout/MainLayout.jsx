@@ -4,9 +4,11 @@ import { useState } from "react";
 import { ROLES } from "../utils/constant";
 import { ROLES_NAMES } from "../utils/constant";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useLogoutMutation } from "../store/api/authApi.js";
 
 function MainLayout() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [logout] = useLogoutMutation();
 
   const location = useLocation();
 
@@ -69,7 +71,13 @@ function MainLayout() {
     setSidebarOpen(false);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // SEC-6: panggil endpoint logout agar token dicabut di server
+    try {
+      await logout();
+    } catch (e) {
+      // abaikan error (mis. token sudah kedaluwarsa) — tetap bersihkan lokal
+    }
     localStorage.clear();
     navigate("/login");
   };

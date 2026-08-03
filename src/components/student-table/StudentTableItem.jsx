@@ -35,6 +35,14 @@ function StudentTableItem({
   isSelected,
   onToggleSelect,
 }) {
+  // FE-4: gunakan inisial nama dinamis, bukan hardcode 'CN'
+  const initials = (name || "")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() || "")
+    .join("") || "?";
+
   return (
     <>
       <TableRow onClick={onClick}>
@@ -46,7 +54,7 @@ function StudentTableItem({
             <ItemMedia>
               <Avatar>
                 <AvatarImage src={profilePhoto} />
-                <AvatarFallback>CN</AvatarFallback>
+                <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
             </ItemMedia>
             <ItemContent>

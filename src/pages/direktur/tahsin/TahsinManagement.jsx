@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { SearchInput } from "../../../components/ui/SearchInput";
 import HalaqohItem from "../../../components/halaqoh/HalaqohItem";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +13,7 @@ import { toast } from "sonner";
 
 function TahsinManagement() {
   const navigate = useNavigate();
+  const [search, setSearch] = useState("");
 
   const currentRole = localStorage.getItem("role");
   const currentNama = localStorage.getItem("nama");
@@ -34,6 +35,15 @@ function TahsinManagement() {
     );
   }
 
+  // FE-6: hubungkan SearchInput ke state dan filter daftar halaqoh
+  const filteredHalaqoh = search.trim()
+    ? allHalaqohTahsin.filter(
+        (h) =>
+          h.nama_halaqoh?.toLowerCase().includes(search.toLowerCase()) ||
+          h.guru?.nama?.toLowerCase().includes(search.toLowerCase()),
+      )
+    : allHalaqohTahsin;
+
   const handleExport = async () => {
     try {
       const result = await triggerGetLaporan().unwrap();
@@ -52,7 +62,11 @@ function TahsinManagement() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex w-full  gap-5">
-        <SearchInput />
+        <SearchInput
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Cari nama halaqoh / guru..."
+        />
         {currentRole === "DIREKTUR" && (
           <Button
             onClick={handleExport}
@@ -65,18 +79,22 @@ function TahsinManagement() {
           </Button>
         )}
       </div>
-      {allHalaqohTahsin.length === 0 ? (
+      {filteredHalaqoh.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-20 text-neutral-textmuted text-center">
-          <h2 className="text-2xl font-bold mb2">Belum ada Halaqoh</h2>
+          <h2 className="text-2xl font-bold mb2">
+            {search ? "Halaqoh tidak ditemukan" : "Belum ada Halaqoh"}
+          </h2>
           <p>
-            {currentRole === "GURU"
-              ? "Anda tidak memiliki halaqoh saat ini"
-              : "Belum ada halaqoh untuk sistem ini"}
+            {search
+              ? `Tidak ada halaqoh yang cocok dengan "${search}"`
+              : currentRole === "GURU"
+                ? "Anda tidak memiliki halaqoh saat ini"
+                : "Belum ada halaqoh untuk sistem ini"}
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
-          {allHalaqohTahsin.map((halaqoh) => (
+          {filteredHalaqoh.map((halaqoh) => (
             <HalaqohItem
               key={halaqoh.id}
               halaqoh={halaqoh}

@@ -24,8 +24,17 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
 
   if (result.error && result.error.status === 401) {
-    localStorage.clear();
-    window.location.href = "/";
+    // Bedakan 401 "kredensial salah" (endpoint login) vs "sesi/token expired".
+    // Untuk endpoint login, teruskan error ke komponen agar toast validasi muncul.
+    // Hanya redirect untuk request terautentikasi yang token-nya expired/dicabut.
+    // args.url tidak punya leading slash (cth. "auth/login"), jadi match tanpa slash.
+    const url = typeof args === "string" ? args : args?.url || "";
+    const isAuthEndpoint =
+      url.includes("auth/login") || url.includes("auth/wali/login");
+    if (!isAuthEndpoint) {
+      localStorage.clear();
+      window.location.href = "/";
+    }
   }
 
   return result;

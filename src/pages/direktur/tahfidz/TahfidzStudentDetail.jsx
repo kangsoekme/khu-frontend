@@ -55,6 +55,7 @@ import {
 } from "../../../store/api/tahfidzApi";
 import TahfidzAssessmentForm from "../../../components/tahsin-tahfidz/tahfidz/TahfidzAssessmentForm";
 import MurajaahAssessmentForm from "../../../components/tahsin-tahfidz/tahfidz/MurajaahAssessmentForm";
+import { formatEnum } from "../../../utils/formatEnum";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -360,7 +361,7 @@ function TahfidzStudentDetail() {
                           {riwayat.nilai_hafalan || "0"}
                         </TableCell>
                         <TableCell className="">
-                          <Badge className="text">{riwayat.predikat}</Badge>
+                          <Badge className="text">{formatEnum(riwayat.predikat)}</Badge>
                         </TableCell>
                       </TableRow>
                     ))
@@ -402,7 +403,7 @@ function TahfidzStudentDetail() {
                         label: "Hafalan",
                         value: riwayat.nilai_hafalan || "0",
                       }}
-                      badgeText={riwayat.predikat}
+                      badgeText={formatEnum(riwayat.predikat)}
                     />
                   ))
                 )}
@@ -470,7 +471,7 @@ function TahfidzStudentDetail() {
                           {murajaah.nilai_hafalan || "0"}
                         </TableCell>
                         <TableCell className="">
-                          <Badge className="text">{murajaah.predikat}</Badge>
+                          <Badge className="text">{formatEnum(murajaah.predikat)}</Badge>
                         </TableCell>
                         {currentRole === "GURU" && (
                           <TableCell>
@@ -536,7 +537,7 @@ function TahfidzStudentDetail() {
                         label: "Hafalan",
                         value: murajaah.nilai_hafalan || "0",
                       }}
-                      badgeText={murajaah.predikat}
+                      badgeText={formatEnum(murajaah.predikat)}
                       showActions={currentRole === "GURU"}
                       onEdit={() => {
                         setMurajaahToEdit(murajaah);

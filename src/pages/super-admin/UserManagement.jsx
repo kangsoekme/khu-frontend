@@ -62,17 +62,19 @@ function UserManagement() {
     data: usersData,
     isLoading,
     isError,
-  } = useGetUsersQuery({ page: currentPage, limit: 7, search });
+  } = useGetUsersQuery({
+    page: currentPage,
+    limit: 7,
+    search,
+    // FE-1: kirim role ke server agar filter berfungsi bersama pagination
+    role: activeRole === "semua" ? "" : activeRole,
+  });
 
   const users = usersData?.data || [];
   const totalPages = usersData?.meta?.totalPages || 1;
 
-  const roleFiltered =
-    activeRole === "semua"
-      ? users
-      : users.filter((user) => user.role === activeRole);
-
-  const filteredUser = roleFiltered;
+  // FE-1: filter kini dilakukan di server, jadi tidak perlu filter client-side
+  const filteredUser = users;
 
   if (isError) {
     return (
@@ -150,7 +152,10 @@ function UserManagement() {
             <DropdownMenuContent>
               <DropdownMenuRadioGroup
                 value={activeRole}
-                onValueChange={(value) => setactiveRole(value)}
+                onValueChange={(value) => {
+                  setactiveRole(value);
+                  setCurrentPage(1); // FE-1: reset ke halaman 1 saat ganti filter role
+                }}
               >
                 <DropdownMenuRadioItem value="semua">
                   Semua

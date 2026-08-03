@@ -1,24 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { LoginForm } from "../../components/login/LoginForm.jsx";
-import { useState } from "react";
 
-import { AlertCircleIcon } from "lucide-react";
-
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLoginMutation } from "../../store/api/authApi.js";
 
 import { toast } from "sonner";
 
 export default function LoginPage() {
-  const [errorMsg, setErrorMsg] = useState("");
-
   const [loginApi, { isLoading }] = useLoginMutation();
 
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMsg("");
 
     const formData = new FormData(e.target);
     const email = formData.get("email");
@@ -33,7 +26,7 @@ export default function LoginPage() {
       localStorage.setItem("nama", response.data.nama);
 
       localStorage.setItem("isLoggedIn", "true");
-      
+
       const expiresAt = Date.now() + 12 * 60 * 60 * 1000;
       localStorage.setItem("session_expires_at", expiresAt.toString());
 
@@ -43,9 +36,10 @@ export default function LoginPage() {
     } catch (error) {
       console.log("Error login : ", error);
 
-      toast.error(error.message || "Email atau password salah");
+      // RTK Query error: { status, data: { message } } — akses via error.data?.message.
+      // Semua error login (password salah 401, rate-limited 429) ditampilkan via toast.
       const serverMessage = error.data?.message || "Email atau password salah";
-      setErrorMsg(serverMessage);
+      toast.error(serverMessage);
     }
   };
 

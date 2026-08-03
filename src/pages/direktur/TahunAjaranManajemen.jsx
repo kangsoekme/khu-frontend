@@ -304,11 +304,6 @@ export default function TahunAjaranManagement() {
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
-                onClick={() => {
-                  if (!selectedTahunId) {
-                    toast.error("Pilih tahun akademik tujuan terlebih dahulu!");
-                  }
-                }}
                 disabled={isTransisi}
                 className="bg-amber-600 hover:bg-amber-700 text-white font-bold"
               >
@@ -317,25 +312,39 @@ export default function TahunAjaranManagement() {
                   : "⚡ Mulai Transisi Semester"}
               </Button>
             </AlertDialogTrigger>
-            {selectedTahunId && (
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Peringatan Transisi Semester!</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    PERHATIAN: Transisi Semester akan mengosongkan kelompok halaqoh seluruh siswa serta <b>MENGHAPUS PERMANEN (drop) seluruh data siswa kelas 6</b>. Tindakan ini tidak dapat dibatalkan. Lanjutkan?
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Batal</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleTransisi}
-                    className="bg-amber-600 hover:bg-amber-700 text-white font-bold"
-                  >
-                    Lanjutkan Transisi
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            )}
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Peringatan Transisi Semester!</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {selectedTahunId ? (
+                    <>
+                      PERHATIAN: Transisi Semester akan mengosongkan kelompok
+                      halaqoh seluruh siswa serta{" "}
+                      <b>MENGHAPUS PERMANEN (drop) seluruh data siswa kelas 6</b>.
+                      Tindakan ini tidak dapat dibatalkan. Lanjutkan?
+                    </>
+                  ) : (
+                    <>
+                      Anda belum memilih tahun akademik tujuan. Silakan pilih
+                      periode pada dropdown di atas sebelum melakukan transisi.
+                    </>
+                  )}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={selectedTahunId ? handleTransisi : undefined}
+                  className={
+                    selectedTahunId
+                      ? "bg-amber-600 hover:bg-amber-700 text-white font-bold"
+                      : "opacity-50 cursor-not-allowed"
+                  }
+                >
+                  {selectedTahunId ? "Lanjutkan Transisi" : "Pilih Tahun Dulu"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
           </AlertDialog>
         </CardContent>
       </Card>

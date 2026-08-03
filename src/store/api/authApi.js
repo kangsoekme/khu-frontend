@@ -16,9 +16,17 @@ export const authApi = baseApi.injectEndpoints({
         body: credentials,
       }),
     }),
+    // SEC-6: panggil endpoint logout agar token dicabut di server
+    logout: builder.mutation({
+      query: () => ({
+        url: "auth/logout",
+        method: "DELETE",
+      }),
+    }),
   }),
 
   overrideExisting: false,
 });
 
-export const { useLoginMutation, useLoginWaliMutation } = authApi;
+export const { useLoginMutation, useLoginWaliMutation, useLogoutMutation } =
+  authApi;

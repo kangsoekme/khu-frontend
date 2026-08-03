@@ -37,6 +37,14 @@ function UserTableItem({
   isSelected,
   onToggleSelect,
 }) {
+  // FE-4: gunakan inisial nama dinamis, bukan hardcode 'CN'
+  const initials = (name || "")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() || "")
+    .join("") || "?";
+
   return (
     <TableRow onClick={onClick} className="cursor-pointer ">
       <TableCell onClick={(e) => e.stopPropagation()}>
@@ -47,7 +55,7 @@ function UserTableItem({
           <ItemMedia>
             <Avatar>
               <AvatarImage src={profilePhoto} />
-              <AvatarFallback>CN</AvatarFallback>
+              <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
           </ItemMedia>
 

@@ -88,10 +88,17 @@ function UjianKenaikanManagement() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Cari siswa atau guru penguji..."
+          className="h-full"
         />
-        <Button onClick={handleDownloadMunaqosyah} disabled={isDownloading} className="h-11 bg-emerald-600 hover:bg-emerald-700">
-          <FaFileExcel className="mr-2" />
-          {isDownloading ? "Mengunduh..." : "Data Munaqosyah"}
+        <Button
+          onClick={handleDownloadMunaqosyah}
+          disabled={isDownloading}
+          className="bg-emerald-600 hover:bg-emerald-700"
+        >
+          <FaFileExcel className="md:mr-2" />
+          <span className="hidden md:inline">
+            {isDownloading ? "Mengunduh..." : "Data Munaqosyah"}
+          </span>
         </Button>
       </div>
       <UjianTableContainer

@@ -1,9 +1,11 @@
 import Topbar from "./Topbar";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useLogoutMutation } from "../store/api/authApi.js";
 
 function WaliLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [logout] = useLogoutMutation();
 
   const getPageTitle = (pathname) => {
     return "Portal Wali Santri";
@@ -14,11 +16,18 @@ function WaliLayout() {
   const rawName = localStorage.getItem("nama") || "Wali Santri";
   const currentName = rawName.split(" ").slice(0, 2).join(" ");
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // SEC-6: panggil endpoint logout agar token dicabut di server
+    try {
+      await logout();
+    } catch (e) {
+      // abaikan error — tetap bersihkan lokal
+    }
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("role");
     localStorage.removeItem("token");
     localStorage.removeItem("nama");
+    localStorage.removeItem("nis");
     navigate("/wali/login");
   };
 

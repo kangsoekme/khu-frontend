@@ -14,6 +14,22 @@ export const tahfidzApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Student", "Halaqoh", "Dashboard", "Laporan"],
     }),
+    // FE-5: tambahkan endpoint edit & delete hafalan agar fitur koreksi bisa dipakai
+    editHafalan: builder.mutation({
+      query: ({ id, ...hafalanData }) => ({
+        url: `/assessment/tahfidz/hafalan/setoran/${id}`,
+        method: "PUT",
+        body: hafalanData,
+      }),
+      invalidatesTags: ["Student", "Halaqoh", "Dashboard", "Laporan"],
+    }),
+    deleteHafalan: builder.mutation({
+      query: (id) => ({
+        url: `/assessment/tahfidz/hafalan/setoran/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Student", "Halaqoh", "Dashboard", "Laporan"],
+    }),
 
     getRiwayatMurajaah: builder.query({
       query: (nis) => `/assessment/tahfidz/murajaah/${nis}`,
@@ -48,6 +64,8 @@ export const tahfidzApi = baseApi.injectEndpoints({
 export const {
   useGetRiwayatHafalanQuery,
   useAddHafalanMutation,
+  useEditHafalanMutation,
+  useDeleteHafalanMutation,
   useGetRiwayatMurajaahQuery,
   useAddMurajaahMutation,
   useEditMurajaahMutation,

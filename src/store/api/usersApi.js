@@ -6,8 +6,10 @@ export const usersApi = baseApi.injectEndpoints({
       query: (params) => {
         let queryString = "";
         if (params) {
-          const { page = 1, limit = 10, search = "" } = params;
+          // FE-1: kirim filter role ke server agar filter berfungsi dengan pagination
+          const { page = 1, limit = 10, search = "", role = "" } = params;
           queryString = `?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`;
+          if (role) queryString += `&role=${encodeURIComponent(role)}`;
         } else {
           queryString = "?limit=1000";
         }
