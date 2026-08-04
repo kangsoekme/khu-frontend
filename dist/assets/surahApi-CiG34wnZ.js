@@ -1,0 +1,1 @@
+import{i as e}from"./dist-B0uVenBh.js";var{useGetAllSurahQuery:t}=e.injectEndpoints({endpoints:e=>({getAllSurah:e.query({query:()=>`/all-surah`})})});export{t};

@@ -1,5 +1,5 @@
-import { createBrowserRouter, RouterProvider, useRouteError } from "react-router-dom";
-import React, { lazy, Suspense } from "react";
+import { createBrowserRouter, Navigate, RouterProvider, useRouteError } from "react-router-dom";
+import { lazy, Suspense } from "react";
 
 // global
 import MainLayout from "../layout/MainLayout";
@@ -45,7 +45,20 @@ const PageLoader = () => (
 );
 
 const RoleBasedHomepage = () => {
-  const currentRole = localStorage.getItem("role") || ROLES.SUPER_ADMIN;
+  const currentRole = localStorage.getItem("role");
+  const isLoggedIn = localStorage.getItem("isLoggedIn");
+
+  // WALI tidak boleh masuk ke beranda admin — redirect ke portal wali.
+  // Mencegah crash di halaman admin ketika localStorage role = WALI.
+  if (currentRole === "WALI") {
+    return <Navigate to="/wali" replace />;
+  }
+
+  // Jika tidak login atau role tidak dikenal, lempar ke login admin.
+  // (sebelumnya default ke SUPER_ADMIN — celah akses halaman admin).
+  if (!isLoggedIn || !Object.values(ROLES).includes(currentRole)) {
+    return <Navigate to="/login" replace />;
+  }
 
   if (currentRole === ROLES.DIREKTUR) {
     return <DirekturHomepage />;
@@ -56,6 +69,19 @@ const RoleBasedHomepage = () => {
   }
 
   return <SuperAdminHomepage />;
+};
+
+// Redirect untuk path /wali (sebelumnya tidak terdaftar → error boundary).
+// - Sudah login sebagai WALI  → /wali/dashboard
+// - Belum login / bukan WALI  → /wali/login
+const WaliRedirect = () => {
+  const isLoggedIn = localStorage.getItem("isLoggedIn");
+  const role = localStorage.getItem("role");
+
+  if (isLoggedIn && role === "WALI") {
+    return <Navigate to="/wali/dashboard" replace />;
+  }
+  return <Navigate to="/wali/login" replace />;
 };
 
 const GlobalErrorBoundary = () => {
@@ -90,6 +116,15 @@ const router = createBrowserRouter([
     errorElement: <GlobalErrorBoundary />
   },
   {
+    path: "/wali",
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <WaliRedirect />
+      </Suspense>
+    ),
+    errorElement: <GlobalErrorBoundary />
+  },
+  {
     path: "/wali/login",
     element: (
       <Suspense fallback={<PageLoader />}>
@@ -117,6 +152,18 @@ const router = createBrowserRouter([
         ],
       },
     ],
+  },
+  // Catch-all untuk path wali tidak dikenal (mis. /wali/abc, /wali/foo/bar).
+  // Sebelumnya route seperti itu jatuh ke GlobalErrorBoundary. Sekarang
+  // diarahkan kembali ke halaman wali yang valid via WaliRedirect.
+  {
+    path: "/wali/*",
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <WaliRedirect />
+      </Suspense>
+    ),
+    errorElement: <GlobalErrorBoundary />
   },
   {
     element: <ProtectedRoute />,

@@ -13,11 +13,21 @@ const baseQuery = fetchBaseQuery({
   },
 });
 
+// Helper: redirect ke halaman login yang sesuai dengan role di localStorage.
+// WALI-3: sebelumnya selalu redirect ke "/" — untuk user WALI ini menyebabkan
+// loop (ProtectedRoute → /wali). Sekarang arahkan WALI ke portalnya sendiri.
+const redirectToLogin = () => {
+  const role = localStorage.getItem("role");
+  const waliPath = role === "WALI" ? "/wali/login" : "/";
+  localStorage.clear();
+  // Gunakan replace agar tidak menambah entri history (tombol back tidak loop).
+  window.location.replace(waliPath);
+};
+
 const baseQueryWithReauth = async (args, api, extraOptions) => {
   const expiresAt = localStorage.getItem("session_expires_at");
   if (expiresAt && Date.now() > parseInt(expiresAt, 10)) {
-    localStorage.clear();
-    window.location.href = "/";
+    redirectToLogin();
     return { error: { status: 401, data: { message: "Session expired" } } };
   }
 
@@ -32,8 +42,7 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
     const isAuthEndpoint =
       url.includes("auth/login") || url.includes("auth/wali/login");
     if (!isAuthEndpoint) {
-      localStorage.clear();
-      window.location.href = "/";
+      redirectToLogin();
     }
   }
 
