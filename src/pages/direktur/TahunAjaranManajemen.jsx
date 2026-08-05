@@ -61,6 +61,26 @@ export default function TahunAjaranManagement() {
 
   const tahunList = listRes?.data || [];
 
+  // Helper untuk memisahkan tahun (mis: 2026/2027) & semester (mis: GANJIL) dari nama_tahun jika field terpisah belum ada
+  const parseTahunAkademik = (item) => {
+    let tahun = item.tahun || "";
+    let semester = item.semester || "";
+
+    if (!tahun && item.nama_tahun) {
+      const parts = item.nama_tahun.trim().split(/\s+/);
+      tahun = parts[0] || item.nama_tahun;
+      if (!semester && parts.length > 1) {
+        semester = parts.slice(1).join(" ");
+      }
+    }
+
+    return {
+      tahun: tahun || item.nama_tahun || "-",
+      semester: semester || "-",
+      namaLengkap: item.nama_tahun || `${tahun} ${semester}`.trim(),
+    };
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
@@ -168,43 +188,46 @@ export default function TahunAjaranManagement() {
                   Belum ada data
                 </div>
               ) : (
-                tahunList.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between p-3.5 rounded-lg border bg-white shadow-xs"
-                  >
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-neutral-900">
-                          {item.tahun || item.nama_tahun}
+                tahunList.map((item) => {
+                  const { tahun, semester } = parseTahunAkademik(item);
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between p-3.5 rounded-lg border bg-white shadow-xs gap-3"
+                    >
+                      <div className="flex flex-col gap-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-sm text-neutral-900">
+                            {tahun}
+                          </span>
+                          {item.is_active ? (
+                            <Badge className="bg-emerald-600 text-[10px] px-2 py-0.5 shrink-0">
+                              Aktif
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] px-2 py-0.5 shrink-0">
+                              Tidak Aktif
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="text-xs text-neutral-500 font-medium">
+                          Semester {semester}
                         </span>
-                        {item.is_active ? (
-                          <Badge className="bg-emerald-600 text-[10px] px-2 py-0.5">
-                            Aktif
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-[10px] px-2 py-0.5">
-                            Tidak Aktif
-                          </Badge>
-                        )}
                       </div>
-                      <span className="text-xs text-neutral-500 font-medium">
-                        Semester {item.semester || "-"}
-                      </span>
-                    </div>
 
-                    {!item.is_active && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleActivate(item.id)}
-                        className="text-xs h-8 px-3"
-                      >
-                        Aktifkan
-                      </Button>
-                    )}
-                  </div>
-                ))
+                      {!item.is_active && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleActivate(item.id)}
+                          className="text-xs h-8 px-3 shrink-0"
+                        >
+                          Aktifkan
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })
               )}
             </div>
 
@@ -233,32 +256,33 @@ export default function TahunAjaranManagement() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    tahunList.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-bold">
-                          {item.tahun || item.nama_tahun}
-                        </TableCell>
-                        <TableCell>{item.semester}</TableCell>
-                        <TableCell>
-                          {item.is_active ? (
-                            <Badge className="bg-emerald-600">Aktif</Badge>
-                          ) : (
-                            <Badge variant="outline">Tidak Aktif</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {!item.is_active && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleActivate(item.id)}
-                            >
-                              Aktifkan
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    tahunList.map((item) => {
+                      const { tahun, semester } = parseTahunAkademik(item);
+                      return (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-bold">{tahun}</TableCell>
+                          <TableCell>{semester}</TableCell>
+                          <TableCell>
+                            {item.is_active ? (
+                              <Badge className="bg-emerald-600">Aktif</Badge>
+                            ) : (
+                              <Badge variant="outline">Tidak Aktif</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {!item.is_active && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleActivate(item.id)}
+                              >
+                                Aktifkan
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>
@@ -293,11 +317,14 @@ export default function TahunAjaranManagement() {
                 <SelectValue placeholder="Pilih Periode Tujuan..." />
               </SelectTrigger>
               <SelectContent>
-                {tahunList.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>
-                    {t.tahun || t.nama_tahun} - {t.semester}
-                  </SelectItem>
-                ))}
+                {tahunList.map((t) => {
+                  const { tahun, semester, namaLengkap } = parseTahunAkademik(t);
+                  return (
+                    <SelectItem key={t.id} value={t.id}>
+                      {semester !== "-" ? `${tahun} - ${semester}` : namaLengkap}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
