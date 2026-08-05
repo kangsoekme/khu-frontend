@@ -82,19 +82,38 @@ function TahsinAssessmentForm({
         ? rawJilidVal
         : rawJilidVal || formatEnum(tahapan) || "";
 
+  // Check previous setoran composition for Gharib / Tajwid (GANDA)
+  const hasPreviousBuku = editData
+    ? Boolean(editData.laporan_bacaan?.bab)
+    : Boolean(lastRiwayat?.laporan_bacaan?.bab);
+
+  const hasPreviousQuran = editData
+    ? Boolean(editData.laporan_bacaan?.surah)
+    : Boolean(lastRiwayat?.laporan_bacaan?.surah);
+
   const isLastMengulang = !editData && lastRiwayat?.status_kelanjutan === "MENGULANG";
 
   // Halaman buku: ambil dari setoran sebelumnya +1, ATAU tetap jika MENGULANG
   const lastBukuHalaman = editData
     ? Number(editData.laporan_bacaan?.bab) || 0
     : Number(lastRiwayat?.laporan_bacaan?.bab) || 0;
-  const nextBukuHalaman = editData
-    ? lastBukuHalaman
-    : isLastMengulang && lastBukuHalaman > 0
-      ? lastBukuHalaman
-      : lastBukuHalaman > 0
-        ? lastBukuHalaman + 1
-        : 1;
+
+  let nextBukuHalaman = "";
+  if (editData) {
+    nextBukuHalaman = lastBukuHalaman || "";
+  } else if (lastRiwayat) {
+    if (!isGharibOrTajwid || hasPreviousBuku) {
+      nextBukuHalaman = isLastMengulang && lastBukuHalaman > 0
+        ? lastBukuHalaman
+        : lastBukuHalaman > 0
+          ? lastBukuHalaman + 1
+          : 1;
+    } else {
+      nextBukuHalaman = "";
+    }
+  } else {
+    nextBukuHalaman = isGharibOrTajwid ? 1 : 1;
+  }
 
   // ===========================================================================
   // DEFAULT VALUE - LAPORAN BACAAN: Al-QURAN (surah + ayat)
@@ -106,7 +125,7 @@ function TahsinAssessmentForm({
         ?.no_surah.toString()
     : !editData &&
         lastRiwayat?.laporan_bacaan?.surah &&
-        (kategori === "QURAN" || kategori === "GANDA")
+        (kategori === "QURAN" || (isGharibOrTajwid && hasPreviousQuran))
       ? allSurah
           .find((s) => s.nama_surah === lastRiwayat.laporan_bacaan.surah)
           ?.no_surah.toString()
@@ -115,13 +134,23 @@ function TahsinAssessmentForm({
   const lastQuranAyatAkhir = editData
     ? Number(editData.laporan_bacaan?.ayat_akhir) || 0
     : Number(lastRiwayat?.laporan_bacaan?.ayat_akhir) || 0;
-  const nextQuranAyatAwal = editData
-    ? Number(editData.laporan_bacaan?.ayat_awal) || ""
-    : isLastMengulang && lastRiwayat?.laporan_bacaan?.ayat_awal
-      ? Number(lastRiwayat.laporan_bacaan.ayat_awal)
-      : lastQuranAyatAkhir > 0
-        ? lastQuranAyatAkhir + 1
-        : 1;
+
+  let nextQuranAyatAwal = "";
+  if (editData) {
+    nextQuranAyatAwal = Number(editData.laporan_bacaan?.ayat_awal) || "";
+  } else if (lastRiwayat) {
+    if (kategori === "QURAN" || (isGharibOrTajwid && hasPreviousQuran)) {
+      nextQuranAyatAwal = isLastMengulang && lastRiwayat?.laporan_bacaan?.ayat_awal
+        ? Number(lastRiwayat.laporan_bacaan.ayat_awal)
+        : lastQuranAyatAkhir > 0
+          ? lastQuranAyatAkhir + 1
+          : 1;
+    } else {
+      nextQuranAyatAwal = "";
+    }
+  } else {
+    nextQuranAyatAwal = kategori === "QURAN" ? 1 : "";
+  }
 
   const defaultQuranAyatAkhir = editData
     ? editData.laporan_bacaan?.ayat_akhir || ""
