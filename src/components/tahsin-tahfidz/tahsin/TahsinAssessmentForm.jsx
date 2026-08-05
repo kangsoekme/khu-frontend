@@ -29,6 +29,7 @@ function TahsinAssessmentForm({
   halaqohId,
   tahapan,
   lastRiwayat,
+  riwayatList = [],
   editData,
   onSuccess,
 }) {
@@ -82,27 +83,35 @@ function TahsinAssessmentForm({
         ? rawJilidVal
         : rawJilidVal || formatEnum(tahapan) || "";
 
-  // Check previous setoran composition for Gharib / Tajwid (GANDA)
-  const hasPreviousBuku = editData
-    ? Boolean(editData.laporan_bacaan?.bab)
-    : Boolean(lastRiwayat?.laporan_bacaan?.bab);
+  // Cari setoran paling baru yang memiliki entri Buku (halaman)
+  const lastBukuSetoran = editData
+    ? editData
+    : riwayatList.find((r) => r.laporan_bacaan?.bab != null && Number(r.laporan_bacaan.bab) > 0) || lastRiwayat;
 
-  const hasPreviousQuran = editData
+  // Cari setoran paling baru yang memiliki entri Al-Quran (surah)
+  const lastQuranSetoran = editData
+    ? editData
+    : riwayatList.find((r) => r.laporan_bacaan?.surah != null && r.laporan_bacaan.surah !== "") || lastRiwayat;
+
+  // Cek apakah setoran PADA PERTEMUAN TERAKHIR (riwayatList[0]) mengandung Buku dan/atau Al-Quran
+  const hasBukuInMostRecent = editData
+    ? Boolean(editData.laporan_bacaan?.bab)
+    : Boolean(lastRiwayat?.laporan_bacaan?.bab != null && Number(lastRiwayat.laporan_bacaan.bab) > 0);
+
+  const hasQuranInMostRecent = editData
     ? Boolean(editData.laporan_bacaan?.surah)
     : Boolean(lastRiwayat?.laporan_bacaan?.surah);
 
   const isLastMengulang = !editData && lastRiwayat?.status_kelanjutan === "MENGULANG";
 
   // Halaman buku: ambil dari setoran sebelumnya +1, ATAU tetap jika MENGULANG
-  const lastBukuHalaman = editData
-    ? Number(editData.laporan_bacaan?.bab) || 0
-    : Number(lastRiwayat?.laporan_bacaan?.bab) || 0;
+  const lastBukuHalaman = Number(lastBukuSetoran?.laporan_bacaan?.bab) || 0;
 
   let nextBukuHalaman = "";
   if (editData) {
     nextBukuHalaman = lastBukuHalaman || "";
   } else if (lastRiwayat) {
-    if (!isGharibOrTajwid || hasPreviousBuku) {
+    if (!isGharibOrTajwid || hasBukuInMostRecent) {
       nextBukuHalaman = isLastMengulang && lastBukuHalaman > 0
         ? lastBukuHalaman
         : lastBukuHalaman > 0
@@ -112,7 +121,7 @@ function TahsinAssessmentForm({
       nextBukuHalaman = "";
     }
   } else {
-    nextBukuHalaman = isGharibOrTajwid ? 1 : 1;
+    nextBukuHalaman = 1;
   }
 
   // ===========================================================================
@@ -124,24 +133,22 @@ function TahsinAssessmentForm({
         .find((s) => s.nama_surah === editData.laporan_bacaan.surah)
         ?.no_surah.toString()
     : !editData &&
-        lastRiwayat?.laporan_bacaan?.surah &&
-        (kategori === "QURAN" || (isGharibOrTajwid && hasPreviousQuran))
+        lastQuranSetoran?.laporan_bacaan?.surah &&
+        (kategori === "QURAN" || (isGharibOrTajwid && hasQuranInMostRecent))
       ? allSurah
-          .find((s) => s.nama_surah === lastRiwayat.laporan_bacaan.surah)
+          .find((s) => s.nama_surah === lastQuranSetoran.laporan_bacaan.surah)
           ?.no_surah.toString()
       : undefined;
 
-  const lastQuranAyatAkhir = editData
-    ? Number(editData.laporan_bacaan?.ayat_akhir) || 0
-    : Number(lastRiwayat?.laporan_bacaan?.ayat_akhir) || 0;
+  const lastQuranAyatAkhir = Number(lastQuranSetoran?.laporan_bacaan?.ayat_akhir) || 0;
 
   let nextQuranAyatAwal = "";
   if (editData) {
     nextQuranAyatAwal = Number(editData.laporan_bacaan?.ayat_awal) || "";
   } else if (lastRiwayat) {
-    if (kategori === "QURAN" || (isGharibOrTajwid && hasPreviousQuran)) {
-      nextQuranAyatAwal = isLastMengulang && lastRiwayat?.laporan_bacaan?.ayat_awal
-        ? Number(lastRiwayat.laporan_bacaan.ayat_awal)
+    if (kategori === "QURAN" || (isGharibOrTajwid && hasQuranInMostRecent)) {
+      nextQuranAyatAwal = isLastMengulang && lastQuranSetoran?.laporan_bacaan?.ayat_awal
+        ? Number(lastQuranSetoran.laporan_bacaan.ayat_awal)
         : lastQuranAyatAkhir > 0
           ? lastQuranAyatAkhir + 1
           : 1;

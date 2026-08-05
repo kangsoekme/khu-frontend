@@ -580,6 +580,7 @@ function TahsinStudentDetail() {
                 halaqohId={student?.halaqoh_tahsin?.id}
                 tahapan={student?.tahapan_tahsin}
                 lastRiwayat={riwayatList[0]}
+                riwayatList={riwayatList}
                 editData={editData}
                 onSuccess={() => setOpenForm(false)}
               />
@@ -600,6 +601,7 @@ function TahsinStudentDetail() {
                 halaqohId={student?.halaqoh_tahsin?.id}
                 tahapan={student?.tahapan_tahsin}
                 lastRiwayat={riwayatList[0]}
+                riwayatList={riwayatList}
                 editData={editData}
                 onSuccess={() => setOpenForm(false)}
               />
