@@ -392,7 +392,7 @@ function HalaqohForm({
       </div>
       <div
         className={cn(
-          "grid gap-3 w-full mt-2",
+          "sticky bottom-0 bg-white dark:bg-neutral-900 z-10 pt-3 pb-2 border-t border-border mt-3 grid gap-3 w-full",
           initialData ? "grid-cols-2" : "grid-cols-1",
         )}
       >

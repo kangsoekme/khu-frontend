@@ -332,30 +332,31 @@ function HalaqohManagement() {
 
         {isDesktop ? (
           <Dialog open={openForm} onOpenChange={setOpenForm}>
-            <DialogContent>
-              <DialogHeader>
+            <DialogContent className="max-h-[90vh] flex flex-col overflow-hidden">
+              <DialogHeader className="shrink-0">
                 <DialogTitle>
                   {selectedHalaqoh ? "Edit Halaqoh" : "Buat Halaqoh Baru"}
                 </DialogTitle>
               </DialogHeader>
-
-              <HalaqohForm
-                initialData={selectedHalaqoh}
-                studentsList={waitingStudent}
-                defaultKategori={activeTab}
-                onSuccess={() => setOpenForm(false)}
-              />
+              <div className="overflow-y-auto flex-1 pr-1">
+                <HalaqohForm
+                  initialData={selectedHalaqoh}
+                  studentsList={waitingStudent}
+                  defaultKategori={activeTab}
+                  onSuccess={() => setOpenForm(false)}
+                />
+              </div>
             </DialogContent>
           </Dialog>
         ) : (
           <Drawer open={openForm} onOpenChange={setOpenForm}>
-            <DrawerContent>
-              <DrawerHeader className="text-left">
+            <DrawerContent className="max-h-[90vh] flex flex-col">
+              <DrawerHeader className="text-left shrink-0">
                 <DrawerTitle>
                   {selectedHalaqoh ? "Edit Halaqoh" : "Buat Halaqoh Baru"}
                 </DrawerTitle>
               </DrawerHeader>
-              <div className="px-4">
+              <div className="px-4 pb-4 overflow-y-auto flex-1">
                 <HalaqohForm
                   initialData={selectedHalaqoh}
                   studentsList={waitingStudent}
