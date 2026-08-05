@@ -576,7 +576,7 @@ function TahfidzStudentDetail() {
             <DrawerHeader className="text-left shrink-0">
               <DrawerTitle>Tambah Setoran Hafalan</DrawerTitle>
             </DrawerHeader>
-            <div className="px-4 pb-4 overflow-y-auto flex-1">
+            <div className="px-4 flex-1 overflow-hidden flex flex-col pb-3">
               <TahfidzAssessmentForm
                 nis={nis}
                 halaqohId={student?.halaqoh_tahfidz?.id}
@@ -619,7 +619,7 @@ function TahfidzStudentDetail() {
             <DrawerHeader className="text-left shrink-0">
               <DrawerTitle>{murajaahToEdit ? "Edit Setoran Murajaah" : "Tambah Setoran Murajaah"}</DrawerTitle>
             </DrawerHeader>
-            <div className="px-4 pb-4 overflow-y-auto flex-1">
+            <div className="px-4 flex-1 overflow-hidden flex flex-col pb-3">
               <MurajaahAssessmentForm
                 nis={nis}
                 halaqohId={student?.halaqoh_tahfidz?.id}

@@ -234,165 +234,167 @@ function HalaqohForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5 text-left">
-      <div className="flex flex-col gap-2">
-        <Label className="text-sm font-semibold">Nama Halaqoh</Label>
-        <Input
-          type="text"
-          name="nama"
-          placeholder="Misal: Abu Bakar Ash Shiddiq"
-          defaultValue={initialData?.nama_halaqoh || initialData?.nama}
-          required
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-hidden text-left">
+      <div className="flex-1 overflow-y-auto space-y-4 pr-1 pb-4">
         <div className="flex flex-col gap-2">
-          <Label className="text-sm font-semibold">Kategori Program</Label>
-          <Select
-            onValueChange={setKategori}
-            defaultValue={initialData?.kategori}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Pilih Kategori" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem
-                  value="TAHSIN"
-                  className="font-medium text-blue-700"
-                >
-                  Tahsin Qiraah
-                </SelectItem>
-                <SelectItem
-                  value="TAHFIDZ"
-                  className="font-medium text-emerald-700"
-                >
-                  Tahfidz Quran
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          <Label className="text-sm font-semibold">Nama Halaqoh</Label>
+          <Input
+            type="text"
+            name="nama"
+            placeholder="Misal: Abu Bakar Ash Shiddiq"
+            defaultValue={initialData?.nama_halaqoh || initialData?.nama}
+            required
+          />
         </div>
-        <div className="flex flex-col gap-2">
-          <Label className="text-sm font-semibold">Guru Pengampu</Label>
-          <Select
-            onValueChange={setGuruId}
-            defaultValue={initialData?.guru?.id || initialData?.guruId}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Pilih Guru..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {daftarGuru.map((guru) => (
-                  <SelectItem key={guru.id} value={guru.id}>
-                    {guru.nama}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-2">
+            <Label className="text-sm font-semibold">Kategori Program</Label>
+            <Select
+              onValueChange={setKategori}
+              defaultValue={initialData?.kategori}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Pilih Kategori" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem
+                    value="TAHSIN"
+                    className="font-medium text-blue-700"
+                  >
+                    Tahsin Qiraah
                   </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      {/* Bagian Accordion Pemilihan Siswa */}
-      <div className="flex flex-col gap-3 border border-border p-4 rounded-lg bg-neutral-surface/20">
-        <div className="flex justify-between items-center">
-          <Label className="text-sm font-bold text-neutral-800">
-            {kategori === "TAHSIN"
-              ? "Kelompokkan Siswa per Jilid / Tahapan"
-              : "Kelompokkan Siswa per Kelas"}
-          </Label>
-          <span className="text-xs px-2.5 py-1 bg-primary/10 text-primary font-bold rounded-full">
-            {selectedNis.length} Siswa Terpilih
-          </span>
-        </div>
-        {!kategori ? (
-          <div className="text-center py-8 bg-neutral-50 rounded-md border border-dashed text-neutral-500">
-            <p className="text-sm font-semibold text-neutral-700">
-              Pilih Kategori Program Terlebih Dahulu
-            </p>
-            <p className="text-xs text-neutral-400 mt-1">
-              Daftar siswa akan otomatis dikelompokkan sesuai metode program
-            </p>
+                  <SelectItem
+                    value="TAHFIDZ"
+                    className="font-medium text-emerald-700"
+                  >
+                    Tahfidz Quran
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
-        ) : !isReady ? (
-          <div className="flex flex-col gap-3 py-6 w-full animate-pulse">
-            <div className="h-10 bg-muted rounded-md w-full" />
-            <div className="h-10 bg-muted rounded-md w-full" />
-            <div className="h-32 bg-muted rounded-md w-full mt-4" />
+          <div className="flex flex-col gap-2">
+            <Label className="text-sm font-semibold">Guru Pengampu</Label>
+            <Select
+              onValueChange={setGuruId}
+              defaultValue={initialData?.guru?.id || initialData?.guruId}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Pilih Guru..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {daftarGuru.map((guru) => (
+                    <SelectItem key={guru.id} value={guru.id}>
+                      {guru.nama}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
-        ) : sortedGroupEntries.length === 0 ? (
-          <p className="text-sm text-neutral-500 py-6 text-center">
-            Tidak ada siswa yang menunggu kelompok untuk program{" "}
-            {kategori === "TAHFIDZ" ? "Tahfidz" : "Tahsin"}
-          </p>
-        ) : (
-          <div className="max-h-72 overflow-y-auto space-y-4 pr-1">
-            {sortedGroupEntries.map(([groupName, students]) => (
-              <div key={groupName} className="space-y-1.5">
-                {/* 1. SEPARATOR MARKER HEADER */}
-                <Marker variant="separator">
-                  <MarkerContent className="font-bold text-xs titlecase text-neutral-700">
-                    {groupName} ({students.length} Siswa)
-                  </MarkerContent>
-                </Marker>
+        </div>
+        {/* Bagian Accordion Pemilihan Siswa */}
+        <div className="flex flex-col gap-3 border border-border p-4 rounded-lg bg-neutral-surface/20">
+          <div className="flex justify-between items-center">
+            <Label className="text-sm font-bold text-neutral-800">
+              {kategori === "TAHSIN"
+                ? "Kelompokkan Siswa per Jilid / Tahapan"
+                : "Kelompokkan Siswa per Kelas"}
+            </Label>
+            <span className="text-xs px-2.5 py-1 bg-primary/10 text-primary font-bold rounded-full">
+              {selectedNis.length} Siswa Terpilih
+            </span>
+          </div>
+          {!kategori ? (
+            <div className="text-center py-8 bg-neutral-50 rounded-md border border-dashed text-neutral-500">
+              <p className="text-sm font-semibold text-neutral-700">
+                Pilih Kategori Program Terlebih Dahulu
+              </p>
+              <p className="text-xs text-neutral-400 mt-1">
+                Daftar siswa akan otomatis dikelompokkan sesuai metode program
+              </p>
+            </div>
+          ) : !isReady ? (
+            <div className="flex flex-col gap-3 py-6 w-full animate-pulse">
+              <div className="h-10 bg-muted rounded-md w-full" />
+              <div className="h-10 bg-muted rounded-md w-full" />
+              <div className="h-32 bg-muted rounded-md w-full mt-4" />
+            </div>
+          ) : sortedGroupEntries.length === 0 ? (
+            <p className="text-sm text-neutral-500 py-6 text-center">
+              Tidak ada siswa yang menunggu kelompok untuk program{" "}
+              {kategori === "TAHFIDZ" ? "Tahfidz" : "Tahsin"}
+            </p>
+          ) : (
+            <div className="max-h-72 overflow-y-auto space-y-4 pr-1">
+              {sortedGroupEntries.map(([groupName, students]) => (
+                <div key={groupName} className="space-y-1.5">
+                  {/* 1. SEPARATOR MARKER HEADER */}
+                  <Marker variant="separator">
+                    <MarkerContent className="font-bold text-xs titlecase text-neutral-700">
+                      {groupName} ({students.length} Siswa)
+                    </MarkerContent>
+                  </Marker>
 
-                <div className="space-y-1 pl-1">
-                  {students.map((student) => {
-                    const info = getInfoPencapaian(student);
-                    const isSelected = selectedNis.includes(student.nis);
+                  <div className="space-y-1 pl-1">
+                    {students.map((student) => {
+                      const info = getInfoPencapaian(student);
+                      const isSelected = selectedNis.includes(student.nis);
 
-                    return (
-                      <label
-                        key={student.nis}
-                        htmlFor={`chk-${student.nis}`}
-                        className={`flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors border ${
-                          isSelected
-                            ? "bg-primary/5 border-primary/30"
-                            : "bg-white hover:bg-neutral-50 border-transparent hover:border-border"
-                        }`}
-                      >
-                        {/* Kiri: Checkbox & Nama Siswa */}
-                        <div className="flex items-center space-x-3">
-                          <Checkbox
-                            id={`chk-${student.nis}`}
-                            checked={isSelected}
-                            onCheckedChange={(checked) =>
-                              handleCheckboxChange(student.nis, checked)
-                            }
-                          />
-                          <div className="flex flex-col text-left">
-                            <span className="text-sm font-semibold text-neutral-800">
-                              {student.nama}
+                      return (
+                        <label
+                          key={student.nis}
+                          htmlFor={`chk-${student.nis}`}
+                          className={`flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors border ${
+                            isSelected
+                              ? "bg-primary/5 border-primary/30"
+                              : "bg-white hover:bg-neutral-50 border-transparent hover:border-border"
+                          }`}
+                        >
+                          {/* Kiri: Checkbox & Nama Siswa */}
+                          <div className="flex items-center space-x-3">
+                            <Checkbox
+                              id={`chk-${student.nis}`}
+                              checked={isSelected}
+                              onCheckedChange={(checked) =>
+                                handleCheckboxChange(student.nis, checked)
+                              }
+                            />
+                            <div className="flex flex-col text-left">
+                              <span className="text-sm font-semibold text-neutral-800">
+                                {student.nama}
+                              </span>
+                              <span className="text-[11px] text-neutral-400 font-medium">
+                                NIS: {student.nis} |{" "}
+                                {student.riwayatKelas?.[0]?.nama_kelas || "-"}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Kanan: Tulisan Pencapaian 2 Baris (Tanpa style badge) */}
+                          <div className="flex flex-col text-right">
+                            <span className="text-xs font-semibold text-neutral-800">
+                              {info.baris1}
                             </span>
-                            <span className="text-[11px] text-neutral-400 font-medium">
-                              NIS: {student.nis} |{" "}
-                              {student.riwayatKelas?.[0]?.nama_kelas || "-"}
+                            <span className="text-[11px] text-neutral-500 font-medium">
+                              {info.baris2}
                             </span>
                           </div>
-                        </div>
-
-                        {/* Kanan: Tulisan Pencapaian 2 Baris (Tanpa style badge) */}
-                        <div className="flex flex-col text-right">
-                          <span className="text-xs font-semibold text-neutral-800">
-                            {info.baris1}
-                          </span>
-                          <span className="text-[11px] text-neutral-500 font-medium">
-                            {info.baris2}
-                          </span>
-                        </div>
-                      </label>
-                    );
-                  })}
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
       <div
         className={cn(
-          "sticky bottom-0 bg-white dark:bg-neutral-900 z-10 pt-3 pb-2 border-t border-border mt-3 grid gap-3 w-full",
+          "shrink-0 pt-3 pb-2 bg-white dark:bg-neutral-900 border-t border-border mt-2 grid gap-3 w-full",
           initialData ? "grid-cols-2" : "grid-cols-1",
         )}
       >

@@ -177,8 +177,8 @@ function TahfidzAssessmentForm({ nis, halaqohId, onSuccess }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5 text-left">
-      <div className="flex flex-col gap-5">
+    <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-hidden text-left">
+      <div className="flex-1 overflow-y-auto space-y-5 pr-1 pb-4">
         <Field>
           <Select
             name="hafalan_surah"
@@ -338,7 +338,7 @@ function TahfidzAssessmentForm({ nis, halaqohId, onSuccess }) {
         </Field>
       </div>
 
-      <div className="sticky bottom-0 bg-white dark:bg-neutral-900 z-10 pt-3 pb-2 border-t border-border mt-3 w-full">
+      <div className="shrink-0 pt-3 pb-2 bg-white dark:bg-neutral-900 border-t border-border mt-2 w-full">
         <Button type="submit" disabled={isAdding} className="w-full shadow-xs">
           {isAdding ? "Menyimpan..." : "Tambah Setoran Hafalan"}
         </Button>

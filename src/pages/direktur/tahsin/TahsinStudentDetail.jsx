@@ -594,7 +594,7 @@ function TahsinStudentDetail() {
                 {editData ? "Edit Setoran Bacaan" : "Tambah Setoran Bacaan"}
               </DrawerTitle>
             </DrawerHeader>
-            <div className="px-4 pb-4 overflow-y-auto flex-1">
+            <div className="px-4 flex-1 overflow-hidden flex flex-col pb-3">
               <TahsinAssessmentForm
                 nis={nis}
                 halaqohId={student?.halaqoh_tahsin?.id}
