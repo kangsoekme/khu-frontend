@@ -35,8 +35,10 @@ import {
 } from "../../store/api/studentsApi.js";
 
 import { FaFileImport } from "react-icons/fa";
+import { FaFileExcel } from "react-icons/fa6";
 
 import { toast } from "sonner";
+import { downloadStudentTemplate } from "../../utils/exportExcel.js";
 
 function StudentManagement() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -149,6 +151,15 @@ function StudentManagement() {
           className="hidden"
           onChange={handleFileUpload}
         />
+
+        <Button
+          variant="outline"
+          onClick={downloadStudentTemplate}
+          title="Unduh format Excel kosong untuk diisi sebelum import"
+        >
+          <span className="hidden xl:block">Download Template</span>
+          <FaFileExcel className="xl:hidden" />
+        </Button>
 
         <Button
           variant="outline"
