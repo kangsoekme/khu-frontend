@@ -556,11 +556,11 @@ function TahfidzStudentDetail() {
 
       {isDesktop ? (
         <Dialog open={openHafalan} onOpenChange={setOpenHafalan}>
-          <DialogContent>
-            <DialogHeader>
+          <DialogContent className="max-h-[90vh] flex flex-col overflow-hidden">
+            <DialogHeader className="shrink-0">
               <DialogTitle>Tambah Setoran Hafalan</DialogTitle>
             </DialogHeader>
-            <div>
+            <div className="overflow-y-auto flex-1 pr-1">
               <TahfidzAssessmentForm
                 nis={nis}
                 halaqohId={student?.halaqoh_tahfidz?.id}
@@ -572,11 +572,11 @@ function TahfidzStudentDetail() {
         </Dialog>
       ) : (
         <Drawer open={openHafalan} onOpenChange={setOpenHafalan}>
-          <DrawerContent>
-            <DrawerHeader>
+          <DrawerContent className="max-h-[90vh] flex flex-col">
+            <DrawerHeader className="text-left shrink-0">
               <DrawerTitle>Tambah Setoran Hafalan</DrawerTitle>
             </DrawerHeader>
-            <div className="px-4">
+            <div className="px-4 pb-4 overflow-y-auto flex-1">
               <TahfidzAssessmentForm
                 nis={nis}
                 halaqohId={student?.halaqoh_tahfidz?.id}
@@ -590,19 +590,21 @@ function TahfidzStudentDetail() {
 
       {isDesktop ? (
         <Dialog open={openMurajaah} onOpenChange={setOpenMurajaah}>
-          <DialogContent>
-            <DialogHeader>
+          <DialogContent className="max-h-[90vh] flex flex-col overflow-hidden">
+            <DialogHeader className="shrink-0">
               <DialogTitle>{murajaahToEdit ? "Edit Setoran Murajaah" : "Tambah Setoran Murajaah"}</DialogTitle>
             </DialogHeader>
-            <MurajaahAssessmentForm
-              nis={nis}
-              halaqohId={student?.halaqoh_tahfidz?.id}
-              editData={murajaahToEdit}
-              onSuccess={() => {
-                setOpenMurajaah(false);
-                setMurajaahToEdit(null);
-              }}
-            />
+            <div className="overflow-y-auto flex-1 pr-1">
+              <MurajaahAssessmentForm
+                nis={nis}
+                halaqohId={student?.halaqoh_tahfidz?.id}
+                editData={murajaahToEdit}
+                onSuccess={() => {
+                  setOpenMurajaah(false);
+                  setMurajaahToEdit(null);
+                }}
+              />
+            </div>
           </DialogContent>
         </Dialog>
       ) : (
@@ -613,11 +615,11 @@ function TahfidzStudentDetail() {
             if (!val) setMurajaahToEdit(null);
           }}
         >
-          <DrawerContent>
-            <DrawerHeader>
+          <DrawerContent className="max-h-[90vh] flex flex-col">
+            <DrawerHeader className="text-left shrink-0">
               <DrawerTitle>{murajaahToEdit ? "Edit Setoran Murajaah" : "Tambah Setoran Murajaah"}</DrawerTitle>
             </DrawerHeader>
-            <div className="px-4 pb-8">
+            <div className="px-4 pb-4 overflow-y-auto flex-1">
               <MurajaahAssessmentForm
                 nis={nis}
                 halaqohId={student?.halaqoh_tahfidz?.id}

@@ -429,7 +429,7 @@ function TahsinAssessmentForm({
 
           </div>
         </ScrollArea>
-        <div className="mt-6">
+        <div className="sticky bottom-0 bg-white dark:bg-neutral-900 z-10 pt-3 pb-2 border-t border-border mt-3 w-full">
           <Button type="submit" disabled={isAdding || isEditing} className="w-full shadow-xs">
             {isAdding || isEditing ? "Menyimpan..." : editData ? "Update Penilaian" : "Simpan Penilaian"}
           </Button>
