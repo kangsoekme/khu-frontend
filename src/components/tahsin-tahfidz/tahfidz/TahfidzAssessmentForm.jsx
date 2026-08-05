@@ -179,173 +179,169 @@ function TahfidzAssessmentForm({ nis, halaqohId, onSuccess }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5 text-left">
       <div className="flex flex-col gap-5">
-        <ScrollArea className="flex-1 overflow-y-auto">
-          <div className="flex flex-col gap-5 px-4 lg:px-0">
-            <Field>
-              <Select
-                name="hafalan_surah"
-                value={selectedSurah}
-                onValueChange={handleSurahChange}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pilih Surah" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {allSurah.map((surah) => (
-                      <SelectItem
-                        key={surah.no_surah}
-                        value={surah.no_surah.toString()}
-                      >
-                        {surah.no_surah}. {surah.nama_surah} (
-                        {surah.jumlah_ayat} ayat)
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <div className="flex gap-5">
-                <Input
-                  name="hafalan_ayat_awal"
-                  type="number"
-                  placeholder="Ayat Awal"
-                  value={ayatAwal}
-                  onChange={(e) => setAyatAwal(e.target.value)}
-                />
-                <Input
-                  name="hafalan_ayat_akhir"
-                  type="number"
-                  placeholder="Ayat Akhir"
-                  value={ayatAkhir}
-                  onChange={(e) => setAyatAkhir(e.target.value)}
-                />
-              </div>
-            </Field>
-
-            <Field>
-              <div className="flex justify-between items-center">
-                <FieldLabel>Membaca Terjemah</FieldLabel>
-                <Switch checked={isTarjamah} onCheckedChange={setIsTarjamah} />
-                <input
-                  type="hidden"
-                  name="toggle_tarjamah"
-                  value={isTarjamah}
-                />
-              </div>
-            </Field>
-
-            <Field>
-              <FieldLabel>Jumlah Pengulangan</FieldLabel>
-              <div className="flex flex-col gap-5 items-center py-5 ">
-                <div className="flex items-center gap-5 w-full justify-between px-20">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={kurangPengulangan}
-                    className="size-12"
+        <Field>
+          <Select
+            name="hafalan_surah"
+            value={selectedSurah}
+            onValueChange={handleSurahChange}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Pilih Surah" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {allSurah.map((surah) => (
+                  <SelectItem
+                    key={surah.no_surah}
+                    value={surah.no_surah.toString()}
                   >
-                    <FaMinus className="size-7" />
-                  </Button>
-
-                  <span className="text-4xl font-bold">{pengulangan}</span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={tambahPengulangan}
-                    className="size-12"
-                  >
-                    <FaPlus className="size-7" />
-                  </Button>
-                </div>
-                <input
-                  type="hidden"
-                  name="jumlah_pengulangan"
-                  value={pengulangan}
-                />
-              </div>
-            </Field>
-
-            <Field>
-              <FieldLabel>Jumlah Salah</FieldLabel>
-              <div className="flex flex-col gap-5 items-center py-5">
-                <div className="flex items-center gap-5 w-full justify-between px-20">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={kurangSalah}
-                    className="size-12"
-                  >
-                    <FaMinus className="size-7" />
-                  </Button>
-
-                  <span className="text-4xl font-bold">{jumlahSalah}</span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={tambahSalah}
-                    className="size-12"
-                  >
-                    <FaPlus className="size-7" />
-                  </Button>
-                </div>
-                <input type="hidden" name="jumlah_salah" value={jumlahSalah} />
-              </div>
-            </Field>
-
-            <Field>
-              <FieldLabel>Nilai Bacaan (BB)</FieldLabel>
-              <div className="flex flex-col gap-5 items-center py-5">
-                <div className="flex items-center gap-5 w-full justify-between px-20">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={kurangBacaan}
-                    className="size-12"
-                  >
-                    <FaMinus className="size-7" />
-                  </Button>
-
-                  <span className="text-4xl font-bold">{nilaiBacaan}</span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={tambahBacaan}
-                    className="size-12"
-                  >
-                    <FaPlus className="size-7" />
-                  </Button>
-                </div>
-                <input type="hidden" name="nilai_bacaan" value={nilaiBacaan} />
-              </div>
-            </Field>
-
-            <Field>
-              <FieldLabel>Nilai Hafalan (HB)</FieldLabel>
-              <div className="p-4 bg-gray-100 rounded-lg flex flex-col items-center justify-center">
-                <span
-                  className={`text-5xl font-bold ${jumlahSalah > 3 ? "text-red-500" : "text-green-600"}`}
-                >
-                  {nilaiHafalan}
-                </span>
-                <p className="text-xs text-gray-500 mt-2">
-                  Dihitung otomatis berdasarkan jumlah salah
-                </p>
-              </div>
-              {/* Walaupun auto, Backend kitalah yang menghitung aslinya. Jadi tidak perlu hidden input di sini. */}
-            </Field>
+                    {surah.no_surah}. {surah.nama_surah} (
+                    {surah.jumlah_ayat} ayat)
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <div className="flex gap-5">
+            <Input
+              name="hafalan_ayat_awal"
+              type="number"
+              placeholder="Ayat Awal"
+              value={ayatAwal}
+              onChange={(e) => setAyatAwal(e.target.value)}
+            />
+            <Input
+              name="hafalan_ayat_akhir"
+              type="number"
+              placeholder="Ayat Akhir"
+              value={ayatAkhir}
+              onChange={(e) => setAyatAkhir(e.target.value)}
+            />
           </div>
-        </ScrollArea>
-        <div className="mt-6">
-          <Button type="submit" disabled={isAdding} className="w-full shadow-xs">
-            {isAdding ? "Menyimpan..." : "Tambah Setoran Hafalan"}
-          </Button>
-        </div>
+        </Field>
+
+        <Field>
+          <div className="flex justify-between items-center">
+            <FieldLabel>Membaca Terjemah</FieldLabel>
+            <Switch checked={isTarjamah} onCheckedChange={setIsTarjamah} />
+            <input
+              type="hidden"
+              name="toggle_tarjamah"
+              value={isTarjamah}
+            />
+          </div>
+        </Field>
+
+        <Field>
+          <FieldLabel>Jumlah Pengulangan</FieldLabel>
+          <div className="flex flex-col gap-5 items-center py-5 ">
+            <div className="flex items-center gap-5 w-full justify-between px-20">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={kurangPengulangan}
+                className="size-12"
+              >
+                <FaMinus className="size-7" />
+              </Button>
+
+              <span className="text-4xl font-bold">{pengulangan}</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={tambahPengulangan}
+                className="size-12"
+              >
+                <FaPlus className="size-7" />
+              </Button>
+            </div>
+            <input
+              type="hidden"
+              name="jumlah_pengulangan"
+              value={pengulangan}
+            />
+          </div>
+        </Field>
+
+        <Field>
+          <FieldLabel>Jumlah Salah</FieldLabel>
+          <div className="flex flex-col gap-5 items-center py-5">
+            <div className="flex items-center gap-5 w-full justify-between px-20">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={kurangSalah}
+                className="size-12"
+              >
+                <FaMinus className="size-7" />
+              </Button>
+
+              <span className="text-4xl font-bold">{jumlahSalah}</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={tambahSalah}
+                className="size-12"
+              >
+                <FaPlus className="size-7" />
+              </Button>
+            </div>
+            <input type="hidden" name="jumlah_salah" value={jumlahSalah} />
+          </div>
+        </Field>
+
+        <Field>
+          <FieldLabel>Nilai Bacaan (BB)</FieldLabel>
+          <div className="flex flex-col gap-5 items-center py-5">
+            <div className="flex items-center gap-5 w-full justify-between px-20">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={kurangBacaan}
+                className="size-12"
+              >
+                <FaMinus className="size-7" />
+              </Button>
+
+              <span className="text-4xl font-bold">{nilaiBacaan}</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={tambahBacaan}
+                className="size-12"
+              >
+                <FaPlus className="size-7" />
+              </Button>
+            </div>
+            <input type="hidden" name="nilai_bacaan" value={nilaiBacaan} />
+          </div>
+        </Field>
+
+        <Field>
+          <FieldLabel>Nilai Hafalan (HB)</FieldLabel>
+          <div className="p-4 bg-gray-100 rounded-lg flex flex-col items-center justify-center">
+            <span
+              className={`text-5xl font-bold ${jumlahSalah > 3 ? "text-red-500" : "text-green-600"}`}
+            >
+              {nilaiHafalan}
+            </span>
+            <p className="text-xs text-gray-500 mt-2">
+              Dihitung otomatis berdasarkan jumlah salah
+            </p>
+          </div>
+        </Field>
+      </div>
+
+      <div className="sticky bottom-0 bg-white dark:bg-neutral-900 z-10 pt-3 pb-2 border-t border-border mt-3 w-full">
+        <Button type="submit" disabled={isAdding} className="w-full shadow-xs">
+          {isAdding ? "Menyimpan..." : "Tambah Setoran Hafalan"}
+        </Button>
       </div>
     </form>
   );
