@@ -114,12 +114,12 @@ function StudentForm({ className, onSuccess, initialData, isEdit }) {
 
   return (
     <form
-      className={cn("grid items-start gap-6 h-full", className)}
+      className={cn("flex flex-col h-full overflow-hidden text-left", className)}
       onSubmit={handleSubmit}
     >
-      <div className="flex flex-col gap-5">
+      <div className="flex-1 overflow-y-auto space-y-4 pr-1 pb-4">
         <div className="flex flex-col gap-3">
-          <Label htmlFor="email">Nama Lengkap</Label>
+          <Label htmlFor="name">Nama Lengkap</Label>
           <Input
             type="text"
             name="nama"
@@ -140,7 +140,7 @@ function StudentForm({ className, onSuccess, initialData, isEdit }) {
             />
           </div>
           <div className="flex flex-col gap-3 w-full">
-            <Label htmlFor="username">Jenis Kelamin</Label>
+            <Label htmlFor="gender">Jenis Kelamin</Label>
             <>
               <Select
                 items={gender}
@@ -165,7 +165,7 @@ function StudentForm({ className, onSuccess, initialData, isEdit }) {
           </div>
         </div>
         <div className="flex flex-col gap-3 w-full">
-          <Label htmlFor="username">Tanggal Lahir</Label>
+          <Label htmlFor="tanggal_lahir">Tanggal Lahir</Label>
           <Popover>
             <input
               type="hidden"
@@ -239,7 +239,7 @@ function StudentForm({ className, onSuccess, initialData, isEdit }) {
       </div>
       <div
         className={cn(
-          "grid gap-3 w-full mt-6",
+          "shrink-0 pt-3 pb-2 bg-white dark:bg-neutral-900 border-t border-border mt-2 grid gap-3 w-full",
           showDeleteButton ? "grid-cols-2" : "grid-cols-1",
         )}
       >
@@ -278,7 +278,7 @@ function StudentForm({ className, onSuccess, initialData, isEdit }) {
         <Button
           type="submit"
           disabled={isAdding || isEditing}
-          className="w-full "
+          className="w-full"
         >
           {isAdding || isEditing ? "Menyimpan..." : "Simpan"}
         </Button>

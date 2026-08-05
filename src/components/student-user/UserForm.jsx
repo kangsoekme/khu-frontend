@@ -129,9 +129,9 @@ function UserForm({ className, onSuccess, initialData, isEdit }) {
     <form
       onSubmit={handleSubmit}
       autoComplete="off"
-      className={cn("grid items-start gap-6 h-full", className)}
+      className={cn("flex flex-col h-full overflow-hidden text-left", className)}
     >
-      <div className="flex flex-col gap-5">
+      <div className="flex-1 overflow-y-auto space-y-4 pr-1 pb-4">
         <div className="flex flex-col gap-3">
           <Label htmlFor="nama">Nama Lengkap</Label>
           <Input
@@ -227,7 +227,7 @@ function UserForm({ className, onSuccess, initialData, isEdit }) {
 
       <div
         className={cn(
-          "grid gap-3 w-full mt-6",
+          "shrink-0 pt-3 pb-2 bg-white dark:bg-neutral-900 border-t border-border mt-2 grid gap-3 w-full",
           showDeleteButton ? "grid-cols-2" : "grid-cols-1",
         )}
       >
@@ -266,7 +266,7 @@ function UserForm({ className, onSuccess, initialData, isEdit }) {
         <Button
           type="submit"
           disabled={isAdding || isEditing}
-          className="w-full "
+          className="w-full"
         >
           {isAdding || isEditing ? "Menyimpan..." : "Simpan"}
         </Button>

@@ -191,30 +191,32 @@ function UserManagement() {
         {/* add user */}
         {isDesktop && (
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="sm:max-w-130">
-              <DialogHeader>
+            <DialogContent className="sm:max-w-130 max-h-[90vh] flex flex-col overflow-hidden">
+              <DialogHeader className="shrink-0">
                 <DialogTitle>Tambah User</DialogTitle>
                 <DialogDescription>
                   Tambah data user untuk kebutuhan komputasi
                 </DialogDescription>
               </DialogHeader>
-              <UserForm onSuccess={() => setOpen(false)} />
+              <div className="flex-1 overflow-hidden flex flex-col">
+                <UserForm onSuccess={() => setOpen(false)} />
+              </div>
             </DialogContent>
           </Dialog>
         )}
 
         {!isDesktop && (
           <Drawer open={open} onOpenChange={setOpen}>
-            <DrawerContent>
-              <DrawerHeader className="text-left">
+            <DrawerContent className="max-h-[90vh] flex flex-col">
+              <DrawerHeader className="text-left shrink-0">
                 <DrawerTitle>Tambah User</DrawerTitle>
                 <DrawerDescription>
                   Tambah data user untuk kebutuhan komputasi
                 </DrawerDescription>
               </DrawerHeader>
-              <ScrollArea className="flex-1 overflow-y-auto">
-                <UserForm className="p-4" onSuccess={() => setOpen(false)} />
-              </ScrollArea>
+              <div className="px-4 flex-1 overflow-hidden flex flex-col pb-3">
+                <UserForm onSuccess={() => setOpen(false)} />
+              </div>
             </DrawerContent>
           </Drawer>
         )}
@@ -222,39 +224,40 @@ function UserManagement() {
         {/* edit user */}
         {isDesktop && (
           <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-            <DialogContent className="sm:max-w-130">
-              <DialogHeader>
+            <DialogContent className="sm:max-w-130 max-h-[90vh] flex flex-col overflow-hidden">
+              <DialogHeader className="shrink-0">
                 <DialogTitle>Edit User</DialogTitle>
                 <DialogDescription>
                   Tambah data user untuk kebutuhan komputasi
                 </DialogDescription>
               </DialogHeader>
-              <UserForm
-                isEdit={true}
-                initialData={selectedUser}
-                onSuccess={() => setOpenEdit(false)}
-              />
+              <div className="flex-1 overflow-hidden flex flex-col">
+                <UserForm
+                  isEdit={true}
+                  initialData={selectedUser}
+                  onSuccess={() => setOpenEdit(false)}
+                />
+              </div>
             </DialogContent>
           </Dialog>
         )}
 
         {!isDesktop && (
           <Drawer open={openEdit} onOpenChange={setOpenEdit}>
-            <DrawerContent>
-              <DrawerHeader className="text-left">
+            <DrawerContent className="max-h-[90vh] flex flex-col">
+              <DrawerHeader className="text-left shrink-0">
                 <DrawerTitle>Edit User</DrawerTitle>
                 <DrawerDescription>
                   Tambah data user untuk kebutuhan komputasi
                 </DrawerDescription>
               </DrawerHeader>
-              <ScrollArea className="flex-1 overflow-y-auto">
+              <div className="px-4 flex-1 overflow-hidden flex flex-col pb-3">
                 <UserForm
-                  className="p-4"
                   initialData={selectedUser}
                   isEdit={true}
                   onSuccess={() => setOpenEdit(false)}
                 />
-              </ScrollArea>
+              </div>
             </DrawerContent>
           </Drawer>
         )}

@@ -76,130 +76,126 @@ function MurajaahAssessmentForm({ nis, halaqohId, editData, onSuccess }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5 text-left">
-      <div className="flex flex-col gap-5">
-        <ScrollArea className="flex-1 overflow-y-auto">
-          <div className="flex flex-col gap-5">
-            <Field>
-              <Select
-                name="hafalan_surah"
-                defaultValue={
-                  editData
-                    ? editData.surah?.no_surah?.toString() || editData.no_surah?.toString()
-                    : lastRef?.no_surah?.toString() ||
-                      lastRef?.surah?.no_surah?.toString()
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {allSurah.map((surah) => (
-                      <SelectItem
-                        key={surah.no_surah}
-                        value={surah.no_surah.toString()}
-                      >
-                        {surah.no_surah}. {surah.nama_surah}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <div className="flex gap-5">
-                <Input
-                  name="hafalan_ayat_awal"
-                  placeholder="Ayat Awal"
-                  defaultValue={
-                    editData
-                      ? editData.ayat_awal
-                      : lastRef?.ayat_akhir
-                        ? Number(lastRef.ayat_akhir) + 1
-                        : 1
-                  }
-                />
-                <Input name="hafalan_ayat_akhir" placeholder="Ayat Akhir" defaultValue={editData ? editData.ayat_akhir : ""} />
-              </div>
-            </Field>
-            <Field>
-              <FieldLabel>Jumlah Salah</FieldLabel>
-              <div className="flex flex-col gap-5 items-center py-5">
-                <div className="flex items-center gap-5 w-full justify-between px-20">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={kurangSalah}
-                    className="size-12"
+    <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-hidden text-left">
+      <div className="flex-1 overflow-y-auto space-y-5 pr-1 pb-4">
+        <Field>
+          <Select
+            name="hafalan_surah"
+            defaultValue={
+              editData
+                ? editData.surah?.no_surah?.toString() || editData.no_surah?.toString()
+                : lastRef?.no_surah?.toString() ||
+                  lastRef?.surah?.no_surah?.toString()
+            }
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {allSurah.map((surah) => (
+                  <SelectItem
+                    key={surah.no_surah}
+                    value={surah.no_surah.toString()}
                   >
-                    <FaMinus className="size-7" />
-                  </Button>
-
-                  <span className="text-4xl font-bold">{jumlahSalah}</span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={tambahSalah}
-                    className="size-12"
-                  >
-                    <FaPlus className="size-7" />
-                  </Button>
-                </div>
-                <input type="hidden" name="jumlah_salah" value={jumlahSalah} />
-              </div>
-            </Field>
-
-            <Field>
-              <FieldLabel>Nilai Bacaan (BB)</FieldLabel>
-              <div className="flex flex-col gap-5 items-center py-5">
-                <div className="flex items-center gap-5 w-full justify-between px-20">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={kurangBacaan}
-                    className="size-12"
-                  >
-                    <FaMinus className="size-7" />
-                  </Button>
-
-                  <span className="text-4xl font-bold">{nilaiBacaan}</span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={tambahBacaan}
-                    className="size-12"
-                  >
-                    <FaPlus className="size-7" />
-                  </Button>
-                </div>
-                <input type="hidden" name="nilai_bacaan" value={nilaiBacaan} />
-              </div>
-            </Field>
-
-            <Field>
-              <FieldLabel>Nilai Hafalan (HB)</FieldLabel>
-              <div className="p-4 bg-gray-100 rounded-lg flex flex-col items-center justify-center">
-                <span
-                  className={`text-5xl font-bold ${jumlahSalah > 3 ? "text-red-500" : "text-green-600"}`}
-                >
-                  {nilaiHafalan}
-                </span>
-                <p className="text-xs text-gray-500 mt-2">
-                  Dihitung otomatis berdasarkan jumlah salah
-                </p>
-              </div>
-              {/* Walaupun auto, Backend kitalah yang menghitung aslinya. Jadi tidak perlu hidden input di sini. */}
-            </Field>
+                    {surah.no_surah}. {surah.nama_surah}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <div className="flex gap-5">
+            <Input
+              name="hafalan_ayat_awal"
+              placeholder="Ayat Awal"
+              defaultValue={
+                editData
+                  ? editData.ayat_awal
+                  : lastRef?.ayat_akhir
+                    ? Number(lastRef.ayat_akhir) + 1
+                    : 1
+              }
+            />
+            <Input name="hafalan_ayat_akhir" placeholder="Ayat Akhir" defaultValue={editData ? editData.ayat_akhir : ""} />
           </div>
-        </ScrollArea>
-        <div className="mt-6">
-          <Button type="submit" disabled={isAdding || isEditing} className="w-full">
-            {isAdding || isEditing ? "Menyimpan..." : editData ? "Update Setoran Murajaah" : "Tambah Setoran Murajaah"}
-          </Button>
-        </div>
+        </Field>
+        <Field>
+          <FieldLabel>Jumlah Salah</FieldLabel>
+          <div className="flex flex-col gap-5 items-center py-5">
+            <div className="flex items-center gap-5 w-full justify-between px-20">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={kurangSalah}
+                className="size-12"
+              >
+                <FaMinus className="size-7" />
+              </Button>
+
+              <span className="text-4xl font-bold">{jumlahSalah}</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={tambahSalah}
+                className="size-12"
+              >
+                <FaPlus className="size-7" />
+              </Button>
+            </div>
+            <input type="hidden" name="jumlah_salah" value={jumlahSalah} />
+          </div>
+        </Field>
+
+        <Field>
+          <FieldLabel>Nilai Bacaan (BB)</FieldLabel>
+          <div className="flex flex-col gap-5 items-center py-5">
+            <div className="flex items-center gap-5 w-full justify-between px-20">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={kurangBacaan}
+                className="size-12"
+              >
+                <FaMinus className="size-7" />
+              </Button>
+
+              <span className="text-4xl font-bold">{nilaiBacaan}</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={tambahBacaan}
+                className="size-12"
+              >
+                <FaPlus className="size-7" />
+              </Button>
+            </div>
+            <input type="hidden" name="nilai_bacaan" value={nilaiBacaan} />
+          </div>
+        </Field>
+
+        <Field>
+          <FieldLabel>Nilai Hafalan (HB)</FieldLabel>
+          <div className="p-4 bg-gray-100 rounded-lg flex flex-col items-center justify-center">
+            <span
+              className={`text-5xl font-bold ${jumlahSalah > 3 ? "text-red-500" : "text-green-600"}`}
+            >
+              {nilaiHafalan}
+            </span>
+            <p className="text-xs text-gray-500 mt-2">
+              Dihitung otomatis berdasarkan jumlah salah
+            </p>
+          </div>
+        </Field>
+      </div>
+
+      <div className="shrink-0 pt-3 pb-2 bg-white dark:bg-neutral-900 border-t border-border mt-2 w-full">
+        <Button type="submit" disabled={isAdding || isEditing} className="w-full shadow-xs">
+          {isAdding || isEditing ? "Menyimpan..." : editData ? "Update Setoran Murajaah" : "Tambah Setoran Murajaah"}
+        </Button>
       </div>
     </form>
   );
