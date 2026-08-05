@@ -60,97 +60,101 @@ function UjianKenaikanForm({ initialData, onSuccess }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5 text-left">
-      {/* Kartu Informasi Jilid Saat Ini */}
-      <div className="p-4 rounded-lg bg-blue-50/70 border border-blue-200 flex justify-between items-center shadow-2xs">
-        <div>
-          <p className="text-[11px] text-blue-600 font-bold uppercase tracking-wider">
-            Jilid Saat Ini
+    <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-hidden text-left">
+      <div className="flex-1 overflow-y-auto space-y-4 pr-1 pb-4">
+        {/* Kartu Informasi Jilid Saat Ini */}
+        <div className="p-4 rounded-lg bg-blue-50/70 border border-blue-200 flex justify-between items-center shadow-2xs">
+          <div>
+            <p className="text-[11px] text-blue-600 font-bold uppercase tracking-wider">
+              Jilid Saat Ini
+            </p>
+            <p className="text-base font-black text-blue-950 mt-0.5">
+              {initialData?.tahapan_tahsin
+                ? initialData.tahapan_tahsin.replace(/_/g, " ")
+                : "Belum Ada"}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm font-bold text-neutral-800">
+              {initialData?.nama}
+            </p>
+            <p className="text-xs text-neutral-500 font-medium">
+              NIS: {initialData?.nis}
+            </p>
+          </div>
+        </div>
+
+        <div className="p-3 rounded-lg bg-emerald-50/80 border border-emerald-200">
+          <p className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider">
+            Target Jilid (Pengajuan)
           </p>
-          <p className="text-base font-black text-blue-950 mt-0.5">
-            {initialData?.tahapan_tahsin
-              ? initialData.tahapan_tahsin.replace(/_/g, " ")
-              : "Belum Ada"}
+          <p className="text-sm font-black text-emerald-950 mt-0.5">
+            {targetJilid.replace(/_/g, " ")}
           </p>
         </div>
-        <div className="text-right">
-          <p className="text-sm font-bold text-neutral-800">
-            {initialData?.nama}
-          </p>
-          <p className="text-xs text-neutral-500 font-medium">
-            NIS: {initialData?.nis}
-          </p>
+
+        {/* Sistem Penilaian Tombol (- A+ +) */}
+        <div className="flex flex-col gap-3 items-center p-5 border border-border rounded-lg bg-neutral-50/80 shadow-2xs">
+          <Label className="text-[11px] font-bold text-neutral-500 uppercase tracking-widest">
+            Penilaian Ujian
+          </Label>
+          <div className="flex items-center gap-6 my-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 bg-white shadow-2xs hover:bg-neutral-100"
+              onClick={kurangNilai}
+            >
+              <FaMinus className="text-neutral-700" />
+            </Button>
+            <span className="text-3xl font-black text-primary min-w-[60px] text-center">
+              {currentNilai}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 bg-white shadow-2xs hover:bg-neutral-100"
+              onClick={tambahNilai}
+            >
+              <FaPlus className="text-neutral-700" />
+            </Button>
+          </div>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-xs text-neutral-500 font-medium">
+              Rekomendasi Sistem:
+            </span>
+            <span
+              className={`px-2 py-0.5 text-xs font-bold rounded shadow-3xs ${isLulus ? "bg-green-100 text-green-700 border border-green-200" : "bg-red-100 text-red-700 border border-red-200"}`}
+            >
+              {isLulus ? "LULUS" : "TIDAK LULUS (MENGULANG)"}
+            </span>
+          </div>
+        </div>
+
+        {/* Catatan / Evaluasi */}
+        <div className="flex flex-col gap-2">
+          <Label className="font-semibold text-neutral-800 text-sm">
+            Catatan / Evaluasi
+          </Label>
+          <Textarea
+            name="keterangan"
+            placeholder="Tambahkan catatan untuk siswa..."
+            className="min-h-20 bg-white"
+          />
         </div>
       </div>
 
-      <div className="p-3 rounded-lg bg-emerald-50/80 border border-emerald-200">
-        <p className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider">
-          Target Jilid (Pengajuan)
-        </p>
-        <p className="text-sm font-black text-emerald-950 mt-0.5">
-          {targetJilid.replace(/_/g, " ")}
-        </p>
+      <div className="shrink-0 pt-3 pb-2 bg-white dark:bg-neutral-900 border-t border-border mt-2 w-full">
+        <Button
+          type="submit"
+          className="w-full font-semibold text-sm shadow-xs"
+          disabled={isLoading}
+        >
+          {isLoading ? "Menyimpan Hasil..." : "Simpan Hasil Ujian"}
+        </Button>
       </div>
-
-      {/* Sistem Penilaian Tombol (- A+ +) */}
-      <div className="flex flex-col gap-3 items-center p-5 border border-border rounded-lg bg-neutral-50/80 shadow-2xs">
-        <Label className="text-[11px] font-bold text-neutral-500 uppercase tracking-widest">
-          Penilaian Ujian
-        </Label>
-        <div className="flex items-center gap-6 my-1">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="h-10 w-10 bg-white shadow-2xs hover:bg-neutral-100"
-            onClick={kurangNilai}
-          >
-            <FaMinus className="text-neutral-700" />
-          </Button>
-          <span className="text-3xl font-black text-primary min-w-[60px] text-center">
-            {currentNilai}
-          </span>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="h-10 w-10 bg-white shadow-2xs hover:bg-neutral-100"
-            onClick={tambahNilai}
-          >
-            <FaPlus className="text-neutral-700" />
-          </Button>
-        </div>
-        <div className="flex items-center gap-2 mt-1">
-          <span className="text-xs text-neutral-500 font-medium">
-            Rekomendasi Sistem:
-          </span>
-          <span
-            className={`px-2 py-0.5 text-xs font-bold rounded shadow-3xs ${isLulus ? "bg-green-100 text-green-700 border border-green-200" : "bg-red-100 text-red-700 border border-red-200"}`}
-          >
-            {isLulus ? "LULUS" : "TIDAK LULUS (MENGULANG)"}
-          </span>
-        </div>
-      </div>
-
-      {/* Catatan / Evaluasi */}
-      <div className="flex flex-col gap-2">
-        <Label className="font-semibold text-neutral-800 text-sm">
-          Catatan / Evaluasi
-        </Label>
-        <Textarea
-          name="keterangan"
-          placeholder="Tambahkan catatan untuk siswa..."
-          className="min-h-20 bg-white"
-        />
-      </div>
-
-      <Button
-        type="submit"
-        className="w-full font-semibold text-sm shadow-xs"
-        disabled={isLoading}
-      >
-        {isLoading ? "Menyimpan Hasil..." : "Simpan Hasil Ujian"}
-      </Button>
     </form>
   );
 }

@@ -81,37 +81,37 @@ function PretestManagement() {
 
       {isDesktop && (
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="sm:max-w-130">
-            <DialogHeader>
+          <DialogContent className="sm:max-w-130 max-h-[90vh] flex flex-col overflow-hidden">
+            <DialogHeader className="shrink-0">
               <DialogTitle>Input Nilai Placement</DialogTitle>
               <DialogDescription>
-                Berikan penilaian untuk penempatah tahap tahsin siswa
+                Berikan penilaian untuk penempatan tahap tahsin siswa
               </DialogDescription>
             </DialogHeader>
-            <PretestForm
-              initialData={selectedStudent}
-              onSuccess={() => setOpen(false)}
-            />
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <PretestForm
+                initialData={selectedStudent}
+                onSuccess={() => setOpen(false)}
+              />
+            </div>
           </DialogContent>
         </Dialog>
       )}
 
       {!isDesktop && (
         <Drawer open={open} onOpenChange={setOpen}>
-          <DrawerContent>
-            <DrawerHeader>
+          <DrawerContent className="max-h-[90vh] flex flex-col">
+            <DrawerHeader className="text-left shrink-0">
               <DrawerTitle>Input Nilai Placement</DrawerTitle>
               <DrawerDescription>
-                Berikan penilaian untuk penempatah tahap tahsin siswa
+                Berikan penilaian untuk penempatan tahap tahsin siswa
               </DrawerDescription>
             </DrawerHeader>
-            <div className="overflow-y-auto max-h-[80vh]">
-              <div className="p-4">
-                <PretestForm
-                  initialData={selectedStudent}
-                  onSuccess={() => setOpen(false)}
-                />
-              </div>
+            <div className="px-4 flex-1 overflow-hidden flex flex-col pb-3">
+              <PretestForm
+                initialData={selectedStudent}
+                onSuccess={() => setOpen(false)}
+              />
             </div>
           </DrawerContent>
         </Drawer>

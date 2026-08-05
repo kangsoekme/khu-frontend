@@ -111,26 +111,28 @@ function UjianKenaikanManagement() {
 
       {isDesktop && (
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="sm:max-w-125">
-            <DialogHeader>
+          <DialogContent className="sm:max-w-125 max-h-[90vh] flex flex-col overflow-hidden">
+            <DialogHeader className="shrink-0">
               <DialogTitle>Ujian Kenaikan Jilid</DialogTitle>
               <DialogDescription>
                 Masukkan hasil ujian untuk menentukkan kenaikan tahapan / jilid
                 siswa
               </DialogDescription>
             </DialogHeader>
-            <UjianKenaikanForm
-              initialData={selectedStudent}
-              onSuccess={() => setOpen(false)}
-            />
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <UjianKenaikanForm
+                initialData={selectedStudent}
+                onSuccess={() => setOpen(false)}
+              />
+            </div>
           </DialogContent>
         </Dialog>
       )}
 
       {!isDesktop && (
         <Drawer open={open} onOpenChange={setOpen}>
-          <DrawerContent className="sm:max-w-125">
-            <DrawerHeader>
+          <DrawerContent className="max-h-[90vh] flex flex-col">
+            <DrawerHeader className="text-left shrink-0">
               <DrawerTitle>Ujian Kenaikan Jilid</DrawerTitle>
               <DrawerDescription>
                 Masukkan hasil ujian untuk menentukkan kenaikan tahapan / jilid
@@ -138,14 +140,12 @@ function UjianKenaikanManagement() {
               </DrawerDescription>
             </DrawerHeader>
 
-            <ScrollArea className="h-auto max-h-[80vh]">
-              <div className="p-4">
-                <UjianKenaikanForm
-                  initialData={selectedStudent}
-                  onSuccess={() => setOpen(false)}
-                />
-              </div>
-            </ScrollArea>
+            <div className="px-4 flex-1 overflow-hidden flex flex-col pb-3">
+              <UjianKenaikanForm
+                initialData={selectedStudent}
+                onSuccess={() => setOpen(false)}
+              />
+            </div>
           </DrawerContent>
         </Drawer>
       )}

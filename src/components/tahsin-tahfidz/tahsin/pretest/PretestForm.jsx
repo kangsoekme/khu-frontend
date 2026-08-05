@@ -63,62 +63,65 @@ function PretestForm({ initialData, onSuccess }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col h-full gap-5">
-      <div className="flex flex-col gap-5">
-        <Label htmlFor="email">Nama Lengkap</Label>
-        <Input
-          type="text"
-          name="nama"
-          id="name"
-          placeholder="Ahmad Fulan"
-          defaultValue={initialData?.nama}
-          readOnly
-        />
-      </div>
-      <div className="flex flex-col gap-5">
-        <Label htmlFor="email">NIS</Label>
-        <Input
-          type="text"
-          name="nis"
-          id="nis"
-          placeholder="123789456"
-          defaultValue={initialData?.nis}
-          readOnly
-        />
+    <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-hidden text-left">
+      <div className="flex-1 overflow-y-auto space-y-4 pr-1 pb-4">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="name">Nama Lengkap</Label>
+          <Input
+            type="text"
+            name="nama"
+            id="name"
+            placeholder="Ahmad Fulan"
+            defaultValue={initialData?.nama}
+            readOnly
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="nis">NIS</Label>
+          <Input
+            type="text"
+            name="nis"
+            id="nis"
+            placeholder="123789456"
+            defaultValue={initialData?.nis}
+            readOnly
+          />
+        </div>
+
+        <div className="flex flex-col gap-2 w-full">
+          <Label htmlFor="keterangan">Catatan / Keterangan</Label>
+          <Textarea
+            id="keterangan"
+            name="keterangan"
+            defaultValue={initialData?.keterangan}
+            className="min-h-20 break-all w-full bg-white"
+          />
+        </div>
+
+        <div className="flex flex-col gap-2 w-full">
+          <Label>Pilih Tahapan</Label>
+          <>
+            <input type="hidden" name="tahapan" value={tahapanValue} />
+            <Select items={tahap} onValueChange={setTahapanValue}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Pilih Tahapan Placement" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {tahap.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </>
+        </div>
       </div>
 
-      <div className="flex flex-col gap-3 w-full">
-        <Label htmlFor="alamat">Keterangan</Label>
-        <Textarea
-          name="keterangan"
-          defaultValue={initialData?.keterangan}
-          className="min-h-25 break-all w-full"
-        />
-      </div>
-
-      <div className="flex flex-col gap-3 w-full">
-        <Label htmlFor="username">Pilih Tahapan</Label>
-        <>
-          <input type="hidden" name="tahapan" value={tahapanValue} />
-          <Select items={tahap} onValueChange={setTahapanValue}>
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {tahap.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </>
-      </div>
-
-      <div className="mt-6">
-        <Button type="submit" className="w-full" disabled={isLoading}>
+      <div className="shrink-0 pt-3 pb-2 bg-white dark:bg-neutral-900 border-t border-border mt-2 w-full">
+        <Button type="submit" className="w-full font-semibold shadow-xs" disabled={isLoading}>
           {isLoading ? "Menyimpan..." : "Simpan Hasil Pretest"}
         </Button>
       </div>
