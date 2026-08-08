@@ -268,12 +268,11 @@ function HalaqohManagement() {
                         <ItemDescription>
                           {siswa.nis} |{" "}
                           {activeTab === "TAHSIN"
-                            ? siswa.setoranTahsin?.[0]?.bab ||
-                              siswa.setoranTahsin?.[0]?.halaman
+                            ? (siswa.setoranTahsin?.[0]?.tahapan === (siswa.tahapan_tahsin || siswa.ujianPretest?.[0]?.tahapan)) && (siswa.setoranTahsin?.[0]?.bab || siswa.setoranTahsin?.[0]?.halaman)
                               ? `Hal. ${siswa.setoranTahsin[0].bab || siswa.setoranTahsin[0].halaman}`
-                              : siswa.setoranTahsin?.[0]?.materi
+                              : siswa.setoranTahsin?.[0]?.materi && (siswa.setoranTahsin?.[0]?.tahapan === (siswa.tahapan_tahsin || siswa.ujianPretest?.[0]?.tahapan))
                               ? siswa.setoranTahsin[0].materi
-                              : `Pretest: ${formatEnum(siswa.ujianPretest?.[0]?.tahapan || siswa.tahapan_tahsin || "BELUM MULAI")}`
+                              : `Pretest: ${formatEnum(siswa.tahapan_tahsin || siswa.ujianPretest?.[0]?.tahapan || "BELUM MULAI")}`
                             : siswa.setoranHafalan?.[0]?.surah?.nama_surah
                               ? `Qs. ${siswa.setoranHafalan[0].surah.nama_surah} (${siswa.setoranHafalan[0].ayat_akhir})`
                               : "Siswa Baru"}

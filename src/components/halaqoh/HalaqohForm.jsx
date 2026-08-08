@@ -189,21 +189,24 @@ function HalaqohForm({
 
   const getInfoPencapaian = (student) => {
     if (kategori === "TAHSIN") {
-      const setoran = student.setoranTahsin?.[0];
-      const latestTahapan =
-        setoran?.tahapan ||
+      const currentTahap =
         student.tahapan_tahsin ||
         student.ujianPretest?.[0]?.tahapan ||
-        "Tahsin";
-      const jilidText = formatEnum(latestTahapan);
+        student.setoranTahsin?.[0]?.tahapan ||
+        "TAHSIN";
+      const setoran = student.setoranTahsin?.[0];
+      const jilidText = formatEnum(currentTahap);
 
       let halText = "Belum ada setoran";
-      if (setoran?.bab || setoran?.halaman) {
-        halText = `Halaman ${setoran.bab || setoran.halaman}`;
-      } else if (setoran?.materi) {
-        halText = setoran.materi;
+      // Hanya tampilkan bab/halaman setoran jika setoran tersebut berada pada tahapan yang sama dengan tahapan_tahsin siswa saat ini
+      if (setoran && (!setoran.tahapan || setoran.tahapan === currentTahap)) {
+        if (setoran.bab || setoran.halaman) {
+          halText = `Halaman ${setoran.bab || setoran.halaman}`;
+        } else if (setoran.materi) {
+          halText = setoran.materi;
+        }
       } else if (student.ujianPretest?.[0]?.tahapan || student.tahapan_tahsin) {
-        halText = `Pretest: ${formatEnum(student.ujianPretest?.[0]?.tahapan || student.tahapan_tahsin)}`;
+        halText = `Pretest: ${formatEnum(student.tahapan_tahsin || student.ujianPretest?.[0]?.tahapan)}`;
       }
       return { baris1: jilidText, baris2: halText };
     } else {
