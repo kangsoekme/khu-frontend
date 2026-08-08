@@ -138,15 +138,32 @@ function UserManagement() {
           />
 
           {selectedUsers.length > 0 && (
-            <Button
-              variant="destructive"
-              onClick={handleBulkDelete}
-              disabled={isDeletingBulk}
-            >
-              {isDeletingBulk
-                ? "Menghapus..."
-                : `Hapus (${selectedUsers.length})`}
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  disabled={isDeletingBulk}
+                >
+                  {isDeletingBulk
+                    ? "Menghapus..."
+                    : `Hapus (${selectedUsers.length})`}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Konfirmasi Hapus Massal</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Apakah Anda yakin ingin menghapus {selectedUsers.length} data user terpilih? Tindakan ini tidak dapat dibatalkan.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Batal</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleBulkDelete} className="bg-red-600 hover:bg-red-700 text-white">
+                    Ya, Hapus Data
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
 
           <Button onClick={() => setOpen(true)}>

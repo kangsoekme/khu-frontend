@@ -142,18 +142,18 @@ export const getTahapanBerikutnya = (tahapanSaatIni) => {
  *   Struktur: { tahapan, laporan_bacaan: { jilid, bab, surah, no_surah, ayat_akhir } }
  * @returns {{ selesai: boolean, target: string, capaian: string }}
  */
-export const cekPenyelesaianTahapan = (lastRiwayat) => {
-  if (!lastRiwayat) {
+export const cekPenyelesaianTahapan = (lastRiwayat, pretestPlacement) => {
+  if (!lastRiwayat && !pretestPlacement) {
     return { selesai: false, target: "-", capaian: "Belum ada setoran" };
   }
 
-  const tahapan = lastRiwayat.tahapan;
+  const tahapan = lastRiwayat?.tahapan || pretestPlacement?.tahapan;
   const kategori = getKategoriTahapan(tahapan);
-  const laporan = lastRiwayat.laporan_bacaan || {};
+  const laporan = lastRiwayat?.laporan_bacaan || lastRiwayat || pretestPlacement || {};
 
   // --- Tahapan BUKU UMMI (Jilid 1-6) ---
   if (kategori === "BUKU") {
-    const halaman = Number(laporan.bab) || 0;
+    const halaman = Number(laporan.bab) || Number(laporan.halaman) || 0;
     const selesai = halaman >= TARGET_HALAMAN_JILID;
     return {
       selesai,
@@ -163,13 +163,10 @@ export const cekPenyelesaianTahapan = (lastRiwayat) => {
   }
 
   // --- Tahapan berbasis Al-Quran (murni atau ganda) ---
-  // Cek progress berdasarkan surah terakhir yang dicapai.
   const range = JUZ_RANGE[tahapan] || JUZ_RANGE.ALQURAN;
   const noSurah = Number(laporan.no_surah) || 0;
   const surahAkhirRentang = JUZ_TO_SURAH_AKHIR[range.akhir] || 114;
 
-  // Selesai jika sudah mencapai surah akhir dari rentang juz tahapan.
-  // (Target = surah penutup juz akhir rentang, mis. TILAWAH Juz 1-5 -> Al-An'am = 6)
   const selesai = noSurah > 0 && noSurah >= surahAkhirRentang;
 
   return {
@@ -181,20 +178,20 @@ export const cekPenyelesaianTahapan = (lastRiwayat) => {
 
 /**
  * Hitung status kelengkapan pengajuan ujian kenaikan.
- * Pengajuan HANYA boleh diajukan jika tahapan saat ini sudah selesai.
+ * Pengajuan HANYA boleh diajukan jika tahapan saat ini sudah selesai (Halaman >= 40 atau Surah Akhir).
  *
- * @param {Object} riwayatList - array history setoran (desc by timestamp).
+ * @param {Array} riwayatList - array history setoran (desc by timestamp).
  * @param {string} tahapanSaatIni - siswa.tahapan_tahsin.
+ * @param {Object} pretestPlacement - data placement pretest siswa.
  * @returns {{ bolehAjukan: boolean, alasan: string, detail: Object }}
  */
-export const cekKelengkapanPengajuan = (riwayatList, tahapanSaatIni) => {
-  // Filter riwayat hanya untuk tahapan saat ini (yang relevan).
+export const cekKelengkapanPengajuan = (riwayatList, tahapanSaatIni, pretestPlacement) => {
   const riwayatTahapanIni = (riwayatList || []).filter(
     (r) => r.tahapan === tahapanSaatIni,
   );
 
-  const lastRiwayat = riwayatTahapanIni[0];
-  const status = cekPenyelesaianTahapan(lastRiwayat);
+  const lastRiwayat = riwayatTahapanIni[0] || riwayatList?.[0];
+  const status = cekPenyelesaianTahapan(lastRiwayat, pretestPlacement);
 
   if (status.selesai) {
     return {

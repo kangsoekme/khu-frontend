@@ -25,6 +25,18 @@ import {
 
 import StudentForm from "../../components/student-user/StudentForm.jsx";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { FaPlus } from "react-icons/fa6";
@@ -136,15 +148,32 @@ function StudentManagement() {
         />
 
         {selectedStudents.length > 0 && (
-          <Button
-            variant="destructive"
-            onClick={handleBulkDelete}
-            disabled={isDeletingBulk}
-          >
-            {isDeletingBulk
-              ? "Menghapus..."
-              : `Hapus (${selectedStudents.length})`}
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                disabled={isDeletingBulk}
+              >
+                {isDeletingBulk
+                  ? "Menghapus..."
+                  : `Hapus (${selectedStudents.length})`}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Konfirmasi Hapus Massal</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Apakah Anda yakin ingin menghapus {selectedStudents.length} data siswa terpilih? Tindakan ini tidak dapat dibatalkan.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogAction onClick={handleBulkDelete} className="bg-red-600 hover:bg-red-700 text-white">
+                  Ya, Hapus Data
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
 
         <input
