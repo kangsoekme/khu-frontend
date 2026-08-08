@@ -36,8 +36,12 @@ function StudentTableContainer({
   currentPage,
   totalPages,
   onPageChange,
+  totalMatchingCount = 0,
 }) {
   const paginatedStudents = students;
+  const isAllSelected =
+    (totalMatchingCount > 0 && selectedStudents.length >= totalMatchingCount) ||
+    (students.length > 0 && selectedStudents.length === students.length);
 
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) onPageChange(page);
@@ -79,10 +83,7 @@ function StudentTableContainer({
             <TableRow>
               <TableHead className="w-12">
                 <Checkbox
-                  checked={
-                    students.length > 0 &&
-                    selectedStudents.length === students.length
-                  }
+                  checked={isAllSelected}
                   onCheckedChange={onSelectAll}
                 />
               </TableHead>
@@ -117,10 +118,10 @@ function StudentTableContainer({
           <div className="flex items-center justify-between px-4 py-3 bg-neutral-800 text-white rounded-lg shadow-md">
             <span className="text-sm font-semibold">{selectedStudents.length} Terpilih</span>
             <button 
-              onClick={() => onSelectAll(selectedStudents.length !== students.length)} 
+              onClick={() => onSelectAll(!isAllSelected)} 
               className="text-sm font-medium underline underline-offset-2 hover:text-blue-300"
             >
-              {selectedStudents.length === students.length ? "Batal Semua" : "Pilih Semua"}
+              {isAllSelected ? "Batal Semua" : "Pilih Semua (Seluruh Halaman)"}
             </button>
           </div>
         )}

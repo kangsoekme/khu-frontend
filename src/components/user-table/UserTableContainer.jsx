@@ -38,8 +38,12 @@ function UserTableContainer({
   currentPage,
   totalPages,
   onPageChange,
+  totalMatchingCount = 0,
 }) {
   const paginatedUsers = users;
+  const isAllSelected =
+    (totalMatchingCount > 0 && selectedUsers.length >= totalMatchingCount) ||
+    (users.length > 0 && selectedUsers.length === users.length);
 
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) onPageChange(page);
@@ -79,9 +83,7 @@ function UserTableContainer({
             <TableRow className="">
               <TableHead className="w-12">
                 <Checkbox
-                  checked={
-                    users.length > 0 && selectedUsers.length === users.length
-                  }
+                  checked={isAllSelected}
                   onCheckedChange={onSelectAll}
                 />
               </TableHead>
@@ -114,10 +116,10 @@ function UserTableContainer({
           <div className="flex items-center justify-between px-4 py-3 bg-neutral-800 text-white rounded-lg shadow-md">
             <span className="text-sm font-semibold">{selectedUsers.length} Terpilih</span>
             <button 
-              onClick={() => onSelectAll(selectedUsers.length !== users.length)} 
+              onClick={() => onSelectAll(!isAllSelected)} 
               className="text-sm font-medium underline underline-offset-2 hover:text-blue-300"
             >
-              {selectedUsers.length === users.length ? "Batal Semua" : "Pilih Semua"}
+              {isAllSelected ? "Batal Semua" : "Pilih Semua (Seluruh Halaman)"}
             </button>
           </div>
         )}

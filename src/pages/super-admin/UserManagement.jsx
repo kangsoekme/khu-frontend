@@ -84,6 +84,17 @@ function UserManagement() {
     );
   }
 
+  const roleFilter = activeRole === "semua" ? "" : activeRole;
+
+  // Query untuk mendapatkan seluruh daftar ID user sesuai filter role & search (tanpa batas halaman)
+  const { data: allUsersData } = useGetUsersQuery({
+    limit: 10000,
+    search,
+    role: roleFilter,
+  });
+  const allMatchingUserIds = (allUsersData?.data || []).map((u) => u.id);
+  const totalMatchingCount = usersData?.meta?.totalData || allMatchingUserIds.length;
+
   const handleRowClick = (user) => {
     setSelectedUser(user);
     setOpenEdit(true);
@@ -91,7 +102,7 @@ function UserManagement() {
 
   const handleSelectAll = (checked) => {
     if (checked) {
-      setSelectedUsers(filteredUser.map((u) => u.id));
+      setSelectedUsers(allMatchingUserIds);
     } else {
       setSelectedUsers([]);
     }
@@ -185,6 +196,7 @@ function UserManagement() {
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={(page) => setCurrentPage(page)}
+            totalMatchingCount={totalMatchingCount}
           />
         )}
 

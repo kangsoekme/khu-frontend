@@ -66,6 +66,11 @@ function StudentManagement() {
   const students = studentsData?.data || [];
   const totalPages = studentsData?.meta?.totalPages || 1;
 
+  // Query untuk mendapatkan seluruh daftar NIS siswa sesuai filter pencarian (tanpa batas halaman)
+  const { data: allStudentsData } = useGetStudentsQuery({ limit: 10000, search });
+  const allMatchingNisList = (allStudentsData?.data || []).map((s) => s.nis);
+  const totalMatchingCount = studentsData?.meta?.totalData || allMatchingNisList.length;
+
   const filteredStudents = students;
 
   const handleRowClick = (student) => {
@@ -98,7 +103,7 @@ function StudentManagement() {
 
   const handleSelectAll = (checked) => {
     if (checked) {
-      setSelectedStudents(filteredStudents.map((s) => s.nis));
+      setSelectedStudents(allMatchingNisList);
     } else {
       setSelectedStudents([]);
     }
@@ -191,6 +196,7 @@ function StudentManagement() {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={(page) => setCurrentPage(page)}
+          totalMatchingCount={totalMatchingCount}
         />
       )}
 
