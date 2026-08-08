@@ -30,6 +30,7 @@ function TahsinAssessmentForm({
   tahapan,
   lastRiwayat,
   riwayatList = [],
+  pretestData,
   editData,
   onSuccess,
 }) {
@@ -104,8 +105,9 @@ function TahsinAssessmentForm({
 
   const isLastMengulang = !editData && lastRiwayat?.status_kelanjutan === "MENGULANG";
 
-  // Halaman buku: ambil dari setoran sebelumnya +1, ATAU tetap jika MENGULANG
+  // Halaman buku: ambil dari setoran sebelumnya +1, ATAU tetap jika MENGULANG. Jika belum ada setoran harian, ambil dari pretestData!
   const lastBukuHalaman = Number(lastBukuSetoran?.laporan_bacaan?.bab) || 0;
+  const pretestHalaman = Number(pretestData?.halaman) || 0;
 
   let nextBukuHalaman = "";
   if (editData) {
@@ -121,13 +123,17 @@ function TahsinAssessmentForm({
       nextBukuHalaman = "";
     }
   } else {
-    nextBukuHalaman = 1;
+    // Belum ada setoran harian: ambil hasil placement Halaman dari pretest!
+    nextBukuHalaman = pretestHalaman > 0 ? pretestHalaman : 1;
   }
 
   // ===========================================================================
   // DEFAULT VALUE - LAPORAN BACAAN: Al-QURAN (surah + ayat)
   // Logika +1 untuk ayat awal, ATAU tetap dari ayat_awal sebelumnya jika MENGULANG
   // ===========================================================================
+  const pretestNoSurah = pretestData?.no_surah ? String(pretestData.no_surah) : undefined;
+  const pretestAyat = Number(pretestData?.ayat_akhir || pretestData?.ayat_awal) || 0;
+
   const defaultQuranSurah = editData?.laporan_bacaan?.surah
     ? allSurah
         .find((s) => s.nama_surah === editData.laporan_bacaan.surah)
@@ -138,7 +144,9 @@ function TahsinAssessmentForm({
       ? allSurah
           .find((s) => s.nama_surah === lastQuranSetoran.laporan_bacaan.surah)
           ?.no_surah.toString()
-      : undefined;
+      : !editData && !lastRiwayat && pretestNoSurah
+        ? pretestNoSurah
+        : undefined;
 
   const lastQuranAyatAkhir = Number(lastQuranSetoran?.laporan_bacaan?.ayat_akhir) || 0;
 
@@ -156,7 +164,7 @@ function TahsinAssessmentForm({
       nextQuranAyatAwal = "";
     }
   } else {
-    nextQuranAyatAwal = kategori === "QURAN" ? 1 : "";
+    nextQuranAyatAwal = pretestAyat > 0 ? pretestAyat : kategori === "QURAN" ? 1 : "";
   }
 
   const defaultQuranAyatAkhir = editData

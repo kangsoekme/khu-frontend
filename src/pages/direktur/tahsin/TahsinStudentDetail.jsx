@@ -581,6 +581,7 @@ function TahsinStudentDetail() {
                 tahapan={student?.tahapan_tahsin}
                 lastRiwayat={riwayatList[0]}
                 riwayatList={riwayatList}
+                pretestData={student?.ujianPretest?.[0]}
                 editData={editData}
                 onSuccess={() => setOpenForm(false)}
               />
@@ -602,6 +603,7 @@ function TahsinStudentDetail() {
                 tahapan={student?.tahapan_tahsin}
                 lastRiwayat={riwayatList[0]}
                 riwayatList={riwayatList}
+                pretestData={student?.ujianPretest?.[0]}
                 editData={editData}
                 onSuccess={() => setOpenForm(false)}
               />
