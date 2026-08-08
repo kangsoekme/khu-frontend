@@ -419,10 +419,14 @@ function TahsinStudentDetail() {
               ) : (
                 paginatedRiwayat.map((riwayat) => {
                   const laporanParts = formatLaporanBacaan(riwayat);
+                  const isPlacement = riwayat.is_placement;
                   return (
-                    <TableRow key={riwayat.id}>
+                    <TableRow key={riwayat.id} className={isPlacement ? "bg-amber-50/50" : ""}>
                       <TableCell>
                         <div className="flex flex-col">
+                          {isPlacement && (
+                            <span className="text-xs font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded w-fit mb-1">📍 Placement</span>
+                          )}
                           <span className="font-semibold uppercase">
                             {new Date(riwayat.timestamp).toLocaleDateString(
                               "id-ID",
@@ -476,33 +480,45 @@ function TahsinStudentDetail() {
                       </TableCell>
                       {currentRole === "GURU" && (
                         <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <FaEllipsisV />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setEditData(riwayat);
-                                  setOpenForm(true);
-                                }}
-                                className="cursor-pointer"
-                              >
-                                <FaEdit className="mr-2" /> Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onSelect={(e) => {
-                                  e.preventDefault();
-                                  setDeleteId(riwayat.id);
-                                }}
-                                className="text-red-600 cursor-pointer focus:bg-red-50 focus:text-red-700"
-                              >
-                                <FaTrash className="mr-2" /> Hapus
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          {isPlacement ? (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDeleteId(riwayat.id)}
+                              title="Hapus data placement"
+                              className="text-amber-600 hover:text-red-600"
+                            >
+                              <FaTrash />
+                            </Button>
+                          ) : (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <FaEllipsisV />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setEditData(riwayat);
+                                    setOpenForm(true);
+                                  }}
+                                  className="cursor-pointer"
+                                >
+                                  <FaEdit className="mr-2" /> Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onSelect={(e) => {
+                                    e.preventDefault();
+                                    setDeleteId(riwayat.id);
+                                  }}
+                                  className="text-red-600 cursor-pointer focus:bg-red-50 focus:text-red-700"
+                                >
+                                  <FaTrash className="mr-2" /> Hapus
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
                         </TableCell>
                       )}
                     </TableRow>
