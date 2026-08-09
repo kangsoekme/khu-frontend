@@ -7,6 +7,7 @@ import LoginPage from "../pages/auth/LoginPage";
 import ProtectedRoute from "./ProtectedRoute.jsx";
 import WaliLayout from "../layout/WaliLayout.jsx";
 import WaliProtectedRoute from "./WaliProtectedRoute.jsx";
+import RoleProtectedRoute from "./RoleProtectedRoute.jsx";
 
 // --- Lazy-loaded pages untuk performa loading lebih cepat ---
 const SuperAdminHomepage        = lazy(() => import("../pages/super-admin/Homepage"));
@@ -180,31 +181,61 @@ const router = createBrowserRouter([
         children: [{ index: true, element: <RoleBasedHomepage /> }],
       },
       {
-        path: "/manajemen-user",
-        element: <MainLayout />,
-        children: [{ index: true, element: <Suspense fallback={<PageLoader />}><SuperAdminUserManagement /></Suspense> }],
+        element: <RoleProtectedRoute allowedRoles={["SUPER_ADMIN"]} />,
+        children: [
+          {
+            path: "/manajemen-user",
+            element: <MainLayout />,
+            children: [{ index: true, element: <Suspense fallback={<PageLoader />}><SuperAdminUserManagement /></Suspense> }],
+          },
+          {
+            path: "/manajemen-siswa",
+            element: <MainLayout />,
+            children: [{ index: true, element: <Suspense fallback={<PageLoader />}><SuperAdminStudentManagement /></Suspense> }],
+          },
+          {
+            path: "/backup",
+            element: <MainLayout />,
+            children: [{ index: true, element: <Suspense fallback={<PageLoader />}><BackupManagement /></Suspense> }],
+          },
+          {
+            path: "/tahun-ajaran",
+            element: <MainLayout />,
+            children: [{ index: true, element: <Suspense fallback={<PageLoader />}><TahunAjaranManagement /></Suspense> }],
+          },
+        ],
       },
       {
-        path: "/manajemen-siswa",
-        element: <MainLayout />,
-        children: [{ index: true, element: <Suspense fallback={<PageLoader />}><SuperAdminStudentManagement /></Suspense> }],
-      },
-      {
-        path: "/backup",
-        element: <MainLayout />,
-        children: [{ index: true, element: <Suspense fallback={<PageLoader />}><BackupManagement /></Suspense> }],
-      },
-      {
-        path: "/laporan",
-        element: <MainLayout />,
-        children: [{ index: true, element: <Suspense fallback={<PageLoader />}><LaporanManagement /></Suspense> }],
+        element: <RoleProtectedRoute allowedRoles={["DIREKTUR", "SUPER_ADMIN"]} />,
+        children: [
+          {
+            path: "/laporan",
+            element: <MainLayout />,
+            children: [{ index: true, element: <Suspense fallback={<PageLoader />}><LaporanManagement /></Suspense> }],
+          },
+          {
+            path: "/manajemen-halaqoh",
+            element: <MainLayout />,
+            children: [{ index: true, element: <Suspense fallback={<PageLoader />}><DirekturHalaqohManagement /></Suspense> }],
+          },
+          {
+            path: "/pretest",
+            element: <MainLayout />,
+            children: [{ index: true, element: <Suspense fallback={<PageLoader />}><DirekturPretestManagement /></Suspense> }],
+          },
+        ],
       },
       {
         path: "/tahsin",
         element: <MainLayout />,
         children: [
           { index: true, element: <Suspense fallback={<PageLoader />}><TahsinManagement /></Suspense> },
-          { path: "ujian-kenaikan", element: <Suspense fallback={<PageLoader />}><UjianKenaikanManagement /></Suspense> },
+          {
+            element: <RoleProtectedRoute allowedRoles={["DIREKTUR", "SUPER_ADMIN"]} />,
+            children: [
+              { path: "ujian-kenaikan", element: <Suspense fallback={<PageLoader />}><UjianKenaikanManagement /></Suspense> },
+            ]
+          },
           { path: ":id", element: <Suspense fallback={<PageLoader />}><TahsinDetail /></Suspense> },
           { path: ":id/:nis", element: <Suspense fallback={<PageLoader />}><TahsinStudentDetail /></Suspense> },
         ],
@@ -217,21 +248,6 @@ const router = createBrowserRouter([
           { path: ":id", element: <Suspense fallback={<PageLoader />}><TahfidzDetail /></Suspense> },
           { path: ":id/:nis", element: <Suspense fallback={<PageLoader />}><TahfidzStudentDetail /></Suspense> },
         ],
-      },
-      {
-        path: "/manajemen-halaqoh",
-        element: <MainLayout />,
-        children: [{ index: true, element: <Suspense fallback={<PageLoader />}><DirekturHalaqohManagement /></Suspense> }],
-      },
-      {
-        path: "/pretest",
-        element: <MainLayout />,
-        children: [{ index: true, element: <Suspense fallback={<PageLoader />}><DirekturPretestManagement /></Suspense> }],
-      },
-      {
-        path: "/tahun-ajaran",
-        element: <MainLayout />,
-        children: [{ index: true, element: <Suspense fallback={<PageLoader />}><TahunAjaranManagement /></Suspense> }],
       },
     ],
   },
