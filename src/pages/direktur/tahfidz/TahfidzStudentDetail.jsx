@@ -96,9 +96,9 @@ function TahfidzStudentDetail() {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const { data: studentRes, isLoading: isLoadingStudent } =
     useGetStudentQuery(nis);
-  const { data: riwayatRes, isLoading: isLoadingRiwayat } =
+  const { data: riwayatRes, isLoading: isLoadingRiwayat, isFetching: isFetchingHafalan } =
     useGetRiwayatHafalanQuery(nis);
-  const { data: murajaahRes, isLoading: isLoadingMurajaah } =
+  const { data: murajaahRes, isLoading: isLoadingMurajaah, isFetching: isFetchingMurajaah } =
     useGetRiwayatMurajaahQuery(nis);
 
   const handleDeleteMurajaah = async () => {
@@ -226,18 +226,20 @@ function TahfidzStudentDetail() {
               <div className="flex gap-3">
                 <Button
                   onClick={() => setOpenHafalan(true)}
+                  disabled={isFetchingHafalan}
                   className="flex-1 h-12 flex "
                 >
-                  <FaCalendarCheck className="text-2xl" /> Tambah Penilaian
+                  <FaCalendarCheck className="text-2xl" /> {isFetchingHafalan ? "Mensinkronisasi..." : "Tambah Penilaian"}
                 </Button>
                 <Button
                   onClick={() => {
                     setMurajaahToEdit(null);
                     setOpenMurajaah(true);
                   }}
+                  disabled={isFetchingMurajaah}
                   className="flex-1 h-12 flex "
                 >
-                  <FaCalendarCheck className="text-2xl" /> Tambah Murajaah
+                  <FaCalendarCheck className="text-2xl" /> {isFetchingMurajaah ? "Mensinkronisasi..." : "Tambah Murajaah"}
                 </Button>
               </div>
             )}

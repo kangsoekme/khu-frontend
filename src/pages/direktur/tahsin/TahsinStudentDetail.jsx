@@ -162,7 +162,7 @@ function TahsinStudentDetail() {
 
   const { data: studentRes, isLoading: isLoadingStudent } =
     useGetStudentQuery(nis);
-  const { data: riwayatRes, isLoading: isLoadingRiwayat } =
+  const { data: riwayatRes, isLoading: isLoadingRiwayat, isFetching: isFetchingRiwayat } =
     useGetRiwayatTahsinQuery(nis);
 
   if (isLoadingStudent || isLoadingRiwayat) {
@@ -328,9 +328,10 @@ function TahsinStudentDetail() {
                   setEditData(null);
                   setOpenForm(true);
                 }}
+                disabled={isFetchingRiwayat}
                 className="flex-1 h-12 flex"
               >
-                <FaCalendarCheck className="text-2xl" /> Tambah Penilaian
+                <FaCalendarCheck className="text-2xl" /> {isFetchingRiwayat ? "Mensinkronisasi..." : "Tambah Penilaian"}
               </Button>
             )}
             {currentRole === "GURU" && (
