@@ -89,10 +89,14 @@ function TahsinAssessmentForm({
     ? editData
     : riwayatList.find((r) => r.laporan_bacaan?.bab != null && Number(r.laporan_bacaan.bab) > 0) || lastRiwayat;
 
-  // Cari setoran paling baru yang memiliki entri Al-Quran (surah)
+  // Cari setoran paling baru yang memiliki entri Al-Quran (surah/no_surah)
   const lastQuranSetoran = editData
     ? editData
-    : riwayatList.find((r) => r.laporan_bacaan?.surah != null && r.laporan_bacaan.surah !== "") || lastRiwayat;
+    : riwayatList.find(
+        (r) =>
+          (r.laporan_bacaan?.surah != null && r.laporan_bacaan.surah !== "") ||
+          r.laporan_bacaan?.no_surah != null,
+      ) || lastRiwayat;
 
   // Cek apakah setoran PADA PERTEMUAN TERAKHIR (riwayatList[0]) mengandung Buku dan/atau Al-Quran
   const hasBukuInMostRecent = editData
@@ -100,8 +104,8 @@ function TahsinAssessmentForm({
     : Boolean(lastRiwayat?.laporan_bacaan?.bab != null && Number(lastRiwayat.laporan_bacaan.bab) > 0);
 
   const hasQuranInMostRecent = editData
-    ? Boolean(editData.laporan_bacaan?.surah)
-    : Boolean(lastRiwayat?.laporan_bacaan?.surah);
+    ? Boolean(editData.laporan_bacaan?.surah || editData.laporan_bacaan?.no_surah)
+    : Boolean(lastRiwayat?.laporan_bacaan?.surah || lastRiwayat?.laporan_bacaan?.no_surah);
 
   const isLastMengulang = !editData && lastRiwayat?.status_kelanjutan === "MENGULANG";
 
@@ -134,19 +138,22 @@ function TahsinAssessmentForm({
   const pretestNoSurah = pretestData?.no_surah ? String(pretestData.no_surah) : undefined;
   const pretestAyat = Number(pretestData?.ayat_akhir || pretestData?.ayat_awal) || 0;
 
+  // Prioritas: no_surah langsung (paling reliable) → lookup by nama (fallback) → pretest → undefined
   const defaultQuranSurah = editData?.laporan_bacaan?.surah
     ? allSurah
         .find((s) => s.nama_surah === editData.laporan_bacaan.surah)
-        ?.no_surah.toString()
+        ?.no_surah.toString() ||
+      editData.laporan_bacaan?.no_surah?.toString()
     : !editData &&
-        lastQuranSetoran?.laporan_bacaan?.surah &&
+        (lastQuranSetoran?.laporan_bacaan?.no_surah ||
+          lastQuranSetoran?.laporan_bacaan?.surah) &&
         (kategori === "QURAN" || (isGharibOrTajwid && hasQuranInMostRecent))
-      ? allSurah
+      ? // Gunakan no_surah langsung jika ada, fallback ke lookup by nama
+        lastQuranSetoran?.laporan_bacaan?.no_surah?.toString() ||
+        allSurah
           .find((s) => s.nama_surah === lastQuranSetoran.laporan_bacaan.surah)
           ?.no_surah.toString()
-      : !editData && !lastRiwayat && pretestNoSurah
-        ? pretestNoSurah
-        : undefined;
+      : undefined;
 
   const lastQuranAyatAkhir = Number(lastQuranSetoran?.laporan_bacaan?.ayat_akhir) || 0;
 
