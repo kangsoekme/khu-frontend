@@ -162,17 +162,42 @@ export const cekPenyelesaianTahapan = (lastRiwayat, pretestPlacement) => {
     };
   }
 
-  // --- Tahapan berbasis Al-Quran (murni atau ganda) ---
+  // --- Tahapan GANDA (Gharib / Tajwid) ---
+  if (kategori === "GANDA") {
+    const halaman = Number(laporan.bab) || Number(laporan.halaman) || 0;
+    const noSurah = Number(laporan.no_surah) || 0;
+    const range = JUZ_RANGE[tahapan];
+    const surahAkhirRentang = JUZ_TO_SURAH_AKHIR[range.akhir] || 114;
+
+    const bukuSelesai = halaman >= TARGET_HALAMAN_JILID;
+    const quranSelesai = noSurah > 0 && noSurah >= surahAkhirRentang;
+
+    return {
+      selesai: bukuSelesai || quranSelesai,
+      target: `Buku Hal ${TARGET_HALAMAN_JILID} / Qr Surah ${surahAkhirRentang}`,
+      capaian: `Buku Hal ${halaman || 0} / Qr Surah ${noSurah || "-"}`,
+    };
+  }
+
+  // --- Tahapan berbasis Al-Quran murni (QURAN / TILAWAH) ---
   const range = JUZ_RANGE[tahapan] || JUZ_RANGE.ALQURAN;
   const noSurah = Number(laporan.no_surah) || 0;
-  const surahAkhirRentang = JUZ_TO_SURAH_AKHIR[range.akhir] || 114;
+  let surahAkhirRentang = JUZ_TO_SURAH_AKHIR[range.akhir] || 114;
+  let selesai = false;
 
-  const selesai = noSurah > 0 && noSurah >= surahAkhirRentang;
+  if (tahapan === "TILAWAH_JUZ_1_5") {
+    surahAkhirRentang = 4;
+    const ayatAkhir = Number(laporan.ayat_akhir) || 0;
+    // Selesai jika sudah lewat Surah 4, ATAU di Surah 4 tapi ayatnya sdh sampai 147
+    selesai = noSurah > 4 || (noSurah === 4 && ayatAkhir >= 147);
+  } else {
+    selesai = noSurah > 0 && noSurah >= surahAkhirRentang;
+  }
 
   return {
     selesai,
-    target: `Juz ${range.awal}-${range.akhir} (s/d Surah No. ${surahAkhirRentang})`,
-    capaian: `Surah No. ${noSurah || "-"}`,
+    target: tahapan === "TILAWAH_JUZ_1_5" ? `Juz 1-5 (s/d Surah 4 Ayat 147)` : `Juz ${range.awal}-${range.akhir} (s/d Surah No. ${surahAkhirRentang})`,
+    capaian: tahapan === "TILAWAH_JUZ_1_5" && noSurah === 4 ? `Surah 4 Ayat ${Number(laporan.ayat_akhir) || "-"}` : `Surah No. ${noSurah || "-"}`,
   };
 };
 
