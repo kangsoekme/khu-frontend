@@ -175,6 +175,10 @@ function TahsinStudentDetail() {
   // pretestData diambil dari endpoint riwayat (lebih reliabel, selalu fresh)
   const pretestData = riwayatRes?.data?.pretest || null;
   
+  const currentTahapanRiwayatList = riwayatList.filter(
+    (r) => r.tahapan === student?.tahapan_tahsin
+  );
+
   const paginatedRiwayat = riwayatList.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
@@ -598,8 +602,8 @@ function TahsinStudentDetail() {
                 nis={nis}
                 halaqohId={student?.halaqoh_tahsin?.id}
                 tahapan={student?.tahapan_tahsin}
-                lastRiwayat={riwayatList[0]}
-                riwayatList={riwayatList}
+                lastRiwayat={currentTahapanRiwayatList[0]}
+                riwayatList={currentTahapanRiwayatList}
                 pretestData={pretestData}
                 editData={editData}
                 onSuccess={() => setOpenForm(false)}
@@ -620,8 +624,8 @@ function TahsinStudentDetail() {
                 nis={nis}
                 halaqohId={student?.halaqoh_tahsin?.id}
                 tahapan={student?.tahapan_tahsin}
-                lastRiwayat={riwayatList[0]}
-                riwayatList={riwayatList}
+                lastRiwayat={currentTahapanRiwayatList[0]}
+                riwayatList={currentTahapanRiwayatList}
                 pretestData={pretestData}
                 editData={editData}
                 onSuccess={() => setOpenForm(false)}
