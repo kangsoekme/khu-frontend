@@ -119,14 +119,13 @@ function TahsinAssessmentForm({
   if (editData) {
     nextBukuHalaman = lastBukuHalaman || "";
   } else if (lastRiwayat) {
-    if (!isGharibOrTajwid || hasBukuInMostRecent) {
-      nextBukuHalaman = isLastMengulang && lastBukuHalaman > 0
+    const isBukuLastMengulang = !editData && lastBukuSetoran?.status_kelanjutan === "MENGULANG";
+    if (!isGharibOrTajwid || true) { // Always use last known for Ganda
+      nextBukuHalaman = isBukuLastMengulang && lastBukuHalaman > 0
         ? lastBukuHalaman
         : lastBukuHalaman > 0
           ? lastBukuHalaman + 1
           : 1;
-    } else {
-      nextBukuHalaman = "";
     }
   } else {
     // Belum ada setoran harian: ambil hasil placement Halaman dari pretest!
@@ -149,7 +148,7 @@ function TahsinAssessmentForm({
     : !editData &&
         (lastQuranSetoran?.laporan_bacaan?.no_surah ||
           lastQuranSetoran?.laporan_bacaan?.surah) &&
-        (kategori === "QURAN" || (isGharibOrTajwid && hasQuranInMostRecent))
+        (kategori === "QURAN" || isGharibOrTajwid)
       ? // Gunakan no_surah langsung jika ada, fallback ke lookup by nama
         lastQuranSetoran?.laporan_bacaan?.no_surah?.toString() ||
         allSurah
@@ -163,14 +162,13 @@ function TahsinAssessmentForm({
   if (editData) {
     nextQuranAyatAwal = Number(editData.laporan_bacaan?.ayat_awal) || "";
   } else if (lastRiwayat) {
-    if (kategori === "QURAN" || (isGharibOrTajwid && hasQuranInMostRecent)) {
-      nextQuranAyatAwal = isLastMengulang && lastQuranSetoran?.laporan_bacaan?.ayat_awal
+    const isQuranLastMengulang = !editData && lastQuranSetoran?.status_kelanjutan === "MENGULANG";
+    if (kategori === "QURAN" || isGharibOrTajwid) {
+      nextQuranAyatAwal = isQuranLastMengulang && lastQuranSetoran?.laporan_bacaan?.ayat_awal
         ? Number(lastQuranSetoran.laporan_bacaan.ayat_awal)
         : lastQuranAyatAkhir > 0
           ? lastQuranAyatAkhir + 1
           : 1;
-    } else {
-      nextQuranAyatAwal = "";
     }
   } else {
     nextQuranAyatAwal = pretestAyat > 0 ? pretestAyat : kategori === "QURAN" ? 1 : "";
