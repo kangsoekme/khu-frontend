@@ -111,7 +111,9 @@ function TahsinAssessmentForm({
 
   // Halaman buku: ambil dari setoran sebelumnya +1, ATAU tetap jika MENGULANG. Jika belum ada setoran harian, ambil dari pretestData!
   const lastBukuHalaman = Number(lastBukuSetoran?.laporan_bacaan?.bab) || 0;
-  const pretestHalaman = Number(pretestData?.halaman) || 0;
+  
+  const isValidPretest = pretestData?.tahapan === tahapan;
+  const pretestHalaman = isValidPretest ? (Number(pretestData?.halaman) || 0) : 0;
 
   let nextBukuHalaman = "";
   if (editData) {
@@ -135,8 +137,8 @@ function TahsinAssessmentForm({
   // DEFAULT VALUE - LAPORAN BACAAN: Al-QURAN (surah + ayat)
   // Logika +1 untuk ayat awal, ATAU tetap dari ayat_awal sebelumnya jika MENGULANG
   // ===========================================================================
-  const pretestNoSurah = pretestData?.no_surah ? String(pretestData.no_surah) : undefined;
-  const pretestAyat = Number(pretestData?.ayat_akhir || pretestData?.ayat_awal) || 0;
+  const pretestNoSurah = isValidPretest && pretestData?.no_surah ? String(pretestData.no_surah) : undefined;
+  const pretestAyat = isValidPretest ? (Number(pretestData?.ayat_akhir || pretestData?.ayat_awal) || 0) : 0;
 
   // Prioritas: no_surah langsung (paling reliable) → lookup by nama (fallback) → pretest → undefined
   const defaultQuranSurah = editData?.laporan_bacaan?.surah
