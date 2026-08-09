@@ -163,6 +163,8 @@ export const cekPenyelesaianTahapan = (lastRiwayat, pretestPlacement) => {
   }
 
   // --- Tahapan GANDA (Gharib / Tajwid) ---
+  // Syarat ujian kenaikan: HANYA target buku halaman >= 40.
+  // Bacaan Al-Quran (rentang juz) bersifat opsional / informatif saja.
   if (kategori === "GANDA") {
     const halaman = Number(laporan.bab) || Number(laporan.halaman) || 0;
     const noSurah = Number(laporan.no_surah) || 0;
@@ -170,12 +172,11 @@ export const cekPenyelesaianTahapan = (lastRiwayat, pretestPlacement) => {
     const surahAkhirRentang = JUZ_TO_SURAH_AKHIR[range.akhir] || 114;
 
     const bukuSelesai = halaman >= TARGET_HALAMAN_JILID;
-    const quranSelesai = noSurah > 0 && noSurah >= surahAkhirRentang;
 
     return {
-      selesai: bukuSelesai || quranSelesai,
-      target: `Buku Hal ${TARGET_HALAMAN_JILID} / Qr Surah ${surahAkhirRentang}`,
-      capaian: `Buku Hal ${halaman || 0} / Qr Surah ${noSurah || "-"}`,
+      selesai: bukuSelesai,
+      target: `Buku Halaman ${TARGET_HALAMAN_JILID}`,
+      capaian: `Buku Hal ${halaman || 0}${noSurah > 0 ? ` / Qr Surah ${noSurah}` : ""}`,
     };
   }
 
