@@ -36,6 +36,21 @@ import {
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 
+// BUG-04 fix: import AlertDialog family — sebelumnya dipakai di JSX (baris 140+)
+// tapi tidak di-import, menyebabkan crash "Element type is invalid" saat
+// bulk-select mengisi selectedUsers (selectedUsers.length > 0).
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 import UserForm from "../../components/student-user/UserForm.jsx";
 
 import { FaPlus } from "react-icons/fa6";

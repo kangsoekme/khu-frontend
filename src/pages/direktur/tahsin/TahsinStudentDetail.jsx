@@ -231,9 +231,13 @@ function TahsinStudentDetail() {
   };
 
   // Cek kelengkapan pengajuan ujian: HANYA boleh jika tahapan saat ini selesai.
+  // BUG-02 part B fix: teruskan pretestData sebagai argumen ke-3 agar saat tahap
+  // baru belum punya setoran, status capaian membaca titik awal placement
+  // (bukan fallback ke record tahap lama).
   const statusPengajuan = cekKelengkapanPengajuan(
     riwayatList,
     student?.tahapan_tahsin,
+    pretestData,
   );
 
   const chartData = [...riwayatList]
@@ -674,7 +678,6 @@ function TahsinStudentDetail() {
                     </SelectItem>
                     <SelectItem value="TAJWID">Tajwid</SelectItem>
                     <SelectItem value="GHARIB">Gharib</SelectItem>
-                    <SelectItem value="ALQURAN">Al-Quran</SelectItem>
                     <SelectItem value="MUNAQOSYAH">Munaqosyah</SelectItem>
                   </SelectGroup>
                 </SelectContent>
@@ -733,7 +736,6 @@ function TahsinStudentDetail() {
                       </SelectItem>
                       <SelectItem value="TAJWID">Tajwid</SelectItem>
                       <SelectItem value="GHARIB">Gharib</SelectItem>
-                      <SelectItem value="ALQURAN">Al-Quran</SelectItem>
                       <SelectItem value="MUNAQOSYAH">Munaqosyah</SelectItem>
                     </SelectGroup>
                   </SelectContent>

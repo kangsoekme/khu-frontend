@@ -30,7 +30,6 @@ function PretestForm({ initialData, onSuccess }) {
     { label: "Tilawah Juz 1-5", value: "TILAWAH_JUZ_1_5" },
     { label: "Gharib", value: "GHARIB" },
     { label: "Tajwid", value: "TAJWID" },
-    { label: "Al-Quran", value: "ALQURAN" },
     { label: "Munaqosyah", value: "MUNAQOSYAH" },
   ];
 
@@ -47,7 +46,7 @@ function PretestForm({ initialData, onSuccess }) {
 
   const isJilid = ["JILID_1", "JILID_2", "JILID_3", "JILID_4", "JILID_5", "JILID_6"].includes(tahapanValue);
   const isGharibTajwid = ["GHARIB", "TAJWID"].includes(tahapanValue);
-  const isQuran = ["TILAWAH_JUZ_1_5", "ALQURAN", "MUNAQOSYAH"].includes(tahapanValue);
+  const isQuran = ["TILAWAH_JUZ_1_5", "MUNAQOSYAH"].includes(tahapanValue);
 
   const handleTahapanChange = (val) => {
     setTahapanValue(val);

@@ -15,7 +15,8 @@ const JUZ_RANGE = {
   TILAWAH_JUZ_1_5: { awal: 1, akhir: 5 },
   GHARIB: { awal: 6, akhir: 15 },
   TAJWID: { awal: 16, akhir: 25 },
-  ALQURAN: { awal: 26, akhir: 30 },
+  // ALQURAN dihapus dari jenjang — sekarang TAJWID langsung ke MUNAQOSYAH.
+  // Munaqosyah = tahap ujian akhir (tilawah juz 26-30), tanpa gate capaian.
   MUNAQOSYAH: { awal: 26, akhir: 30 },
 };
 
@@ -93,7 +94,7 @@ export const TAHAPAN_KATEGORI = {
   // Tahapan berbasis BUKU UMMI (jilid + halaman)
   BUKU: ["JILID_1", "JILID_2", "JILID_3", "JILID_4", "JILID_5", "JILID_6"],
   // Tahapan berbasis Al-QURAN (surah + ayat)
-  QURAN: ["ALQURAN", "MUNAQOSYAH"],
+  QURAN: ["MUNAQOSYAH"],
   // Tahapan GANDA -> bisa buku Gharib/Tajwid DAN Al-Quran
   GANDA: ["GHARIB", "TAJWID"],
   // Tilawah Juz 1-5 dianggap tahap Al-Quran murni (membaca Al-Quran)
@@ -111,6 +112,7 @@ export const getKategoriTahapan = (tahapan) => {
 };
 
 // Urutan tahapan TAHSIN untuk menentukan target ujian kenaikan berikutnya.
+// Catatan: ALQURAN dihapus — setelah TAJWID langsung ke MUNAQOSYAH (ujian akhir).
 export const URUTAN_TAHAPAN = [
   "JILID_1",
   "JILID_2",
@@ -121,7 +123,6 @@ export const URUTAN_TAHAPAN = [
   "TILAWAH_JUZ_1_5",
   "GHARIB",
   "TAJWID",
-  "ALQURAN",
   "MUNAQOSYAH",
 ];
 
@@ -181,7 +182,7 @@ export const cekPenyelesaianTahapan = (lastRiwayat, pretestPlacement) => {
   }
 
   // --- Tahapan berbasis Al-Quran murni (QURAN / TILAWAH) ---
-  const range = JUZ_RANGE[tahapan] || JUZ_RANGE.ALQURAN;
+  const range = JUZ_RANGE[tahapan] || JUZ_RANGE.MUNAQOSYAH;
   const noSurah = Number(laporan.no_surah) || 0;
   let surahAkhirRentang = JUZ_TO_SURAH_AKHIR[range.akhir] || 114;
   let selesai = false;
@@ -191,7 +192,18 @@ export const cekPenyelesaianTahapan = (lastRiwayat, pretestPlacement) => {
     const ayatAkhir = Number(laporan.ayat_akhir) || 0;
     // Selesai jika sudah lewat Surah 4, ATAU di Surah 4 tapi ayatnya sdh sampai 147
     selesai = noSurah > 4 || (noSurah === 4 && ayatAkhir >= 147);
+  } else if (tahapan === "MUNAQOSYAH") {
+    // BUG-01 fix: Munaqosyah = tahap ujian akhir (tilawah juz 26-30).
+    // Target Surah No. 51 (Al-Ahqaf, akhir Juz 26-30) — BUKAN 114 (An-Nas)
+    // yang dihasilkan oleh JUZ_TO_SURAH_AKHIR[30].
+    // Selain itu, karena Munaqosyah tidak punya gate setoran (ujian final),
+    // selalu dianggap selesai (bolehAjukan di-handle di cekKelengkapanPengajuan).
+    surahAkhirRentang = 51;
+    selesai = true;
   } else {
+    // BUG-01 fix (defensive): override ke 51 untuk tahap Quran juz 26-30,
+    // agar tidak pernah men-target Surah 114 (An-Nas) yang mustahil dicapai.
+    if (range.akhir === 30) surahAkhirRentang = 51;
     selesai = noSurah > 0 && noSurah >= surahAkhirRentang;
   }
 
@@ -212,11 +224,24 @@ export const cekPenyelesaianTahapan = (lastRiwayat, pretestPlacement) => {
  * @returns {{ bolehAjukan: boolean, alasan: string, detail: Object }}
  */
 export const cekKelengkapanPengajuan = (riwayatList, tahapanSaatIni, pretestPlacement) => {
+  // Munaqosyah = tahap ujian akhir. Tombol Ajukan Ujian selalu aktif
+  // (tidak ada gate capaian / syarat setoran).
+  if (tahapanSaatIni === "MUNAQOSYAH") {
+    return {
+      bolehAjukan: true,
+      alasan: "Tahap Munaqosyah — siap diajukan ujian akhir (tanpa syarat setoran).",
+      detail: { selesai: true, target: "Ujian Akhir Munaqosyah", capaian: "Siap ujian" },
+    };
+  }
+
   const riwayatTahapanIni = (riwayatList || []).filter(
     (r) => r.tahapan === tahapanSaatIni,
   );
 
-  const lastRiwayat = riwayatTahapanIni[0] || riwayatList?.[0];
+  // BUG-02 part A fix: jangan fallback ke record tahap LAMA (riwayatList?.[0])
+  // saat tahap baru belum punya setoran. Fallback ke pretestPlacement (titik
+  // awal tahap) atau null agar status capaian tidak menampilkan capaian lama.
+  const lastRiwayat = riwayatTahapanIni[0] || pretestPlacement || null;
   const status = cekPenyelesaianTahapan(lastRiwayat, pretestPlacement);
 
   if (status.selesai) {

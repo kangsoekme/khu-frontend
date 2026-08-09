@@ -14,7 +14,6 @@ export const formatEnum = (val) => {
     TILAWAH_JUZ_1_5: "Tilawah Juz 1-5",
     GHARIB: "Gharib",
     TAJWID: "Tajwid",
-    ALQURAN: "Al-Qur'an",
     MUNAQOSYAH: "Munaqosyah",
 
     // Predikat Penilaian
