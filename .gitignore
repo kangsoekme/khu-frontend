@@ -34,3 +34,7 @@ pnpm-debug.log*
 .cache
 .temp
 .tmp
+
+# Playwright test artifacts (hasil lokal, jangan di-commit)
+playwright-report
+test-results
