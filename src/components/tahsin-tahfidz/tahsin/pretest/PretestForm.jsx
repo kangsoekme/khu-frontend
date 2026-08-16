@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { useAddPretestMutation } from "../../../../store/api/tahsinApi";
 import { useGetAllSurahQuery } from "../../../../store/api/surahApi";
 import { TARGET_BUKU } from "../../../../utils/tahsinCompletion";
+import { validasiAyatSurah, getMaxAyat } from "../../../../utils/validasiAyat";
 
 function PretestForm({ initialData, onSuccess }) {
   const tahap = [
@@ -52,6 +53,10 @@ function PretestForm({ initialData, onSuccess }) {
   // Batas halaman buku sesuai kurikulum: Gharib 45, Jilid 1-6 & Tajwid 40
   const maxHalaman = TARGET_BUKU[tahapanValue] || 40;
 
+  // Batas ayat mengikuti jumlah ayat surah terpilih (tabel surah)
+  const surahTerpilihObj = surahs.find((s) => s.no_surah.toString() === selectedSurah);
+  const maxAyatSurah = getMaxAyat(surahTerpilihObj);
+
   const handleTahapanChange = (val) => {
     setTahapanValue(val);
     if (val.startsWith("JILID_")) {
@@ -83,6 +88,23 @@ function PretestForm({ initialData, onSuccess }) {
             (tahapanValue === "GHARIB" ? " (buku Gharib 45 halaman)" : "") +
             ". Jika santri sudah melewatinya, tempatkan di tahapan berikutnya.",
         );
+        return;
+      }
+    }
+
+    // Validasi eksplisit ayat terhadap jumlah ayat surah terpilih (Quran & Gharib/Tajwid)
+    if ((isQuran || isGharibTajwid) && ayatTerakhirValue) {
+      if (!selectedSurah) {
+        toast.error("Pilih surah terlebih dahulu sebelum mengisi ayat");
+        return;
+      }
+      const cekAyat = validasiAyatSurah(
+        surahTerpilihObj,
+        Number(ayatTerakhirValue),
+        Number(ayatTerakhirValue),
+      );
+      if (!cekAyat.valid) {
+        toast.error(cekAyat.pesan);
         return;
       }
     }
@@ -213,13 +235,16 @@ function PretestForm({ initialData, onSuccess }) {
                 </Select>
               </div>
               <div>
-                <Label className="text-xs font-semibold">Ayat Terakhir Dibaca</Label>
+                <Label className="text-xs font-semibold">
+                  Ayat Terakhir Dibaca{selectedSurah ? ` (1 - ${maxAyatSurah})` : ""}
+                </Label>
                 <Input
                   type="number"
                   min={1}
+                  max={maxAyatSurah}
                   value={ayatTerakhirValue}
                   onChange={(e) => setAyatTerakhirValue(e.target.value)}
-                  placeholder="Contoh: 15"
+                  placeholder={selectedSurah ? `1 - ${maxAyatSurah}` : "Contoh: 15"}
                   className="bg-white font-medium"
                 />
               </div>
@@ -274,13 +299,16 @@ function PretestForm({ initialData, onSuccess }) {
                 </Select>
               </div>
               <div>
-                <Label className="text-xs font-semibold">Ayat Terakhir Dibaca</Label>
+                <Label className="text-xs font-semibold">
+                  Ayat Terakhir Dibaca{selectedSurah ? ` (1 - ${maxAyatSurah})` : ""}
+                </Label>
                 <Input
                   type="number"
                   min={1}
+                  max={maxAyatSurah}
                   value={ayatTerakhirValue}
                   onChange={(e) => setAyatTerakhirValue(e.target.value)}
-                  placeholder="Contoh: 148"
+                  placeholder={selectedSurah ? `1 - ${maxAyatSurah}` : "Contoh: 148"}
                   className="bg-white font-medium"
                 />
               </div>

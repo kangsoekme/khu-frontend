@@ -26,6 +26,7 @@ import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { toast } from "sonner";
+import { validasiAyatSurah } from "../../../utils/validasiAyat";
 
 function TahfidzAssessmentForm({ nis, halaqohId, onSuccess }) {
   const [isReady, setIsReady] = useState(false);
@@ -118,22 +119,13 @@ function TahfidzAssessmentForm({ nis, halaqohId, onSuccess }) {
     const surahObj = allSurah.find(
       (s) => s.no_surah.toString() === selectedSurah,
     );
-    const maxAyat = surahObj?.jumlah_ayat || 286;
     const awal = Number(ayatAwal);
     const akhir = Number(ayatAkhir);
 
-    if (isNaN(awal) || isNaN(akhir) || awal < 1 || akhir < 1) {
-      toast.error("Ayat awal dan akhir harus diisi dengan angka valid");
-      return;
-    }
-    if (awal > maxAyat || akhir > maxAyat) {
-      toast.error(
-        `Ayat melebihi batas maksimal surah ${surahObj?.nama_surah || ""} (${maxAyat} ayat)`,
-      );
-      return;
-    }
-    if (awal > akhir) {
-      toast.error("Ayat awal tidak boleh lebih besar dari ayat akhir");
+    // Validasi terpusat: sesuai jumlah ayat surah terpilih (utils/validasiAyat)
+    const cekAyat = validasiAyatSurah(surahObj, awal, akhir);
+    if (!cekAyat.valid) {
+      toast.error(cekAyat.pesan);
       return;
     }
 

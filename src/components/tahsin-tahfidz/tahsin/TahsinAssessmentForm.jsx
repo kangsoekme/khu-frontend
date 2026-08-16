@@ -8,6 +8,7 @@ import {
 import { toast } from "sonner";
 import { formatEnum } from "../../../utils/formatEnum";
 import { getKategoriTahapan, TARGET_BUKU } from "../../../utils/tahsinCompletion";
+import { validasiAyatSurah, getMaxAyat } from "../../../utils/validasiAyat";
 
 import {
   Select,
@@ -161,6 +162,16 @@ function TahsinAssessmentForm({
 
   const lastQuranAyatAkhir = Number(lastQuranSetoran?.laporan_bacaan?.ayat_akhir) || 0;
 
+  // Batas ayat mengikuti jumlah ayat surah bacaan terakhir (auto-saran tidak melewati akhir surah)
+  const noSurahBacaanTerakhir =
+    lastQuranSetoran?.laporan_bacaan?.no_surah ||
+    allSurah.find(
+      (s) => s.nama_surah === lastQuranSetoran?.laporan_bacaan?.surah,
+    )?.no_surah;
+  const maxAyatBacaanTerakhir = getMaxAyat(
+    allSurah.find((s) => String(s.no_surah) === String(noSurahBacaanTerakhir)),
+  );
+
   let nextQuranAyatAwal = "";
   if (editData) {
     nextQuranAyatAwal = Number(editData.laporan_bacaan?.ayat_awal) || "";
@@ -170,7 +181,7 @@ function TahsinAssessmentForm({
       nextQuranAyatAwal = isQuranLastMengulang && lastQuranSetoran?.laporan_bacaan?.ayat_awal
         ? Number(lastQuranSetoran.laporan_bacaan.ayat_awal)
         : lastQuranAyatAkhir > 0
-          ? lastQuranAyatAkhir + 1
+          ? Math.min(lastQuranAyatAkhir + 1, maxAyatBacaanTerakhir) // jangan sarankan melewati akhir surah
           : 1;
     }
   } else {
@@ -242,6 +253,37 @@ function TahsinAssessmentForm({
       }
     }
 
+    // Validasi ayat Al-Quran & hafalan terhadap jumlah ayat surah terpilih.
+    // Jika hanya salah satu yang diisi, divalidasi sebagai nilai tunggal.
+    const cekAyatInput = (noSurah, awalRaw, akhirRaw, label) => {
+      if (!noSurah) return null;
+      const awal = Number(awalRaw) || 0;
+      const akhir = Number(akhirRaw) || 0;
+      if (awal <= 0 && akhir <= 0) return null; // kosong: tidak divalidasi
+      const surahObj = allSurah.find((s) => String(s.no_surah) === String(noSurah));
+      const a = awal > 0 ? awal : akhir;
+      const k = akhir > 0 ? akhir : awal;
+      const cek = validasiAyatSurah(surahObj, a, k);
+      return cek.valid ? null : `${label}: ${cek.pesan}`;
+    };
+
+    const errBacaan = cekAyatInput(
+      formData.get("no_surah"),
+      formData.get("ayat_awal"),
+      formData.get("ayat_akhir"),
+      "Bacaan Al-Quran",
+    );
+    const errHafalan = cekAyatInput(
+      formData.get("hafalan_surah"),
+      formData.get("hafalan_ayat_awal"),
+      formData.get("hafalan_ayat_akhir"),
+      "Hafalan surah",
+    );
+    if (errBacaan || errHafalan) {
+      toast.error(errBacaan || errHafalan);
+      return;
+    }
+
     const payload = {
       halaqohId,
       tahapan: tahapan,
@@ -309,11 +351,17 @@ function TahsinAssessmentForm({
           <div className="flex gap-5">
             <Input
               name="hafalan_ayat_awal"
+              type="number"
+              min={1}
+              max={286}
               placeholder="Ayat Awal"
               defaultValue={nextHafalanAyatAwal}
             />
             <Input
               name="hafalan_ayat_akhir"
+              type="number"
+              min={1}
+              max={286}
               placeholder="Ayat Akhir"
               defaultValue={defaultHafalanAyatAkhir}
             />
@@ -384,11 +432,17 @@ function TahsinAssessmentForm({
                 <div className="flex gap-5">
                   <Input
                     name="ayat_awal"
+                    type="number"
+                    min={1}
+                    max={286}
                     placeholder="Ayat Awal"
                     defaultValue={nextQuranAyatAwal}
                   />
                   <Input
                     name="ayat_akhir"
+                    type="number"
+                    min={1}
+                    max={286}
                     placeholder="Ayat Akhir"
                     defaultValue={defaultQuranAyatAkhir}
                   />
@@ -438,11 +492,17 @@ function TahsinAssessmentForm({
               <div className="flex gap-5">
                 <Input
                   name="ayat_awal"
+                  type="number"
+                  min={1}
+                  max={286}
                   placeholder="Ayat Awal"
                   defaultValue={nextQuranAyatAwal}
                 />
                 <Input
                   name="ayat_akhir"
+                  type="number"
+                  min={1}
+                  max={286}
                   placeholder="Ayat Akhir"
                   defaultValue={defaultQuranAyatAkhir}
                 />
