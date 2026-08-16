@@ -47,6 +47,23 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+// Validasi tahun ajaran: format YYYY/YYYY, tahun wajar, dan tahun kedua = tahun pertama + 1
+const TAHUN_AJARAN_REGEX = /^\d{4}\/\d{4}$/;
+
+const validateTahun = (value) => {
+  if (!TAHUN_AJARAN_REGEX.test(value)) {
+    return "Format tahun harus YYYY/YYYY, contoh: 2025/2026";
+  }
+  const [awal, akhir] = value.split("/").map(Number);
+  if (awal < 2000 || awal > 2100) {
+    return "Tahun awal harus di antara 2000 dan 2100";
+  }
+  if (akhir !== awal + 1) {
+    return `Tahun kedua harus tepat satu tahun setelah tahun pertama (${awal}/${awal + 1})`;
+  }
+  return "";
+};
+
 export default function TahunAjaranManagement() {
   const { data: listRes, isLoading } = useGetAllTahunAkademikQuery();
   const [createTahun, { isLoading: isCreating }] =
@@ -56,6 +73,7 @@ export default function TahunAjaranManagement() {
     useTriggerTransisiSemesterMutation();
 
   const [tahun, setTahun] = useState("");
+  const [tahunError, setTahunError] = useState("");
   const [semester, setSemester] = useState("GANJIL");
   const [selectedTahunId, setSelectedTahunId] = useState("");
 
@@ -81,8 +99,23 @@ export default function TahunAjaranManagement() {
     };
   };
 
+  // Hanya izinkan angka; "/" otomatis disisipkan setelah 4 digit pertama (mis: 2025/2026)
+  const handleTahunChange = (e) => {
+    const digits = e.target.value.replace(/\D/g, "").slice(0, 8);
+    const formatted =
+      digits.length > 4 ? `${digits.slice(0, 4)}/${digits.slice(4)}` : digits;
+    setTahun(formatted);
+    if (tahunError) setTahunError("");
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault();
+    const error = validateTahun(tahun);
+    if (error) {
+      setTahunError(error);
+      toast.error(error);
+      return;
+    }
     try {
       const payload = {
         nama_tahun: `${tahun} ${semester}`,
@@ -92,6 +125,7 @@ export default function TahunAjaranManagement() {
       await createTahun(payload).unwrap();
       toast.success("Tahun Akademik berhasil ditambahkan");
       setTahun("");
+      setTahunError("");
     } catch (err) {
       toast.error(err?.data?.message || "Gagal menambahkan tahun akademik");
     }
@@ -142,11 +176,17 @@ export default function TahunAjaranManagement() {
                 <Label>Tahun Ajaran (Contoh: 2026/2027)</Label>
                 <Input
                   value={tahun}
-                  onChange={(e) => setTahun(e.target.value)}
+                  onChange={handleTahunChange}
                   placeholder="2026/2027"
                   className="bg-white"
+                  inputMode="numeric"
                   required
                 />
+                {tahunError ? (
+                  <p className="text-xs text-red-600 font-medium -mt-2">
+                    {tahunError}
+                  </p>
+                ) : null}
               </div>
               <div className="flex flex-col gap-3">
                 <Label>Semester</Label>
