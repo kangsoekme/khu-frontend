@@ -67,17 +67,6 @@ function TahsinManagement() {
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Cari nama halaqoh / guru..."
         />
-        {/* {currentRole === "DIREKTUR" && (
-          <Button
-            onClick={handleExport}
-            disabled={isExporting}
-            variant="outline"
-            className="flex items-center gap-2 shrink-0"
-          >
-            <TbFileSpreadsheet className="text-lg text-green-600" />
-            {isExporting ? "Mengekspor..." : "Export Excel"}
-          </Button>
-        )} */}
       </div>
       {filteredHalaqoh.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-20 text-neutral-textmuted text-center">
