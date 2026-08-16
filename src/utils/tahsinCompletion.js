@@ -3,10 +3,24 @@
 // Logika target penyelesaian per tahapan TAHSIN.
 // Acuan: requirements/Pemaparan Program Quran SMT 1 TA 2026-2027.docx
 //
-// UMMI (Jilid 1-6) -> masing-masing 40 halaman.
+// UMMI (Jilid 1-6) -> masing-masing 40 halaman; buku Gharib 45 halaman; buku Tajwid 40 halaman.
 // Tahap lanjutan (Tilawah/Gharib/Tajwid/Al-Quran) -> berbasis juz Al-Quran.
 
-// Target halaman terakhir untuk tiap JILID UMMI (berakhir di halaman 40).
+// Target halaman terakhir untuk tiap tahapan berbasis BUKU (syarat ujian kenaikan).
+// Acuan: tabel kurikulum Pemaparan Program Quran TA 2026-2027:
+//   Jilid 1-6 dan buku Tajwid berakhir di halaman 40; buku Gharib berakhir di halaman 45.
+export const TARGET_BUKU = {
+  JILID_1: 40,
+  JILID_2: 40,
+  JILID_3: 40,
+  JILID_4: 40,
+  JILID_5: 40,
+  JILID_6: 40,
+  GHARIB: 45,
+  TAJWID: 40,
+};
+
+// Nilai default bila tahapan tidak dikenal (kompatibilitas lama).
 export const TARGET_HALAMAN_JILID = 40;
 
 // Pemetaan juz-awal & juz-akhir untuk tahap lanjutan berbasis Al-Quran.
@@ -135,7 +149,8 @@ export const getTahapanBerikutnya = (tahapanSaatIni) => {
 
 /**
  * Cek apakah setoran terakhir menandakan tahapan UMMI saat ini SUDAH SELESAI.
- * - Tahapan BUKU (Jilid 1-6): selesai jika bab/halaman terakhir >= 40.
+ * - Tahapan BUKU (Jilid 1-6): selesai jika bab/halaman terakhir >= 40 (lihat TARGET_BUKU).
+ * - Tahapan GANDA (Gharib/Tajwid): selesai jika halaman buku >= target (Gharib 45, Tajwid 40).
  * - Tahapan QURAN / GANDA (surah/ayat): selesai jika surah terakhir >= surah
  *   akhir dari juz akhir rentang tahapan, ATAU mencapai juz akhir rentang.
  *
@@ -154,29 +169,30 @@ export const cekPenyelesaianTahapan = (lastRiwayat, pretestPlacement) => {
 
   // --- Tahapan BUKU UMMI (Jilid 1-6) ---
   if (kategori === "BUKU") {
+    const targetHal = TARGET_BUKU[tahapan] || TARGET_HALAMAN_JILID;
     const halaman = Number(laporan.bab) || Number(laporan.halaman) || 0;
-    const selesai = halaman >= TARGET_HALAMAN_JILID;
+    const selesai = halaman >= targetHal;
     return {
       selesai,
-      target: `Halaman ${TARGET_HALAMAN_JILID}`,
+      target: `Halaman ${targetHal}`,
       capaian: `Halaman ${halaman || 0}`,
     };
   }
 
   // --- Tahapan GANDA (Gharib / Tajwid) ---
-  // Syarat ujian kenaikan: HANYA target buku halaman >= 40.
+  // Syarat ujian kenaikan: HANYA target halaman buku tercapai
+  // (Gharib = 45, Tajwid = 40 sesuai kurikulum).
   // Bacaan Al-Quran (rentang juz) bersifat opsional / informatif saja.
   if (kategori === "GANDA") {
+    const targetHal = TARGET_BUKU[tahapan] || TARGET_HALAMAN_JILID;
     const halaman = Number(laporan.bab) || Number(laporan.halaman) || 0;
     const noSurah = Number(laporan.no_surah) || 0;
-    const range = JUZ_RANGE[tahapan];
-    const surahAkhirRentang = JUZ_TO_SURAH_AKHIR[range.akhir] || 114;
 
-    const bukuSelesai = halaman >= TARGET_HALAMAN_JILID;
+    const bukuSelesai = halaman >= targetHal;
 
     return {
       selesai: bukuSelesai,
-      target: `Buku Halaman ${TARGET_HALAMAN_JILID}`,
+      target: `Buku Halaman ${targetHal}`,
       capaian: `Buku Hal ${halaman || 0}${noSurah > 0 ? ` / Qr Surah ${noSurah}` : ""}`,
     };
   }
@@ -216,7 +232,7 @@ export const cekPenyelesaianTahapan = (lastRiwayat, pretestPlacement) => {
 
 /**
  * Hitung status kelengkapan pengajuan ujian kenaikan.
- * Pengajuan HANYA boleh diajukan jika tahapan saat ini sudah selesai (Halaman >= 40 atau Surah Akhir).
+ * Pengajuan HANYA boleh diajukan jika tahapan saat ini sudah selesai (Halaman >= target buku, atau Surah Akhir).
  *
  * @param {Array} riwayatList - array history setoran (desc by timestamp).
  * @param {string} tahapanSaatIni - siswa.tahapan_tahsin.

@@ -18,6 +18,7 @@ import { toast } from "sonner";
 
 import { useAddPretestMutation } from "../../../../store/api/tahsinApi";
 import { useGetAllSurahQuery } from "../../../../store/api/surahApi";
+import { TARGET_BUKU } from "../../../../utils/tahsinCompletion";
 
 function PretestForm({ initialData, onSuccess }) {
   const tahap = [
@@ -48,6 +49,9 @@ function PretestForm({ initialData, onSuccess }) {
   const isGharibTajwid = ["GHARIB", "TAJWID"].includes(tahapanValue);
   const isQuran = ["TILAWAH_JUZ_1_5", "MUNAQOSYAH"].includes(tahapanValue);
 
+  // Batas halaman buku sesuai kurikulum: Gharib 45, Jilid 1-6 & Tajwid 40
+  const maxHalaman = TARGET_BUKU[tahapanValue] || 40;
+
   const handleTahapanChange = (val) => {
     setTahapanValue(val);
     if (val.startsWith("JILID_")) {
@@ -68,6 +72,19 @@ function PretestForm({ initialData, onSuccess }) {
     if (!tahapanValue) {
       toast.error("Mohon isi tahapan terlebih dahulu");
       return;
+    }
+
+    // Validasi eksplisit batas halaman (pengganti blokir native yang tanpa pesan)
+    if (isJilid || isGharibTajwid) {
+      const nHal = Number(halamanValue);
+      if (!halamanValue || Number.isNaN(nHal) || nHal < 1 || nHal > maxHalaman) {
+        toast.error(
+          `Halaman harus di antara 1–${maxHalaman}` +
+            (tahapanValue === "GHARIB" ? " (buku Gharib 45 halaman)" : "") +
+            ". Jika santri sudah melewatinya, tempatkan di tahapan berikutnya.",
+        );
+        return;
+      }
     }
 
     const payload = {
@@ -105,7 +122,7 @@ function PretestForm({ initialData, onSuccess }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-hidden text-left">
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col h-full overflow-hidden text-left">
       <div className="flex-1 overflow-y-auto space-y-4 pr-1 pb-4">
         <div className="flex flex-col gap-2">
           <Label htmlFor="name">Nama Lengkap</Label>
@@ -157,15 +174,15 @@ function PretestForm({ initialData, onSuccess }) {
                 <Label className="text-xs font-semibold">Jilid</Label>
                 <Input type="number" value={jilidValue} readOnly className="bg-white font-bold" />
               </div>
-              <div>
+                <div>
                 <Label className="text-xs font-semibold">Halaman Terakhir Dibaca</Label>
                 <Input
                   type="number"
                   min={1}
-                  max={40}
+                  max={maxHalaman}
                   value={halamanValue}
                   onChange={(e) => setHalamanValue(e.target.value)}
-                  placeholder="1 - 40"
+                  placeholder={`1 - ${maxHalaman}`}
                   className="bg-white font-medium"
                 />
               </div>
@@ -225,13 +242,14 @@ function PretestForm({ initialData, onSuccess }) {
                 />
               </div>
               <div>
-                <Label className="text-xs font-semibold">Halaman Jilid</Label>
+                <Label className="text-xs font-semibold">Halaman Jilid (1 - {maxHalaman})</Label>
                 <Input
                   type="number"
                   min={1}
+                  max={maxHalaman}
                   value={halamanValue}
                   onChange={(e) => setHalamanValue(e.target.value)}
-                  placeholder="Contoh: 1"
+                  placeholder={`Contoh: 1 - ${maxHalaman}`}
                   className="bg-white font-medium"
                 />
               </div>

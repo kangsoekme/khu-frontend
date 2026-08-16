@@ -7,7 +7,7 @@ import {
 } from "../../../store/api/tahsinApi";
 import { toast } from "sonner";
 import { formatEnum } from "../../../utils/formatEnum";
-import { getKategoriTahapan } from "../../../utils/tahsinCompletion";
+import { getKategoriTahapan, TARGET_BUKU } from "../../../utils/tahsinCompletion";
 
 import {
   Select,
@@ -59,6 +59,9 @@ function TahsinAssessmentForm({
   const kategori = getKategoriTahapan(tahapan);
   const isGharibOrTajwid = kategori === "GANDA";
   const isAlQuran = kategori === "QURAN";
+
+  // Batas halaman buku sesuai kurikulum: Gharib 45, Jilid 1-6 & Tajwid 40
+  const maxHalamanBuku = TARGET_BUKU[tahapan] || 40;
 
   // ===========================================================================
   // DEFAULT VALUE - LAPORAN BACAAN: BUKU (Jilid 1-6 atau Gharib/Tajwid)
@@ -124,7 +127,7 @@ function TahsinAssessmentForm({
       nextBukuHalaman = isBukuLastMengulang && lastBukuHalaman > 0
         ? lastBukuHalaman
         : lastBukuHalaman > 0
-          ? lastBukuHalaman + 1
+          ? Math.min(lastBukuHalaman + 1, maxHalamanBuku) // jangan sarankan melewati target buku
           : 1;
     }
   } else {
@@ -225,6 +228,20 @@ function TahsinAssessmentForm({
       }
     }
 
+    // Validasi eksplisit batas halaman buku (Gharib 45, Jilid 1-6 & Tajwid 40)
+    const babRaw = formData.get("bab");
+    if (babRaw !== null && babRaw !== "") {
+      const babVal = Number(babRaw);
+      if (Number.isNaN(babVal) || babVal < 1 || babVal > maxHalamanBuku) {
+        toast.error(
+          `Halaman harus di antara 1–${maxHalamanBuku}` +
+            (tahapan === "GHARIB" ? " (buku Gharib 45 halaman)" : "") +
+            `. Jika santri sudah melewati halaman ${maxHalamanBuku}, ajukan Ujian Kenaikan.`,
+        );
+        return;
+      }
+    }
+
     const payload = {
       halaqohId,
       tahapan: tahapan,
@@ -267,7 +284,7 @@ function TahsinAssessmentForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-hidden text-left">
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col h-full overflow-hidden text-left">
       <div className="flex-1 overflow-y-auto space-y-5 pr-1 pb-4">
         {/* HAFALAN PENDEK - Surah Juz 30 (opsional) */}
         <Field>
@@ -326,7 +343,9 @@ function TahsinAssessmentForm({
                   <Input
                     name="bab"
                     type="number"
-                    placeholder="Halaman"
+                    min={1}
+                    max={maxHalamanBuku}
+                    placeholder={`Halaman (1-${maxHalamanBuku})`}
                     defaultValue={nextBukuHalaman}
                   />
                 </div>
@@ -390,7 +409,9 @@ function TahsinAssessmentForm({
               <Input
                 name="bab"
                 type="number"
-                placeholder="Halaman"
+                min={1}
+                max={maxHalamanBuku}
+                placeholder={`Halaman (1-${maxHalamanBuku})`}
                 defaultValue={nextBukuHalaman}
               />
             </div>
