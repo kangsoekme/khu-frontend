@@ -129,7 +129,10 @@ function UserForm({ className, onSuccess, initialData, isEdit }) {
     <form
       onSubmit={handleSubmit}
       autoComplete="off"
-      className={cn("flex flex-col h-full overflow-hidden text-left", className)}
+      className={cn(
+        "flex flex-col h-full overflow-hidden text-left",
+        className,
+      )}
     >
       <div className="flex-1 overflow-y-auto space-y-4 pr-1 pb-4">
         <div className="flex flex-col gap-3">
@@ -158,6 +161,7 @@ function UserForm({ className, onSuccess, initialData, isEdit }) {
             <Input
               id="no_telp"
               name="no_telp"
+              type="number"
               placeholder="08123456789"
               defaultValue={isEdit ? initialData?.no_telp : ""}
             />
