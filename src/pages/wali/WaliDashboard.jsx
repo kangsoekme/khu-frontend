@@ -74,19 +74,28 @@ export default function WaliDashboard() {
   
   const riwayatMurajaahList = riwayatMurajaahRes?.data?.history?.murajaah_baru || [];
 
+  // Clamp halaman aktif ke rentang valid agar list yang memendek tidak
+  // meninggalkan user di halaman kosong.
+  const clampPage = (page, total) =>
+    Math.min(page, Math.max(1, Math.ceil(total / ITEMS_PER_PAGE)));
+
+  const pageTahsinEfektif = clampPage(currentPageTahsin, riwayatTahsinList.length);
+  const pageHafalanEfektif = clampPage(currentPageHafalan, riwayatHafalanList.length);
+  const pageMurajaahEfektif = clampPage(currentPageMurajaah, riwayatMurajaahList.length);
+
   const paginatedTahsin = riwayatTahsinList.slice(
-    (currentPageTahsin - 1) * ITEMS_PER_PAGE,
-    currentPageTahsin * ITEMS_PER_PAGE
+    (pageTahsinEfektif - 1) * ITEMS_PER_PAGE,
+    pageTahsinEfektif * ITEMS_PER_PAGE
   );
 
   const paginatedHafalan = riwayatHafalanList.slice(
-    (currentPageHafalan - 1) * ITEMS_PER_PAGE,
-    currentPageHafalan * ITEMS_PER_PAGE
+    (pageHafalanEfektif - 1) * ITEMS_PER_PAGE,
+    pageHafalanEfektif * ITEMS_PER_PAGE
   );
 
   const paginatedMurajaah = riwayatMurajaahList.slice(
-    (currentPageMurajaah - 1) * ITEMS_PER_PAGE,
-    currentPageMurajaah * ITEMS_PER_PAGE
+    (pageMurajaahEfektif - 1) * ITEMS_PER_PAGE,
+    pageMurajaahEfektif * ITEMS_PER_PAGE
   );
 
   const renderPagination = (page, total, setPage) => {
@@ -426,7 +435,7 @@ export default function WaliDashboard() {
                   );
                 })}
               </div>
-              {renderPagination(currentPageTahsin, riwayatTahsinList.length, setCurrentPageTahsin)}
+              {renderPagination(pageTahsinEfektif, riwayatTahsinList.length, setCurrentPageTahsin)}
             </CardContent>
           </Card>
         </TabsContent>
@@ -569,7 +578,7 @@ export default function WaliDashboard() {
                         />
                     ))}
                   </div>
-                  {renderPagination(currentPageHafalan, riwayatHafalanList.length, setCurrentPageHafalan)}
+                  {renderPagination(pageHafalanEfektif, riwayatHafalanList.length, setCurrentPageHafalan)}
                 </TabsContent>
 
                 <TabsContent value="murajaah">
@@ -653,7 +662,7 @@ export default function WaliDashboard() {
                         />
                     ))}
                   </div>
-                  {renderPagination(currentPageMurajaah, riwayatMurajaahList.length, setCurrentPageMurajaah)}
+                  {renderPagination(pageMurajaahEfektif, riwayatMurajaahList.length, setCurrentPageMurajaah)}
                 </TabsContent>
               </Tabs>
             </CardContent>

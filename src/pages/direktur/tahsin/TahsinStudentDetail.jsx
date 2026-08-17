@@ -180,9 +180,17 @@ function TahsinStudentDetail() {
     (r) => r.tahapan === student?.tahapan_tahsin
   );
 
+  // Clamp halaman: kalau baris dihapus sampai halaman terakhir kosong
+  // (mis. guru hapus satu-satunya baris di hal. 2), jangan biarkan user
+  // stuck di halaman kosong — kembalikan ke halaman terakhir yang valid.
+  const totalPagesRiwayat = Math.max(
+    1,
+    Math.ceil(riwayatList.length / ITEMS_PER_PAGE)
+  );
+  const pageEfektif = Math.min(currentPage, totalPagesRiwayat);
   const paginatedRiwayat = riwayatList.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
+    (pageEfektif - 1) * ITEMS_PER_PAGE,
+    pageEfektif * ITEMS_PER_PAGE
   );
 
   const renderPagination = (page, total, setPage) => {
@@ -601,7 +609,7 @@ function TahsinStudentDetail() {
               })
             )}
           </div>
-          {renderPagination(currentPage, riwayatList.length, setCurrentPage)}
+          {renderPagination(pageEfektif, riwayatList.length, setCurrentPage)}
         </CardContent>
       </Card>
 
