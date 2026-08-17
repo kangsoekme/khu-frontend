@@ -1,4 +1,9 @@
-import { createBrowserRouter, Navigate, RouterProvider, useRouteError } from "react-router-dom";
+import {
+  createBrowserRouter,
+  Navigate,
+  RouterProvider,
+  useRouteError,
+} from "react-router-dom";
 import { lazy, Suspense } from "react";
 
 // global
@@ -10,28 +15,56 @@ import WaliProtectedRoute from "./WaliProtectedRoute.jsx";
 import RoleProtectedRoute from "./RoleProtectedRoute.jsx";
 
 // --- Lazy-loaded pages untuk performa loading lebih cepat ---
-const SuperAdminHomepage        = lazy(() => import("../pages/super-admin/Homepage"));
-const SuperAdminUserManagement  = lazy(() => import("../pages/super-admin/UserManagement"));
-const SuperAdminStudentManagement = lazy(() => import("../pages/super-admin/StudentManagement"));
-const BackupManagement          = lazy(() => import("../pages/super-admin/BackupManagement.jsx"));
+const SuperAdminHomepage = lazy(() => import("../pages/super-admin/Homepage"));
+const SuperAdminUserManagement = lazy(
+  () => import("../pages/super-admin/UserManagement"),
+);
+const SuperAdminStudentManagement = lazy(
+  () => import("../pages/super-admin/StudentManagement"),
+);
+const BackupManagement = lazy(
+  () => import("../pages/super-admin/BackupManagement.jsx"),
+);
 
-const DirekturHomepage          = lazy(() => import("../pages/direktur/Homepage.jsx"));
-const DirekturHalaqohManagement = lazy(() => import("../pages/direktur/HalaqohManagement.jsx"));
-const DirekturPretestManagement = lazy(() => import("../pages/direktur/PretestManagement.jsx"));
-const LaporanManagement         = lazy(() => import("../pages/direktur/LaporanManagement.jsx"));
-const TahunAjaranManagement     = lazy(() => import("../pages/direktur/TahunAjaranManajemen.jsx"));
-const TahsinManagement          = lazy(() => import("../pages/direktur/tahsin/TahsinManagement.jsx"));
-const TahsinDetail              = lazy(() => import("../pages/direktur/tahsin/TahsinDetail.jsx"));
-const TahsinStudentDetail       = lazy(() => import("../pages/direktur/tahsin/TahsinStudentDetail.jsx"));
-const UjianKenaikanManagement   = lazy(() => import("../pages/direktur/tahsin/UjianKenaikanManagement.jsx"));
-const TahfidzManagement         = lazy(() => import("../pages/direktur/tahfidz/TahfidzManagement.jsx"));
-const TahfidzDetail             = lazy(() => import("../pages/direktur/tahfidz/TahfidzDetail.jsx"));
-const TahfidzStudentDetail      = lazy(() => import("../pages/direktur/tahfidz/TahfidzStudentDetail.jsx"));
+const DirekturHomepage = lazy(() => import("../pages/direktur/Homepage.jsx"));
+const DirekturHalaqohManagement = lazy(
+  () => import("../pages/direktur/HalaqohManagement.jsx"),
+);
+const DirekturPretestManagement = lazy(
+  () => import("../pages/direktur/PretestManagement.jsx"),
+);
+const LaporanManagement = lazy(
+  () => import("../pages/direktur/LaporanManagement.jsx"),
+);
+const TahunAjaranManagement = lazy(
+  () => import("../pages/direktur/TahunAjaranManajemen.jsx"),
+);
+const TahsinManagement = lazy(
+  () => import("../pages/direktur/tahsin/TahsinManagement.jsx"),
+);
+const TahsinDetail = lazy(
+  () => import("../pages/direktur/tahsin/TahsinDetail.jsx"),
+);
+const TahsinStudentDetail = lazy(
+  () => import("../pages/direktur/tahsin/TahsinStudentDetail.jsx"),
+);
+const UjianKenaikanManagement = lazy(
+  () => import("../pages/direktur/tahsin/UjianKenaikanManagement.jsx"),
+);
+const TahfidzManagement = lazy(
+  () => import("../pages/direktur/tahfidz/TahfidzManagement.jsx"),
+);
+const TahfidzDetail = lazy(
+  () => import("../pages/direktur/tahfidz/TahfidzDetail.jsx"),
+);
+const TahfidzStudentDetail = lazy(
+  () => import("../pages/direktur/tahfidz/TahfidzStudentDetail.jsx"),
+);
 
-const GuruHomepage              = lazy(() => import("../pages/guru/Homepage.jsx"));
+const GuruHomepage = lazy(() => import("../pages/guru/Homepage.jsx"));
 
-const WaliLogin                 = lazy(() => import("../pages/wali/WaliLogin.jsx"));
-const WaliDashboard             = lazy(() => import("../pages/wali/WaliDashboard.jsx"));
+const WaliLogin = lazy(() => import("../pages/wali/WaliLogin.jsx"));
+const WaliDashboard = lazy(() => import("../pages/wali/WaliDashboard.jsx"));
 
 import { ROLES } from "../utils/constant.js";
 
@@ -89,7 +122,11 @@ const GlobalErrorBoundary = () => {
   const error = useRouteError();
   console.error("Route error:", error);
 
-  if (error && error.message && error.message.toLowerCase().includes("fetch dynamically imported module")) {
+  if (
+    error &&
+    error.message &&
+    error.message.toLowerCase().includes("fetch dynamically imported module")
+  ) {
     window.location.reload();
     return <p className="text-center p-10">Menerapkan pembaruan sistem...</p>;
   }
@@ -97,8 +134,12 @@ const GlobalErrorBoundary = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
-        <h2 className="text-2xl font-bold text-red-600 mb-4">Terjadi Kesalahan</h2>
-        <p className="text-gray-600 mb-6">{error?.message || "Terjadi kesalahan sistem."}</p>
+        <h2 className="text-2xl font-bold text-red-600 mb-4">
+          Terjadi Kesalahan
+        </h2>
+        <p className="text-gray-600 mb-6">
+          {error?.message || "Terjadi kesalahan sistem."}
+        </p>
         <button
           onClick={() => window.location.reload()}
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors"
@@ -114,7 +155,7 @@ const router = createBrowserRouter([
   {
     path: "/login",
     element: <LoginPage />,
-    errorElement: <GlobalErrorBoundary />
+    errorElement: <GlobalErrorBoundary />,
   },
   {
     path: "/wali",
@@ -123,7 +164,7 @@ const router = createBrowserRouter([
         <WaliRedirect />
       </Suspense>
     ),
-    errorElement: <GlobalErrorBoundary />
+    errorElement: <GlobalErrorBoundary />,
   },
   {
     path: "/wali/login",
@@ -132,7 +173,7 @@ const router = createBrowserRouter([
         <WaliLogin />
       </Suspense>
     ),
-    errorElement: <GlobalErrorBoundary />
+    errorElement: <GlobalErrorBoundary />,
   },
   {
     element: <WaliProtectedRoute />,
@@ -154,9 +195,6 @@ const router = createBrowserRouter([
       },
     ],
   },
-  // Catch-all untuk path wali tidak dikenal (mis. /wali/abc, /wali/foo/bar).
-  // Sebelumnya route seperti itu jatuh ke GlobalErrorBoundary. Sekarang
-  // diarahkan kembali ke halaman wali yang valid via WaliRedirect.
   {
     path: "/wali/*",
     element: (
@@ -164,7 +202,7 @@ const router = createBrowserRouter([
         <WaliRedirect />
       </Suspense>
     ),
-    errorElement: <GlobalErrorBoundary />
+    errorElement: <GlobalErrorBoundary />,
   },
   {
     element: <ProtectedRoute />,
@@ -186,42 +224,107 @@ const router = createBrowserRouter([
           {
             path: "/manajemen-user",
             element: <MainLayout />,
-            children: [{ index: true, element: <Suspense fallback={<PageLoader />}><SuperAdminUserManagement /></Suspense> }],
+            children: [
+              {
+                index: true,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <SuperAdminUserManagement />
+                  </Suspense>
+                ),
+              },
+            ],
           },
           {
             path: "/manajemen-siswa",
             element: <MainLayout />,
-            children: [{ index: true, element: <Suspense fallback={<PageLoader />}><SuperAdminStudentManagement /></Suspense> }],
+            children: [
+              {
+                index: true,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <SuperAdminStudentManagement />
+                  </Suspense>
+                ),
+              },
+            ],
           },
           {
             path: "/backup",
             element: <MainLayout />,
-            children: [{ index: true, element: <Suspense fallback={<PageLoader />}><BackupManagement /></Suspense> }],
+            children: [
+              {
+                index: true,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <BackupManagement />
+                  </Suspense>
+                ),
+              },
+            ],
           },
           {
             path: "/tahun-ajaran",
             element: <MainLayout />,
-            children: [{ index: true, element: <Suspense fallback={<PageLoader />}><TahunAjaranManagement /></Suspense> }],
+            children: [
+              {
+                index: true,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <TahunAjaranManagement />
+                  </Suspense>
+                ),
+              },
+            ],
           },
         ],
       },
       {
-        element: <RoleProtectedRoute allowedRoles={["DIREKTUR", "SUPER_ADMIN"]} />,
+        element: (
+          <RoleProtectedRoute allowedRoles={["DIREKTUR", "SUPER_ADMIN"]} />
+        ),
         children: [
           {
             path: "/laporan",
             element: <MainLayout />,
-            children: [{ index: true, element: <Suspense fallback={<PageLoader />}><LaporanManagement /></Suspense> }],
+            children: [
+              {
+                index: true,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <LaporanManagement />
+                  </Suspense>
+                ),
+              },
+            ],
           },
           {
             path: "/manajemen-halaqoh",
             element: <MainLayout />,
-            children: [{ index: true, element: <Suspense fallback={<PageLoader />}><DirekturHalaqohManagement /></Suspense> }],
+            children: [
+              {
+                index: true,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <DirekturHalaqohManagement />
+                  </Suspense>
+                ),
+              },
+            ],
           },
           {
             path: "/pretest",
             element: <MainLayout />,
-            children: [{ index: true, element: <Suspense fallback={<PageLoader />}><DirekturPretestManagement /></Suspense> }],
+            children: [
+              {
+                index: true,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <DirekturPretestManagement />
+                  </Suspense>
+                ),
+              },
+            ],
           },
         ],
       },
@@ -229,24 +332,75 @@ const router = createBrowserRouter([
         path: "/tahsin",
         element: <MainLayout />,
         children: [
-          { index: true, element: <Suspense fallback={<PageLoader />}><TahsinManagement /></Suspense> },
           {
-            element: <RoleProtectedRoute allowedRoles={["DIREKTUR", "SUPER_ADMIN"]} />,
-            children: [
-              { path: "ujian-kenaikan", element: <Suspense fallback={<PageLoader />}><UjianKenaikanManagement /></Suspense> },
-            ]
+            index: true,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <TahsinManagement />
+              </Suspense>
+            ),
           },
-          { path: ":id", element: <Suspense fallback={<PageLoader />}><TahsinDetail /></Suspense> },
-          { path: ":id/:nis", element: <Suspense fallback={<PageLoader />}><TahsinStudentDetail /></Suspense> },
+          {
+            element: (
+              <RoleProtectedRoute allowedRoles={["DIREKTUR", "SUPER_ADMIN"]} />
+            ),
+            children: [
+              {
+                path: "ujian-kenaikan",
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <UjianKenaikanManagement />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+          {
+            path: ":id",
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <TahsinDetail />
+              </Suspense>
+            ),
+          },
+          {
+            path: ":id/:nis",
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <TahsinStudentDetail />
+              </Suspense>
+            ),
+          },
         ],
       },
       {
         path: "/tahfidz",
         element: <MainLayout />,
         children: [
-          { index: true, element: <Suspense fallback={<PageLoader />}><TahfidzManagement /></Suspense> },
-          { path: ":id", element: <Suspense fallback={<PageLoader />}><TahfidzDetail /></Suspense> },
-          { path: ":id/:nis", element: <Suspense fallback={<PageLoader />}><TahfidzStudentDetail /></Suspense> },
+          {
+            index: true,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <TahfidzManagement />
+              </Suspense>
+            ),
+          },
+          {
+            path: ":id",
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <TahfidzDetail />
+              </Suspense>
+            ),
+          },
+          {
+            path: ":id/:nis",
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <TahfidzStudentDetail />
+              </Suspense>
+            ),
+          },
         ],
       },
     ],
