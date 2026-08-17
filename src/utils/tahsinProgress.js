@@ -20,14 +20,22 @@ import { formatEnum } from "./formatEnum";
 // Label prefix untuk record placement (titik awal dari pretest).
 const LABEL_PLACEMENT = "Titik awal (pretest): ";
 
-// Format rentang ayat: hindari "140-140" saat ayat awal = akhir (satu titik).
-// 140,140 -> "Ayat 140" | 140,150 -> "Ayat 140-150" | null,null -> ""
-export const formatRentangAyat = (awal, akhir) => {
-  if (awal == null && akhir == null) return "";
-  if (awal != null && akhir != null && Number(awal) === Number(akhir)) {
-    return `Ayat ${awal}`;
+// Format tampilan ayat. Dua mode:
+// - TITIK (placement pretest): satu posisi -> hanya ayat terakhir.
+//     (null, 100) -> "Ayat 100" | (100, 100) -> "Ayat 100" | (null, null) -> ""
+// - RENTANG (setoran riil): ayat awal hingga akhir, ringkas bila sama.
+//     (140, 150) -> "Ayat 140-150" | (150, 150) -> "Ayat 150"
+// Null-safe di semua kombinasi — tidak pernah menghasilkan tanda "--".
+export const formatRentangAyat = (awal, akhir, { titik = false } = {}) => {
+  if (titik) {
+    const ayat = akhir ?? awal;
+    return ayat != null ? `Ayat ${ayat}` : "";
   }
-  return `Ayat ${awal ?? "-"}${akhir != null ? `-${akhir}` : ""}`;
+  if (awal == null && akhir == null) return "";
+  if (awal == null) return `Ayat ${akhir}`;
+  if (akhir == null) return `Ayat ${awal}`;
+  if (Number(awal) === Number(akhir)) return `Ayat ${awal}`;
+  return `Ayat ${awal}-${akhir}`;
 };
 
 // Label surah dari record setoran: "Qs. An-Nisa" (fallback ke nomor surah).
@@ -99,8 +107,11 @@ export const getPosisiBacaan = (siswa, { emptyLabel = "Belum Memulai" } = {}) =>
   }
 
   // Setoran berbasis surah (Tilawah Juz 1-5, dst.)
+  // Placement = titik -> hanya ayat terakhir; setoran riil = rentang.
   if (lastSetoran.surah || lastSetoran.no_surah) {
-    const ayat = formatRentangAyat(lastSetoran.ayat_awal, lastSetoran.ayat_akhir);
+    const ayat = formatRentangAyat(lastSetoran.ayat_awal, lastSetoran.ayat_akhir, {
+      titik: isPlacement,
+    });
     return {
       text: `${prefix}${labelSurah(lastSetoran)}${ayat ? ` (${ayat})` : ""}`,
       isPlacement,
@@ -156,7 +167,9 @@ export const getPencapaianRingkas = (
   // Setoran berbasis surah (Tilawah Juz 1-5, dst.) — dahulu tidak ditangani
   // sehingga salah tampil "Belum ada setoran" (bug inkonsistensi UI).
   if (lastSetoran.surah || lastSetoran.no_surah) {
-    const ayat = formatRentangAyat(lastSetoran.ayat_awal, lastSetoran.ayat_akhir);
+    const ayat = formatRentangAyat(lastSetoran.ayat_awal, lastSetoran.ayat_akhir, {
+      titik: Boolean(lastSetoran.is_placement),
+    });
     return `${prefix}${labelSurah(lastSetoran)}${ayat ? ` (${ayat})` : ""}`;
   }
 

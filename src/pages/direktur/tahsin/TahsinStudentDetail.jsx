@@ -1,4 +1,3 @@
-import React from "react";
 import { useState } from "react";
 
 import { useParams } from "react-router-dom";
@@ -8,12 +7,9 @@ import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
 import { useAjukanUjianMutation } from "../../../store/api/pengajuanApi";
-import { BASE_API_URL } from "../../../store/baseApi";
 import { toast } from "sonner";
 import {
-  FaArrowLeft,
   FaCalendarCheck,
-  FaGraduationCap,
   FaEllipsisV,
   FaEdit,
   FaTrash,
@@ -95,6 +91,7 @@ import {
   getKategoriTahapan,
 } from "../../../utils/tahsinCompletion";
 import { formatEnum } from "../../../utils/formatEnum";
+import { formatRentangAyat } from "../../../utils/tahsinProgress";
 
 // Helper: Format laporan bacaan untuk ditampilkan (title + subtitle)
 // Mengembalikan string dinamis berdasarkan jenis setoran (buku / quran / keduanya)
@@ -125,10 +122,14 @@ const formatLaporanBacaan = (riwayat) => {
   }
 
   // Komponen Al-QURAN (surah + ayat)
+  // Placement pretest = titik -> hanya ayat terakhir; setoran riil = rentang.
   if (laporan.surah) {
     parts.push({
       label: laporan.surah,
-      sub: `Ayat ${laporan.ayat_awal ?? "-"} - ${laporan.ayat_akhir ?? "-"}`,
+      sub:
+        formatRentangAyat(laporan.ayat_awal, laporan.ayat_akhir, {
+          titik: Boolean(riwayat?.is_placement),
+        }) || "-",
     });
   }
 
@@ -146,7 +147,7 @@ const formatLaporanBacaan = (riwayat) => {
 
 function TahsinStudentDetail() {
   const [ajukanUjian, { isLoading: isMengajukan }] = useAjukanUjianMutation();
-  const [deleteTahsin, { isLoading: isDeleting }] = useDeleteTahsinMutation();
+  const [deleteTahsin] = useDeleteTahsinMutation();
   const { nis } = useParams();
   const currentRole = localStorage.getItem("role");
 
@@ -240,7 +241,10 @@ function TahsinStudentDetail() {
     pretestData,
   );
 
+  // Placement bukan penilaian riil (nilai "A+" hanyalah placeholder) —
+  // jangan ikut membiaskan grafik nilai setoran.
   const chartData = [...riwayatList]
+    .filter((item) => !item.is_placement)
     .slice(0, 7)
     .reverse()
     .map((item, idx) => {
@@ -475,7 +479,7 @@ function TahsinStudentDetail() {
                         </div>
                       </TableCell>
                       <TableCell className="font-bold text-lg">
-                        {riwayat.nilai_tahsin || "-"}
+                        {isPlacement ? "-" : riwayat.nilai_tahsin || "-"}
                       </TableCell>
                       <TableCell>
                         <span className="font-semibold text-primary-800">
@@ -576,7 +580,7 @@ function TahsinStudentDetail() {
                     }
                     title2={parts[1]?.label}
                     subtitle2={parts[1]?.sub}
-                    badgeText={riwayat.nilai_tahsin}
+                    badgeText={riwayat.is_placement ? "-" : riwayat.nilai_tahsin}
                     description={riwayat.keterangan}
                     showActions={currentRole === "GURU"}
                     onEdit={() => {
