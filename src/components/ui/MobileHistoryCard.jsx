@@ -34,8 +34,8 @@ function MobileHistoryCard({
   badgeText, // Teks predikat (misal: MUMTAZ)
   description,
   showActions = false, // Menampilkan menu 3 titik
-  onEdit, // Fungsi edit
-  onDelete, // Fungsi hapus
+  onEdit, // Fungsi edit (opsional — tanpa ini tombol Edit disembunyikan, mis. baris placement)
+  onDelete, // Fungsi hapus (opsional — tanpa ini tombol Hapus disembunyikan)
 }) {
   return (
     <Card className="flex flex-col shadow-sm border-neutral-200 overflow-hidden">
@@ -64,12 +64,16 @@ function MobileHistoryCard({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-40">
-                  <DropdownMenuItem onClick={onEdit} className="cursor-pointer">
-                    <FaEdit className="mr-2 text-primary-600" /> Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={onDelete} className="cursor-pointer text-red-600 focus:bg-red-50 focus:text-red-700">
-                    <FaTrash className="mr-2" /> Hapus
-                  </DropdownMenuItem>
+                  {onEdit && (
+                    <DropdownMenuItem onClick={onEdit} className="cursor-pointer">
+                      <FaEdit className="mr-2 text-primary-600" /> Edit
+                    </DropdownMenuItem>
+                  )}
+                  {onDelete && (
+                    <DropdownMenuItem onClick={onDelete} className="cursor-pointer text-red-600 focus:bg-red-50 focus:text-red-700">
+                      <FaTrash className="mr-2" /> Hapus
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             )}

@@ -580,13 +580,21 @@ function TahsinStudentDetail() {
                     }
                     title2={parts[1]?.label}
                     subtitle2={parts[1]?.sub}
-                    badgeText={riwayat.is_placement ? "-" : riwayat.nilai_tahsin}
+                    badgeText={
+                      riwayat.is_placement ? "📍 Placement" : riwayat.nilai_tahsin
+                    }
                     description={riwayat.keterangan}
                     showActions={currentRole === "GURU"}
-                    onEdit={() => {
-                      setEditData(riwayat);
-                      setOpenForm(true);
-                    }}
+                    onEdit={
+                      // Paritas desktop: baris placement tidak bisa diedit —
+                      // koreksi lewat hapus lalu pretest ulang.
+                      riwayat.is_placement
+                        ? undefined
+                        : () => {
+                            setEditData(riwayat);
+                            setOpenForm(true);
+                          }
+                    }
                     onDelete={() => setDeleteId(riwayat.id)}
                   />
                 );

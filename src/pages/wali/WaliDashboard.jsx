@@ -37,6 +37,7 @@ import {
 import { useState } from "react";
 import { MobileHistoryCard } from "../../components/ui/MobileHistoryCard";
 import { FaCalendarCheck } from "react-icons/fa";
+import { formatRentangAyat } from "../../utils/tahsinProgress";
 
 export default function WaliDashboard() {
   const nis = localStorage.getItem("nis");
@@ -135,7 +136,12 @@ export default function WaliDashboard() {
   };
 
   const prepareChartDataTahsin = (list) => {
-    return [...(list || [])].reverse().map((item, idx) => {
+    // Placement bukan penilaian riil (nilai "A+" hanya placeholder) — jangan
+    // ikut membiaskan grafik nilai setoran (paritas halaman Detail Siswa).
+    return [...(list || [])]
+      .filter((item) => !item.is_placement)
+      .reverse()
+      .map((item, idx) => {
       const gradeMap = {
         "A+": 98,
         A: 90,
@@ -286,8 +292,10 @@ export default function WaliDashboard() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    paginatedTahsin.map((riwayat, i) => (
-                      <TableRow key={i}>
+                    paginatedTahsin.map((riwayat, i) => {
+                    const isPlacement = Boolean(riwayat.is_placement);
+                    return (
+                      <TableRow key={riwayat.id || i}>
                         <TableCell>
                           <div className="flex flex-col">
                             <span className="font-semibold uppercase text-xs md:text-sm">
@@ -330,7 +338,11 @@ export default function WaliDashboard() {
                                   {riwayat.laporan_bacaan.surah}
                                 </span>
                                 <span className="text-neutral-textmuted text-xs md:text-sm">
-                                  Ayat {riwayat.laporan_bacaan.ayat_awal || "-"} - {riwayat.laporan_bacaan.ayat_akhir || "-"}
+                                  {formatRentangAyat(
+                                    riwayat.laporan_bacaan.ayat_awal,
+                                    riwayat.laporan_bacaan.ayat_akhir,
+                                    { titik: isPlacement },
+                                  ) || "-"}
                                 </span>
                               </div>
                             )}
@@ -351,27 +363,32 @@ export default function WaliDashboard() {
                           </div>
                         </TableCell>
                         <TableCell className="font-bold text-base md:text-lg">
-                          {riwayat.nilai_tahsin || "-"}
+                          {isPlacement ? "-" : riwayat.nilai_tahsin || "-"}
                         </TableCell>
                         <TableCell>
                           <span className="font-bold text-primary-600">
-                            {riwayat.status_kelanjutan === "MENGULANG"
-                              ? "TIDAK LULUS"
-                              : riwayat.status_kelanjutan || ""}
+                            {isPlacement
+                              ? "PLACEMENT"
+                              : riwayat.status_kelanjutan === "MENGULANG"
+                                ? "TIDAK LULUS"
+                                : riwayat.status_kelanjutan || ""}
                           </span>
                         </TableCell>
                         <TableCell className="text-xs md:text-sm max-w-50 truncate">
                           {riwayat.keterangan || "-"}
                         </TableCell>
                       </TableRow>
-                    ))
+                    );
+                    })
                   )}
                 </TableBody>
               </Table>
               <div className="flex flex-col lg:hidden mt-4 gap-6">
-                {paginatedTahsin.map((riwayat, i) => (
+                {paginatedTahsin.map((riwayat, i) => {
+                  const isPlacement = Boolean(riwayat.is_placement);
+                  return (
                   <MobileHistoryCard
-                    key={i}
+                    key={riwayat.id || i}
                     day={new Date(riwayat.timestamp).toLocaleDateString("id-ID", { weekday: "long" })}
                     date={new Date(riwayat.timestamp).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
                     titleInformation1={"Setoran"}
@@ -380,24 +397,34 @@ export default function WaliDashboard() {
                         ? (riwayat.laporan_bacaan.jilid === 0
                             ? (riwayat.tahapan === "GHARIB" ? "Gharib" : riwayat.tahapan === "TAJWID" ? "Tajwid" : "Buku")
                             : `Jilid ${riwayat.laporan_bacaan.jilid}`)
-                        : (riwayat.laporan_bacaan?.surah 
-                            ? riwayat.laporan_bacaan.surah 
+                        : (riwayat.laporan_bacaan?.surah
+                            ? riwayat.laporan_bacaan.surah
                             : riwayat.laporan_bacaan.jilid_surah || "-")
                     }
                     subtitle1={
                       riwayat.laporan_bacaan?.jilid !== null && riwayat.laporan_bacaan?.jilid !== undefined
                         ? `Hal ${riwayat.laporan_bacaan.bab || "-"}`
                         : (riwayat.laporan_bacaan?.surah
-                            ? `Ayat ${riwayat.laporan_bacaan.ayat_awal || "-"} - ${riwayat.laporan_bacaan.ayat_akhir || "-"}`
+                            ? formatRentangAyat(
+                                riwayat.laporan_bacaan.ayat_awal,
+                                riwayat.laporan_bacaan.ayat_akhir,
+                                { titik: isPlacement },
+                              ) || "-"
                             : riwayat.laporan_bacaan?.ayat)
                     }
                     titleInformation2={"Hafalan Pendek"}
                     title2={riwayat.hafalan_surah?.surah || "-"}
-                    subtitle2={`${riwayat.hafalan_surah?.ayat_awal} - ${riwayat.hafalan_surah?.ayat_akhir}`}
-                    badgeText={riwayat.nilai_tahsin}
+                    subtitle2={
+                      riwayat.hafalan_surah?.ayat_awal != null ||
+                      riwayat.hafalan_surah?.ayat_akhir != null
+                        ? `${riwayat.hafalan_surah?.ayat_awal ?? "-"} - ${riwayat.hafalan_surah?.ayat_akhir ?? "-"}`
+                        : "-"
+                    }
+                    badgeText={isPlacement ? "📍 Placement" : riwayat.nilai_tahsin}
                     description={riwayat.keterangan}
                   />
-                ))}
+                  );
+                })}
               </div>
               {renderPagination(currentPageTahsin, riwayatTahsinList.length, setCurrentPageTahsin)}
             </CardContent>

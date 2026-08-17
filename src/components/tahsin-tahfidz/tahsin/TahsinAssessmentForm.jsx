@@ -302,7 +302,13 @@ function TahsinAssessmentForm({
 
     try {
       if (editData) {
-        await editTahsin({ id: editData.id, ...payload }).unwrap();
+        // Identitas baris (halaqoh & tahapan) immutable saat edit — skema edit
+        // backend menolak field tersebut, dan riwayat lama tidak boleh
+        // tertukar tahapannya dengan tahapan siswa saat ini.
+        const editPayload = { ...payload };
+        delete editPayload.halaqohId;
+        delete editPayload.tahapan;
+        await editTahsin({ id: editData.id, ...editPayload }).unwrap();
         toast.success("Penilaian berhasil diperbarui!");
       } else {
         await addTahsin({ nis, ...payload }).unwrap();
