@@ -1,12 +1,15 @@
-import React, { useState } from "react"; // 👈 Tambahkan useState
-import { SearchInput } from "../../../components/ui/SearchInput"; // 👈 Import SearchInput
+import { useState } from "react";
+import { SearchInput } from "../../../components/ui/SearchInput";
 
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetHalaqohQuery } from "../../../store/api/halaqohApi";
 import { formatEnum } from "../../../utils/formatEnum";
+import {
+  getNilaiTahsin,
+  getPosisiBacaan,
+  getTahapAktif,
+} from "../../../utils/tahsinProgress";
 
-import { Button } from "@/components/ui/button";
-import { FaArrowLeft } from "react-icons/fa";
 import {
   Table,
   TableBody,
@@ -18,7 +21,6 @@ import {
 
 import {
   Item,
-  ItemActions,
   ItemContent,
   ItemDescription,
   ItemMedia,
@@ -27,8 +29,6 @@ import {
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import MobileItemCard from "../../../components/ui/MobileItemCard";
-
-import { exportToExcel } from "../../../utils/exportExcel";
 
 function TahsinDetail() {
   const [search, setSearch] = useState("");
@@ -51,35 +51,13 @@ function TahsinDetail() {
     );
   });
 
-  const getPosisiBacaan = (siswa) => {
-    const currentTahap =
-      siswa.tahapan_tahsin || siswa?.ujianPretest?.[0]?.tahapan;
-    const lastSetoran = siswa?.setoranTahsin?.[0];
-
-    if (!lastSetoran) {
-      if (currentTahap) {
-        return `Pretest: ${formatEnum(currentTahap)}`;
-      }
-      return "Belum Memulai";
-    }
-
-    if (currentTahap && lastSetoran.tahapan !== currentTahap) {
-      if (currentTahap.startsWith("JILID_")) {
-        const jilidNum = currentTahap.split("_")[1] || "";
-        return `Jilid ${jilidNum} (Hal. 1)`;
-      }
-      return `${formatEnum(currentTahap)} (Awal)`;
-    }
-
-    if (lastSetoran.surah) {
-      return `${lastSetoran.surah.nama_surah} (${lastSetoran.ayat_awal || 1}-${lastSetoran.ayat_akhir || 1})`;
-    }
-    if (lastSetoran.jilid > 0 || lastSetoran.bab || lastSetoran.halaman) {
-      return `Jilid ${lastSetoran.jilid} (Hal. ${lastSetoran.bab || lastSetoran.halaman || "-"})`;
-    }
-    return (
-      lastSetoran.materi || formatEnum(lastSetoran.tahapan) || "Belum Memulai"
-    );
+  // Posisi bacaan, tahapan aktif & nilai memakai util bersama tahsinProgress
+  // (menangani setoran surah/Tilawah + record placement pretest is_placement).
+  const renderSiswa = (siswa) => {
+    const { text: posisi } = getPosisiBacaan(siswa);
+    const nilai = getNilaiTahsin(siswa);
+    const statusTahap = formatEnum(getTahapAktif(siswa) || "BELUM MULAI");
+    return { posisi, nilai, statusTahap };
   };
 
   return (
@@ -107,15 +85,7 @@ function TahsinDetail() {
             <TableCell colSpan={5}>Belum ada siswa disini</TableCell>
           ) : (
             filteredSiswa.map((siswa) => {
-              const lastSetoran = siswa?.setoranTahsin?.[0];
-              const posisi = getPosisiBacaan(siswa);
-              const nilai = lastSetoran?.nilai || "-";
-              const statusTahap = formatEnum(
-                siswa.tahapan_tahsin ||
-                  lastSetoran?.tahapan ||
-                  siswa.ujianPretest?.[0]?.tahapan ||
-                  "BELUM MULAI",
-              );
+              const { posisi, nilai, statusTahap } = renderSiswa(siswa);
 
               return (
                 <TableRow
@@ -163,14 +133,7 @@ function TahsinDetail() {
           </p>
         ) : (
           filteredSiswa.map((siswa) => {
-            const lastSetoran = siswa?.setoranTahsin?.[0];
-            const posisi = getPosisiBacaan(siswa);
-            const statusTahap = formatEnum(
-              siswa.tahapan_tahsin ||
-                lastSetoran?.tahapan ||
-                siswa.ujianPretest?.[0]?.tahapan ||
-                "BELUM MULAI",
-            );
+            const { posisi, statusTahap } = renderSiswa(siswa);
 
             return (
               <MobileItemCard

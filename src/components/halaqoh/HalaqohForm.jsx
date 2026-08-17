@@ -37,6 +37,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { formatEnum } from "../../utils/formatEnum";
+import {
+  getPencapaianRingkas,
+  getTahapAktif,
+} from "../../utils/tahsinProgress";
 
 function HalaqohForm({
   initialData,
@@ -140,12 +144,9 @@ function HalaqohForm({
       if (hasSetoranA && !hasSetoranB) return -1;
       if (!hasSetoranA && hasSetoranB) return 1;
       if (hasSetoranA && hasSetoranB) {
-        const halA = Number(
-          a.setoranTahsin[0]?.bab || a.setoranTahsin[0]?.halaman || 0,
-        );
-        const halB = Number(
-          b.setoranTahsin[0]?.bab || b.setoranTahsin[0]?.halaman || 0,
-        );
+        // model Setoran_Tahsin hanya punya kolom `bab` (tidak ada `halaman`)
+        const halA = Number(a.setoranTahsin[0]?.bab || 0);
+        const halB = Number(b.setoranTahsin[0]?.bab || 0);
         return halA - halB;
       }
       return 0;
@@ -163,11 +164,7 @@ function HalaqohForm({
   const allGrouped = sortedStudents.reduce((acc, student) => {
     let rawKey = "BELUM MULAI";
     if (kategori === "TAHSIN") {
-      rawKey =
-        student.tahapan_tahsin ||
-        student.setoranTahsin?.[0]?.tahapan ||
-        student.ujianPretest?.[0]?.tahapan ||
-        "🌟 BELUM MULAI / BELUM ADA TAHAPAN";
+      rawKey = getTahapAktif(student) || "🌟 BELUM MULAI / BELUM ADA TAHAPAN";
     } else {
       rawKey = student.setoranHafalan?.[0]?.surah?.nama_surah
         ? `Juz 30 (Qs. ${student.setoranHafalan[0].surah.nama_surah})`
@@ -189,26 +186,15 @@ function HalaqohForm({
 
   const getInfoPencapaian = (student) => {
     if (kategori === "TAHSIN") {
-      const currentTahap =
-        student.tahapan_tahsin ||
-        student.ujianPretest?.[0]?.tahapan ||
-        student.setoranTahsin?.[0]?.tahapan ||
-        "TAHSIN";
-      const setoran = student.setoranTahsin?.[0];
-      const jilidText = formatEnum(currentTahap);
+      // Posisi & tahapan memakai util bersama tahsinProgress agar konsisten
+      // dengan Detail Kelompok (menangani setoran surah/Tilawah + placement
+      // pretest is_placement, bukan hanya bab/halaman/materi).
+      const currentTahap = getTahapAktif(student);
 
-      let halText = "Belum ada setoran";
-      // Hanya tampilkan bab/halaman setoran jika setoran tersebut berada pada tahapan yang sama dengan tahapan_tahsin siswa saat ini
-      if (setoran && (!setoran.tahapan || setoran.tahapan === currentTahap)) {
-        if (setoran.bab || setoran.halaman) {
-          halText = `Halaman ${setoran.bab || setoran.halaman}`;
-        } else if (setoran.materi) {
-          halText = setoran.materi;
-        }
-      } else if (student.ujianPretest?.[0]?.tahapan || student.tahapan_tahsin) {
-        halText = `Pretest: ${formatEnum(student.tahapan_tahsin || student.ujianPretest?.[0]?.tahapan)}`;
-      }
-      return { baris1: jilidText, baris2: halText };
+      return {
+        baris1: currentTahap ? formatEnum(currentTahap) : "Tahsin",
+        baris2: getPencapaianRingkas(student),
+      };
     } else {
       const hafalan = student.setoranHafalan?.[0];
       let surahText = "Tahfidz";
