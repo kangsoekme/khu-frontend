@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,11 @@ import { toast } from "sonner";
 
 import { useAddPretestMutation } from "../../../../store/api/tahsinApi";
 import { useGetAllSurahQuery } from "../../../../store/api/surahApi";
-import { TARGET_BUKU } from "../../../../utils/tahsinCompletion";
+import {
+  TARGET_BUKU,
+  TARGET_TILAWAH_JUZ_1_5,
+  validasiTitikPlacement,
+} from "../../../../utils/tahsinCompletion";
 import { validasiAyatSurah, getMaxAyat } from "../../../../utils/validasiAyat";
 
 function PretestForm({ initialData, onSuccess }) {
@@ -32,7 +36,8 @@ function PretestForm({ initialData, onSuccess }) {
     { label: "Tilawah Juz 1-5", value: "TILAWAH_JUZ_1_5" },
     { label: "Gharib", value: "GHARIB" },
     { label: "Tajwid", value: "TAJWID" },
-    { label: "Munaqosyah", value: "MUNAQOSYAH" },
+    // Munaqosyah sengaja tidak bisa di-placement: tahap ujian akhir
+    // dimasuki melalui ujian kenaikan, bukan pretest.
   ];
 
   const [addPretest, { isLoading }] = useAddPretestMutation();
@@ -49,13 +54,24 @@ function PretestForm({ initialData, onSuccess }) {
   const isJilid = ["JILID_1", "JILID_2", "JILID_3", "JILID_4", "JILID_5", "JILID_6"].includes(tahapanValue);
   const isGharibTajwid = ["GHARIB", "TAJWID"].includes(tahapanValue);
   const isQuran = ["TILAWAH_JUZ_1_5", "MUNAQOSYAH"].includes(tahapanValue);
+  const isTilawah = tahapanValue === "TILAWAH_JUZ_1_5";
 
   // Batas halaman buku sesuai kurikulum: Gharib 45, Jilid 1-6 & Tajwid 40
   const maxHalaman = TARGET_BUKU[tahapanValue] || 40;
+  // Placement = TITIK AWAL -> halaman maksimal adalah SEBELUM titik selesai buku
+  const maxPlacementHalaman = maxHalaman - 1;
 
   // Batas ayat mengikuti jumlah ayat surah terpilih (tabel surah)
   const surahTerpilihObj = surahs.find((s) => s.no_surah.toString() === selectedSurah);
   const maxAyatSurah = getMaxAyat(surahTerpilihObj);
+  // Tilawah Juz 1-5 berakhir di Surah 4 (An-Nisa) ayat 147 -> untuk placement
+  // batas efektifnya 146, dan surah 5 ke atas tidak termasuk jangkauan tahap ini.
+  const maxAyatPlacement = isTilawah && Number(selectedSurah) === TARGET_TILAWAH_JUZ_1_5.no_surah
+    ? Math.min(maxAyatSurah, TARGET_TILAWAH_JUZ_1_5.ayat - 1)
+    : maxAyatSurah;
+  const surahTersedia = isTilawah
+    ? surahs.filter((s) => s.no_surah <= TARGET_TILAWAH_JUZ_1_5.no_surah)
+    : surahs;
 
   const handleTahapanChange = (val) => {
     setTahapanValue(val);
@@ -80,13 +96,14 @@ function PretestForm({ initialData, onSuccess }) {
     }
 
     // Validasi eksplisit batas halaman (pengganti blokir native yang tanpa pesan)
+    // Placement = titik awal -> maksimal halaman SEBELUM titik selesai buku.
     if (isJilid || isGharibTajwid) {
       const nHal = Number(halamanValue);
-      if (!halamanValue || Number.isNaN(nHal) || nHal < 1 || nHal > maxHalaman) {
+      if (!halamanValue || Number.isNaN(nHal) || nHal < 1 || nHal > maxPlacementHalaman) {
         toast.error(
-          `Halaman harus di antara 1–${maxHalaman}` +
+          `Halaman placement harus di antara 1–${maxPlacementHalaman}` +
             (tahapanValue === "GHARIB" ? " (buku Gharib 45 halaman)" : "") +
-            ". Jika santri sudah melewatinya, tempatkan di tahapan berikutnya.",
+            `. Halaman ${maxHalaman} adalah titik selesai buku — jika santri sudah mencapainya, tempatkan langsung di tahapan berikutnya.`,
         );
         return;
       }
@@ -107,6 +124,21 @@ function PretestForm({ initialData, onSuccess }) {
         toast.error(cekAyat.pesan);
         return;
       }
+    }
+
+    // P1: placement adalah TITIK AWAL bacaan -> tolak bila titiknya sudah
+    // setara syarat selesai tahapan (halaman >= target buku, atau Tilawah
+    // mencapai Surah 4 ayat 147 / surah 5 ke atas).
+    const titik = {};
+    if (isJilid || isGharibTajwid) titik.halaman = Number(halamanValue) || null;
+    if (selectedSurah) {
+      titik.no_surah = Number(selectedSurah);
+      titik.ayat_akhir = Number(ayatTerakhirValue) || null;
+    }
+    const cekTitik = validasiTitikPlacement(tahapanValue, titik);
+    if (!cekTitik.valid) {
+      toast.error(cekTitik.pesan);
+      return;
     }
 
     const payload = {
@@ -197,14 +229,14 @@ function PretestForm({ initialData, onSuccess }) {
                 <Input type="number" value={jilidValue} readOnly className="bg-white font-bold" />
               </div>
                 <div>
-                <Label className="text-xs font-semibold">Halaman Terakhir Dibaca</Label>
+                <Label className="text-xs font-semibold">Halaman Terakhir Dibaca (1 - {maxPlacementHalaman})</Label>
                 <Input
                   type="number"
                   min={1}
-                  max={maxHalaman}
+                  max={maxPlacementHalaman}
                   value={halamanValue}
                   onChange={(e) => setHalamanValue(e.target.value)}
-                  placeholder={`1 - ${maxHalaman}`}
+                  placeholder={`1 - ${maxPlacementHalaman}`}
                   className="bg-white font-medium"
                 />
               </div>
@@ -218,14 +250,16 @@ function PretestForm({ initialData, onSuccess }) {
             <span className="text-xs font-bold text-emerald-800 uppercase block">Detail Placement Bacaan Qur'an</span>
             <div className="flex flex-col gap-3">
               <div>
-                <Label className="text-xs font-semibold">Surah Terakhir Dibaca</Label>
+                <Label className="text-xs font-semibold">
+                  Surah Terakhir Dibaca{isTilawah ? " (maks. An-Nisa)" : ""}
+                </Label>
                 <Select onValueChange={setSelectedSurah}>
                   <SelectTrigger className="bg-white w-full">
                     <SelectValue placeholder="Pilih Surah..." />
                   </SelectTrigger>
                   <SelectContent className="max-h-60">
                     <SelectGroup>
-                      {surahs.map((s) => (
+                      {surahTersedia.map((s) => (
                         <SelectItem key={s.no_surah} value={String(s.no_surah)}>
                           {s.no_surah}. {s.nama_surah}
                         </SelectItem>
@@ -236,15 +270,15 @@ function PretestForm({ initialData, onSuccess }) {
               </div>
               <div>
                 <Label className="text-xs font-semibold">
-                  Ayat Terakhir Dibaca{selectedSurah ? ` (1 - ${maxAyatSurah})` : ""}
+                  Ayat Terakhir Dibaca{selectedSurah ? ` (1 - ${maxAyatPlacement})` : ""}
                 </Label>
                 <Input
                   type="number"
                   min={1}
-                  max={maxAyatSurah}
+                  max={maxAyatPlacement}
                   value={ayatTerakhirValue}
                   onChange={(e) => setAyatTerakhirValue(e.target.value)}
-                  placeholder={selectedSurah ? `1 - ${maxAyatSurah}` : "Contoh: 15"}
+                  placeholder={selectedSurah ? `1 - ${maxAyatPlacement}` : "Contoh: 15"}
                   className="bg-white font-medium"
                 />
               </div>
@@ -267,14 +301,14 @@ function PretestForm({ initialData, onSuccess }) {
                 />
               </div>
               <div>
-                <Label className="text-xs font-semibold">Halaman Jilid (1 - {maxHalaman})</Label>
+                <Label className="text-xs font-semibold">Halaman Jilid (1 - {maxPlacementHalaman})</Label>
                 <Input
                   type="number"
                   min={1}
-                  max={maxHalaman}
+                  max={maxPlacementHalaman}
                   value={halamanValue}
                   onChange={(e) => setHalamanValue(e.target.value)}
-                  placeholder={`Contoh: 1 - ${maxHalaman}`}
+                  placeholder={`Contoh: 1 - ${maxPlacementHalaman}`}
                   className="bg-white font-medium"
                 />
               </div>

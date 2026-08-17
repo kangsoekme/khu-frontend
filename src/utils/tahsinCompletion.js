@@ -23,6 +23,10 @@ export const TARGET_BUKU = {
 // Nilai default bila tahapan tidak dikenal (kompatibilitas lama).
 export const TARGET_HALAMAN_JILID = 40;
 
+// Titik SELESAI Tilawah Juz 1-5 (akhir Juz 5): Surah 4 (An-Nisa) ayat 147.
+// Ayat 148+ An-Nisa sudah masuk wilayah Juz 6 (bahan tahap Gharib).
+export const TARGET_TILAWAH_JUZ_1_5 = { no_surah: 4, ayat: 147 };
+
 // Pemetaan juz-awal & juz-akhir untuk tahap lanjutan berbasis Al-Quran.
 // Dari Pemaparan: Tilawah Juz 1-5, Gharib Juz 6-15, Tajwid Juz 16-25, Al-Quran Juz 26-30.
 const JUZ_RANGE = {
@@ -204,10 +208,13 @@ export const cekPenyelesaianTahapan = (lastRiwayat, pretestPlacement) => {
   let selesai = false;
 
   if (tahapan === "TILAWAH_JUZ_1_5") {
-    surahAkhirRentang = 4;
+    surahAkhirRentang = TARGET_TILAWAH_JUZ_1_5.no_surah;
     const ayatAkhir = Number(laporan.ayat_akhir) || 0;
     // Selesai jika sudah lewat Surah 4, ATAU di Surah 4 tapi ayatnya sdh sampai 147
-    selesai = noSurah > 4 || (noSurah === 4 && ayatAkhir >= 147);
+    selesai =
+      noSurah > TARGET_TILAWAH_JUZ_1_5.no_surah ||
+      (noSurah === TARGET_TILAWAH_JUZ_1_5.no_surah &&
+        ayatAkhir >= TARGET_TILAWAH_JUZ_1_5.ayat);
   } else if (tahapan === "MUNAQOSYAH") {
     // BUG-01 fix: Munaqosyah = tahap ujian akhir (tilawah juz 26-30).
     // Target Surah No. 51 (Al-Ahqaf, akhir Juz 26-30) — BUKAN 114 (An-Nas)
@@ -228,6 +235,53 @@ export const cekPenyelesaianTahapan = (lastRiwayat, pretestPlacement) => {
     target: tahapan === "TILAWAH_JUZ_1_5" ? `Juz 1-5 (s/d Surah 4 Ayat 147)` : `Juz ${range.awal}-${range.akhir} (s/d Surah No. ${surahAkhirRentang})`,
     capaian: tahapan === "TILAWAH_JUZ_1_5" && noSurah === 4 ? `Surah 4 Ayat ${Number(laporan.ayat_akhir) || "-"}` : `Surah No. ${noSurah || "-"}`,
   };
+};
+
+/**
+ * Validasi titik placement pretest (P1: placement = TITIK AWAL bacaan).
+ * Titik placement tidak boleh berada di titik selesai tahapan (atau melewatinya),
+ * karena itu membuat siswa instan "selesai tahapan" tanpa satu setoran riil pun
+ * dan langsung boleh mengajukan ujian kenaikan.
+ *
+ * Aturan (satu sumber kebenaran — memakai cekPenyelesaianTahapan):
+ * - BUKU/GANDA: halaman < TARGET_BUKU (Jilid/Tajwid maks 39, Gharib maks 44).
+ * - TILAWAH_JUZ_1_5: maks Surah 4 (An-Nisa) ayat 146; surah 5+ ditolak.
+ * - MUNAQOSYAH: selalu ditolak — tahap ujian akhir dimasuki via ujian kenaikan.
+ *
+ * @param {string} tahapan - tahapan placement yang dipilih.
+ * @param {Object} titik - { halaman, no_surah, ayat_akhir } posisi bacaan santri.
+ * @returns {{ valid: boolean, pesan: string }}
+ */
+export const validasiTitikPlacement = (tahapan, titik = {}) => {
+  if (!tahapan) {
+    return { valid: false, pesan: "Pilih tahapan placement terlebih dahulu" };
+  }
+
+  if (tahapan === "MUNAQOSYAH") {
+    return {
+      valid: false,
+      pesan:
+        "Munaqosyah adalah tahap ujian akhir — dimasuki melalui ujian kenaikan, bukan placement pretest",
+    };
+  }
+
+  const status = cekPenyelesaianTahapan({
+    tahapan,
+    laporan_bacaan: {
+      bab: titik.halaman ?? null,
+      no_surah: titik.no_surah ?? null,
+      ayat_akhir: titik.ayat_akhir ?? null,
+    },
+  });
+
+  if (status.selesai) {
+    return {
+      valid: false,
+      pesan: `Placement adalah titik awal bacaan, sedangkan posisi santri (${status.capaian}) sudah setara titik selesai tahapan (target: ${status.target}). Tempatkan santri langsung di tahapan berikutnya.`,
+    };
+  }
+
+  return { valid: true, pesan: "" };
 };
 
 /**
@@ -260,10 +314,24 @@ export const cekKelengkapanPengajuan = (riwayatList, tahapanSaatIni, pretestPlac
   const lastRiwayat = riwayatTahapanIni[0] || pretestPlacement || null;
   const status = cekPenyelesaianTahapan(lastRiwayat, pretestPlacement);
 
-  if (status.selesai) {
+  // P3 hardening: placement pretest hanyalah TITIK AWAL, bukan capaian riil.
+  // Tombol pengajuan minimal mensyaratkan satu setoran riil (non-placement) di
+  // tahapan berjalan — mengunci celah placement di/lewat titik selesai tahapan
+  // (termasuk data lama yang sudah ternoda sebelum validasi diterapkan).
+  const adaSetoranRiil = riwayatTahapanIni.some((r) => !r.is_placement);
+
+  if (status.selesai && adaSetoranRiil) {
     return {
       bolehAjukan: true,
       alasan: `Tahapan ${tahapanSaatIni?.replace(/_/g, " ")} sudah selesai (${status.capaian}). Siap diajukan ujian kenaikan.`,
+      detail: status,
+    };
+  }
+
+  if (status.selesai && !adaSetoranRiil) {
+    return {
+      bolehAjukan: false,
+      alasan: `Placement pretest hanya titik awal — capaian ${status.capaian} belum didukung setoran riil di tahapan ini. Lakukan setoran hingga target ${status.target} sebelum mengajukan ujian.`,
       detail: status,
     };
   }
