@@ -63,7 +63,6 @@ const TahfidzStudentDetail = lazy(
 
 const GuruHomepage = lazy(() => import("../pages/guru/Homepage.jsx"));
 
-const WaliLogin = lazy(() => import("../pages/wali/WaliLogin.jsx"));
 const WaliDashboard = lazy(() => import("../pages/wali/WaliDashboard.jsx"));
 
 import { ROLES } from "../utils/constant.js";
@@ -107,7 +106,7 @@ const RoleBasedHomepage = () => {
 
 // Redirect untuk path /wali (sebelumnya tidak terdaftar → error boundary).
 // - Sudah login sebagai WALI  → /wali/dashboard
-// - Belum login / bukan WALI  → /wali/login
+// - Belum login / bukan WALI  → /login?tab=wali (login satuan, tab Wali Santri)
 const WaliRedirect = () => {
   const isLoggedIn = localStorage.getItem("isLoggedIn");
   const role = localStorage.getItem("role");
@@ -115,7 +114,7 @@ const WaliRedirect = () => {
   if (isLoggedIn && role === "WALI") {
     return <Navigate to="/wali/dashboard" replace />;
   }
-  return <Navigate to="/wali/login" replace />;
+  return <Navigate to="/login?tab=wali" replace />;
 };
 
 const GlobalErrorBoundary = () => {
@@ -167,12 +166,10 @@ const router = createBrowserRouter([
     errorElement: <GlobalErrorBoundary />,
   },
   {
+    // Login wali kini tergabung ke halaman /login (tab "Wali Santri").
+    // Route lama dipertahankan sebagai redirect agar bookmark/link lama tetap jalan.
     path: "/wali/login",
-    element: (
-      <Suspense fallback={<PageLoader />}>
-        <WaliLogin />
-      </Suspense>
-    ),
+    element: <Navigate to="/login?tab=wali" replace />,
     errorElement: <GlobalErrorBoundary />,
   },
   {

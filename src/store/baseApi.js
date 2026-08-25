@@ -18,7 +18,7 @@ const baseQuery = fetchBaseQuery({
 // loop (ProtectedRoute → /wali). Sekarang arahkan WALI ke portalnya sendiri.
 const redirectToLogin = () => {
   const role = localStorage.getItem("role");
-  const waliPath = role === "WALI" ? "/wali/login" : "/";
+  const waliPath = role === "WALI" ? "/login?tab=wali" : "/";
   localStorage.clear();
   // Gunakan replace agar tidak menambah entri history (tombol back tidak loop).
   window.location.replace(waliPath);

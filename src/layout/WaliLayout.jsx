@@ -28,7 +28,7 @@ function WaliLayout() {
     localStorage.removeItem("token");
     localStorage.removeItem("nama");
     localStorage.removeItem("nis");
-    navigate("/wali/login");
+    navigate("/login?tab=wali");
   };
 
   return (

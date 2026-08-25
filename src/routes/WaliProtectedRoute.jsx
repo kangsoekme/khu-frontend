@@ -6,7 +6,8 @@ export default function WaliProtectedRoute() {
   const role = localStorage.getItem("role");
 
   if (!isLoggedIn || role !== "WALI") {
-    return <Navigate to="/wali/login" replace />;
+    // Login satuan: wali mendarat di tab "Wali Santri" halaman /login.
+    return <Navigate to="/login?tab=wali" replace />;
   }
 
   return <Outlet />;
