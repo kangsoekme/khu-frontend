@@ -13,15 +13,15 @@ const baseQuery = fetchBaseQuery({
   },
 });
 
-// Helper: redirect ke halaman login yang sesuai dengan role di localStorage.
+// Helper: redirect ke halaman login saat sesi habis/token dicabut.
 // WALI-3: sebelumnya selalu redirect ke "/" — untuk user WALI ini menyebabkan
-// loop (ProtectedRoute → /wali). Sekarang arahkan WALI ke portalnya sendiri.
+// loop (ProtectedRoute → /wali). Sekarang arahkan WALI ke login satuan /login.
 const redirectToLogin = () => {
   const role = localStorage.getItem("role");
-  const waliPath = role === "WALI" ? "/login?tab=wali" : "/";
+  const loginPath = role === "WALI" ? "/login" : "/";
   localStorage.clear();
   // Gunakan replace agar tidak menambah entri history (tombol back tidak loop).
-  window.location.replace(waliPath);
+  window.location.replace(loginPath);
 };
 
 const baseQueryWithReauth = async (args, api, extraOptions) => {

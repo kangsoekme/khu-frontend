@@ -12,24 +12,43 @@ import { Input } from "@/components/ui/input";
 
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Login satuan: satu halaman untuk seluruh role.
-// - Tab "Pengelola"  : SUPER_ADMIN / DIREKTUR / GURU → email + password
-// - Tab "Wali Santri": WALI → NIS anak + tanggal lahir (DDMMYYYY)
-// Tab dikontrol dari parent (LoginPage) agar bisa disinkronkan dengan ?tab= di URL.
-export function LoginForm({
-  className,
-  tab,
-  onTabChange,
-  onSubmitStaff,
-  onSubmitWali,
-  isLoadingStaff = false,
-  isLoadingWali = false,
-  ...props
-}) {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showTanggalLahir, setShowTanggalLahir] = useState(false);
+// Login satuan "form pintar" (tanpa tab): SATU form untuk seluruh role.
+// - Identifier mengandung "@" → akun Pengelola (SUPER_ADMIN/DIREKTUR/GURU): email + password
+// - Identifier berupa angka (NIS) → akun Wali Santri: NIS + tanggal lahir (DDMMYYYY)
+// Deteksi berjalan live saat mengetik; label field rahasia ikut menyesuaikan
+// agar pengguna tahu harus mengisi apa tanpa perlu memilih menu apa pun.
+export function LoginForm({ className, onSubmit, isLoading = false, ...props }) {
+  const [identifier, setIdentifier] = useState("");
+  const [showSecret, setShowSecret] = useState(false);
+
+  const trimmed = identifier.trim();
+  const isStaff = trimmed.includes("@");
+  const isWali = trimmed.length > 0 && !isStaff && /^\d+$/.test(trimmed);
+  const isUnknown = trimmed.length > 0 && !isStaff && !isWali;
+
+  // Label field rahasia adaptif sesuai hasil deteksi identifier.
+  const secretLabel = isStaff
+    ? "Password"
+    : isWali
+      ? "Tanggal Lahir (DDMMYYYY)"
+      : "Password / Tanggal Lahir (DDMMYYYY)";
+
+  const secretPlaceholder = isStaff
+    ? "********"
+    : isWali
+      ? "Contoh: 17082015"
+      : "Contoh: ******** atau 17082015";
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    onSubmit({
+      identifier: (formData.get("identifier") || "").trim(),
+      secret: (formData.get("secret") || "").trim(),
+    });
+  };
 
   return (
     <div
@@ -47,108 +66,90 @@ export function LoginForm({
                 </p>
               </div>
 
-              <Tabs value={tab} onValueChange={onTabChange}>
-                <TabsList className="w-full">
-                  <TabsTrigger value="pengelola">Pengelola</TabsTrigger>
-                  <TabsTrigger value="wali">Wali Santri</TabsTrigger>
-                </TabsList>
+              <form onSubmit={handleSubmit} autoComplete="off">
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel htmlFor="identifier">
+                      Email{" "}
+                      <span className="font-normal text-muted-foreground">
+                        (Pengelola)
+                      </span>{" "}
+                      / NIS Siswa{" "}
+                      <span className="font-normal text-muted-foreground">
+                        (Wali)
+                      </span>
+                    </FieldLabel>
+                    <Input
+                      id="identifier"
+                      name="identifier"
+                      type="text"
+                      autoComplete="off"
+                      placeholder="Contoh: guru@khu.sch.id atau 2019012"
+                      required
+                      disabled={isLoading}
+                      value={identifier}
+                      onChange={(e) => setIdentifier(e.target.value)}
+                    />
+                  </Field>
 
-                {/* Tab Pengelola: Super Admin / Direktur / Guru (email + password) */}
-                <TabsContent value="pengelola" className="mt-4">
-                  <form onSubmit={onSubmitStaff} autoComplete="off">
-                    <FieldGroup>
-                      <Field>
-                        <FieldLabel htmlFor="email">Email</FieldLabel>
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          autoComplete="off"
-                          placeholder="m@example.com"
-                          required
-                          disabled={isLoadingStaff}
-                        />
-                      </Field>
-                      <Field>
-                        <div className="flex items-center">
-                          <FieldLabel htmlFor="password">Password</FieldLabel>
-                        </div>
-                        <Input
-                          id="password"
-                          name="password"
-                          autoComplete="new-password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="********"
-                          required
-                          disabled={isLoadingStaff}
-                        />
-                      </Field>
-                      <div className="flex items-center gap-3 w-full justify-end">
-                        <Checkbox
-                          id="show-password"
-                          checked={showPassword}
-                          onCheckedChange={(checked) => setShowPassword(checked)}
-                        />
-                        <Label>Tampilkan Password</Label>
-                      </div>
-                      <Field>
-                        <Button type="submit" disabled={isLoadingStaff}>
-                          {isLoadingStaff ? "Memproses..." : "Masuk"}
-                        </Button>
-                      </Field>
-                    </FieldGroup>
-                  </form>
-                </TabsContent>
+                  {/* Indikator deteksi live: jenis akun apa yang dikenali sistem */}
+                  {isStaff && (
+                    <p className="-mt-2 text-xs font-medium text-primary-600">
+                      ✓ Terdeteksi akun <b>Pengelola</b> — lanjut isi Password
+                    </p>
+                  )}
+                  {isWali && (
+                    <p className="-mt-2 text-xs font-medium text-grade-mumtaz-text">
+                      ✓ Terdeteksi akun <b>Wali Santri</b> — lanjut isi Tanggal
+                      Lahir anak
+                    </p>
+                  )}
+                  {isUnknown && (
+                    <p className="-mt-2 text-xs font-medium text-grade-maqbul-text">
+                      Format belum dikenali — pastikan email mengandung @ atau
+                      NIS berupa angka.
+                    </p>
+                  )}
 
-                {/* Tab Wali Santri: NIS anak + tanggal lahir (DDMMYYYY) */}
-                <TabsContent value="wali" className="mt-4">
-                  <form onSubmit={onSubmitWali} autoComplete="off">
-                    <FieldGroup>
-                      <Field>
-                        <FieldLabel htmlFor="nis">NIS Siswa</FieldLabel>
-                        <Input
-                          id="nis"
-                          name="nis"
-                          type="text"
-                          placeholder="Masukkan NIS anak Anda"
-                          required
-                          disabled={isLoadingWali}
-                        />
-                      </Field>
-                      <Field>
-                        <div className="flex items-center">
-                          <FieldLabel htmlFor="tanggal-lahir">
-                            Tanggal Lahir (DDMMYYYY)
-                          </FieldLabel>
-                        </div>
-                        <Input
-                          id="tanggal-lahir"
-                          name="password"
-                          type={showTanggalLahir ? "text" : "password"}
-                          placeholder="Contoh: 17082015"
-                          required
-                          disabled={isLoadingWali}
-                        />
-                      </Field>
-                      <div className="flex items-center gap-3 w-full justify-end">
-                        <Checkbox
-                          id="show-tanggal-lahir"
-                          checked={showTanggalLahir}
-                          onCheckedChange={(checked) =>
-                            setShowTanggalLahir(checked)
-                          }
-                        />
-                        <Label>Tampilkan Tanggal</Label>
-                      </div>
-                      <Field>
-                        <Button type="submit" disabled={isLoadingWali}>
-                          {isLoadingWali ? "Memproses..." : "Masuk"}
-                        </Button>
-                      </Field>
-                    </FieldGroup>
-                  </form>
-                </TabsContent>
-              </Tabs>
+                  <Field>
+                    <FieldLabel htmlFor="secret">{secretLabel}</FieldLabel>
+                    <Input
+                      id="secret"
+                      name="secret"
+                      autoComplete="new-password"
+                      type={showSecret ? "text" : "password"}
+                      placeholder={secretPlaceholder}
+                      required
+                      disabled={isLoading}
+                    />
+                  </Field>
+                  <div className="flex items-center gap-3 w-full justify-end">
+                    <Checkbox
+                      id="show-secret"
+                      checked={showSecret}
+                      onCheckedChange={(checked) => setShowSecret(checked)}
+                    />
+                    <Label>Tampilkan</Label>
+                  </div>
+                  <Field>
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Memproses..." : "Masuk"}
+                    </Button>
+                  </Field>
+                </FieldGroup>
+              </form>
+
+              {/* Petunjuk pemisahan dua jenis akun pada satu form */}
+              <div className="rounded-lg border border-primary-100 bg-primary-50 p-3 text-xs leading-relaxed text-primary-900">
+                <span className="font-semibold">Petunjuk:</span> Pengelola
+                (Admin/Direktur/Guru) mengisi <b>Email + Password</b>. Wali
+                Santri mengisi <b>NIS anak + Tanggal Lahir anak</b> (contoh:
+                17082015). Sistem mengenali akun Anda secara otomatis.
+              </div>
             </FieldGroup>
           </div>
           <div className="relative hidden bg-muted md:block">

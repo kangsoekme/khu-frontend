@@ -106,7 +106,7 @@ const RoleBasedHomepage = () => {
 
 // Redirect untuk path /wali (sebelumnya tidak terdaftar → error boundary).
 // - Sudah login sebagai WALI  → /wali/dashboard
-// - Belum login / bukan WALI  → /login?tab=wali (login satuan, tab Wali Santri)
+// - Belum login / bukan WALI  → /login (form pintar satuan)
 const WaliRedirect = () => {
   const isLoggedIn = localStorage.getItem("isLoggedIn");
   const role = localStorage.getItem("role");
@@ -114,7 +114,7 @@ const WaliRedirect = () => {
   if (isLoggedIn && role === "WALI") {
     return <Navigate to="/wali/dashboard" replace />;
   }
-  return <Navigate to="/login?tab=wali" replace />;
+  return <Navigate to="/login" replace />;
 };
 
 const GlobalErrorBoundary = () => {
@@ -166,10 +166,10 @@ const router = createBrowserRouter([
     errorElement: <GlobalErrorBoundary />,
   },
   {
-    // Login wali kini tergabung ke halaman /login (tab "Wali Santri").
+    // Login wali kini tergabung ke halaman /login (form pintar satuan).
     // Route lama dipertahankan sebagai redirect agar bookmark/link lama tetap jalan.
     path: "/wali/login",
-    element: <Navigate to="/login?tab=wali" replace />,
+    element: <Navigate to="/login" replace />,
     errorElement: <GlobalErrorBoundary />,
   },
   {
