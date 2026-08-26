@@ -1,0 +1,30 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e7]:
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - heading "Selamat Datang Kembali" [level=1] [ref=e11]
+          - paragraph [ref=e12]: Masuk ke akun KHU Quranic Program Anda
+        - generic [ref=e14]:
+          - group [ref=e15]:
+            - generic [ref=e16]:
+              - text: Email
+              - generic [ref=e17]: (Pengelola)
+              - text: / NIS Siswa
+              - generic [ref=e18]: (Wali)
+            - textbox "Email (Pengelola) / NIS Siswa (Wali)" [ref=e19]:
+              - /placeholder: "Contoh: guru@khu.sch.id atau 2019012"
+          - group [ref=e20]:
+            - generic [ref=e21]: Password / Tanggal Lahir (DDMMYYYY)
+            - textbox "Password / Tanggal Lahir (DDMMYYYY)" [ref=e22]:
+              - /placeholder: "Contoh: ******** atau 17082015"
+          - generic [ref=e23]:
+            - checkbox [ref=e24]
+            - checkbox
+            - generic [ref=e25]: Tampilkan
+          - group [ref=e26]:
+            - button "Masuk" [ref=e27]
+        - generic [ref=e28]: "Petunjuk: Pengelola (Admin/Direktur/Guru) mengisi Email + Password. Wali Santri mengisi NIS anak + Tanggal Lahir anak (contoh: 17082015). Sistem mengenali akun Anda secara otomatis."
+      - img "Image" [ref=e30]
+    - img "Khoiru Ummah" [ref=e32]
+  - region "Notifications alt+T"

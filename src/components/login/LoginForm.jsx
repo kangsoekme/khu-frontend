@@ -3,11 +3,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
 import { Label } from "@/components/ui/label";
@@ -18,7 +14,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 // - Identifier berupa angka (NIS) → akun Wali Santri: NIS + tanggal lahir (DDMMYYYY)
 // Deteksi berjalan live saat mengetik; label field rahasia ikut menyesuaikan
 // agar pengguna tahu harus mengisi apa tanpa perlu memilih menu apa pun.
-export function LoginForm({ className, onSubmit, isLoading = false, ...props }) {
+export function LoginForm({
+  className,
+  onSubmit,
+  isLoading = false,
+  ...props
+}) {
   const [identifier, setIdentifier] = useState("");
   const [showSecret, setShowSecret] = useState(false);
 
@@ -142,14 +143,6 @@ export function LoginForm({ className, onSubmit, isLoading = false, ...props }) 
                   </Field>
                 </FieldGroup>
               </form>
-
-              {/* Petunjuk pemisahan dua jenis akun pada satu form */}
-              <div className="rounded-lg border border-primary-100 bg-primary-50 p-3 text-xs leading-relaxed text-primary-900">
-                <span className="font-semibold">Petunjuk:</span> Pengelola
-                (Admin/Direktur/Guru) mengisi <b>Email + Password</b>. Wali
-                Santri mengisi <b>NIS anak + Tanggal Lahir anak</b> (contoh:
-                17082015). Sistem mengenali akun Anda secara otomatis.
-              </div>
             </FieldGroup>
           </div>
           <div className="relative hidden bg-muted md:block">

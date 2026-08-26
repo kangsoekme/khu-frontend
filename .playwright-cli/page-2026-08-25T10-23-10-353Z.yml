@@ -1,0 +1,95 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - heading "Perbandingan Desain Login Tanpa Tab — KHU Quranic Program" [level=1] [ref=e3]
+    - paragraph [ref=e4]: Kedua opsi di bawah menggantikan tampilan tab yang sekarang. Satu halaman, field biasa, tanpa interaksi pindah menu. Buka file ini di browser, lihat kedua gambaran, lalu tentukan pilihan Anda (A atau B).
+  - main [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]: OPSI A
+        - heading "Dua Seksi Bertumpuk — \"Isi yang punya Anda\"" [level=2] [ref=e9]
+        - paragraph [ref=e10]: Semua field tampil sekaligus dalam satu card. Grup atas untuk pengelola, grup bawah untuk wali. Tidak ada yang disembunyikan.
+      - generic [ref=e11]:
+        - generic [ref=e12]:
+          - generic [ref=e13]:
+            - heading "Selamat Datang Kembali" [level=3] [ref=e14]
+            - paragraph [ref=e15]: Masuk ke akun KHU Quranic Program Anda
+          - generic [ref=e16]:
+            - generic [ref=e18]: LOGIN PENGELOLA
+            - generic [ref=e19]: Admin • Direktur • Guru
+          - generic [ref=e20]:
+            - generic [ref=e21]: Email
+            - textbox "m@example.com" [ref=e22]
+          - generic [ref=e23]:
+            - generic [ref=e24]: Password
+            - textbox [ref=e25]: ••••••••
+          - generic [ref=e26]:
+            - checkbox [ref=e27]
+            - text: Tampilkan Password
+          - button "Masuk" [ref=e28] [cursor=pointer]
+          - generic [ref=e29]: atau
+          - generic [ref=e30]:
+            - generic [ref=e32]: LOGIN WALI SANTRI
+            - generic [ref=e33]: Orang Tua / Wali
+          - generic [ref=e34]:
+            - generic [ref=e35]: NIS Siswa
+            - textbox "Masukkan NIS anak Anda" [ref=e36]
+          - generic [ref=e37]:
+            - generic [ref=e38]: Tanggal Lahir (DDMMYYYY)
+            - 'textbox "Contoh: 17082015" [ref=e39]'
+          - generic [ref=e40]:
+            - checkbox [ref=e41]
+            - text: Tampilkan Tanggal
+          - button "Masuk" [ref=e42] [cursor=pointer]
+        - img "Gedung KHU" [ref=e44]
+      - generic [ref=e45]:
+        - heading "Kelebihan" [level=4] [ref=e46]
+        - list [ref=e47]:
+          - listitem [ref=e48]: + Paling bebas kebingungan — setiap orang langsung tahu grup mana miliknya
+          - listitem [ref=e49]: "+ Pesan error tetap spesifik: \"Email atau password salah\" vs \"NIS atau Tanggal Lahir salah\""
+          - listitem [ref=e50]: + Tanpa logika deteksi otomatis — tidak mungkin salah kirim endpoint
+          - listitem [ref=e51]: + Perubahan kode paling kecil & paling aman dari desain tab yang sekarang
+      - generic [ref=e52]:
+        - heading "Kekurangan" [level=4] [ref=e53]
+        - list [ref=e54]:
+          - listitem [ref=e55]: – Form terlihat lebih panjang (4 field + 2 tombol), meski tetap muat satu layar
+          - listitem [ref=e56]: – Wali harus sedikit scroll di layar HP jika kedua seksi diperlihatkan penuh
+    - generic [ref=e57]:
+      - generic [ref=e58]:
+        - generic [ref=e59]: OPSI B
+        - heading "Form Pintar Satu Set — \"Satu Form untuk Semua\"" [level=2] [ref=e60]
+        - paragraph [ref=e61]: "Cuma 2 field + 1 tombol, seperti login pada umumnya. Sistem mendeteksi sendiri: ada tanda @ berarti pengelola, berupa angka berarti wali."
+      - generic [ref=e62]:
+        - generic [ref=e63]:
+          - generic [ref=e64]:
+            - heading "Selamat Datang Kembali" [level=3] [ref=e65]
+            - paragraph [ref=e66]: Masuk ke akun KHU Quranic Program Anda
+          - generic [ref=e67]:
+            - generic [ref=e68]: Email (Pengelola) / NIS Siswa (Wali)
+            - 'textbox "Contoh: guru@khu.sch.id atau 2019012" [ref=e69]':
+              - /placeholder: "Contoh: guru@khu.sch.id  atau  2019012"
+          - generic [ref=e70]:
+            - generic [ref=e71]: Password (Pengelola) / Tanggal Lahir (DDMMYYYY) (Wali)
+            - 'textbox "Contoh: •••••••• atau 17082015" [ref=e72]':
+              - /placeholder: "Contoh: ••••••••  atau  17082015"
+          - generic [ref=e73]:
+            - checkbox [ref=e74]
+            - text: Tampilkan
+          - button "Masuk" [ref=e75] [cursor=pointer]
+          - generic [ref=e76]: "Petunjuk: Pengelola (Admin/Direktur/Guru) mengisi Email + Password. Wali Santri mengisi NIS anak + Tanggal Lahir anak (contoh: 17082015). Sistem mengenali akun Anda secara otomatis."
+        - img "Gedung KHU" [ref=e78]
+      - generic [ref=e79]:
+        - heading "Kelebihan" [level=4] [ref=e80]
+        - list [ref=e81]:
+          - listitem [ref=e82]: + Tampilan paling minimalis & bersih — hanya 2 field, 1 tombol
+          - listitem [ref=e83]: + Terasa seperti halaman login "normal" yang sudah dikenal semua orang
+          - listitem [ref=e84]: + Ringkas di layar HP, tidak perlu scroll
+      - generic [ref=e85]:
+        - heading "Kekurangan / Risiko" [level=4] [ref=e86]
+        - list [ref=e87]:
+          - listitem [ref=e88]: – Wali harus MEMBACA label dulu supaya tahu field pertama diisi NIS — risiko bingung untuk yang asal cuma lihat
+          - listitem [ref=e89]: – Pesan error harus generik ("Email/NIS atau password salah") — kuratifnya berkurang
+          - listitem [ref=e90]: "– Edge case: pengelola salah ketik email tanpa @ → terdeteksi sebagai NIS → pesan error membingungkan"
+          - listitem [ref=e91]: – Perlu logika deteksi baru di frontend (+ penanganan kasus-kasus khusus)
+  - contentinfo [ref=e92]:
+    - img "Khoiru Ummah" [ref=e93]
+    - paragraph [ref=e94]: Mockup perbandingan — belum ada kode yang diubah. Setelah Anda memilih, implementasi menyusul.
