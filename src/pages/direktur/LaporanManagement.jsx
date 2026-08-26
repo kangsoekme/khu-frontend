@@ -4,6 +4,7 @@ import {
   FaUsers,
   FaLayerGroup,
   FaUserGraduate,
+  FaClipboardList,
 } from "react-icons/fa";
 
 import React, { useState } from "react";
@@ -29,6 +30,15 @@ const getFilenameTimestamp = () => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
 };
 
+// Nama file resmi ditentukan server via header Content-Disposition, agar nama
+// file selalu konsisten dengan periode/tahun ajaran di dalam dokumen (sheet
+// INFO). Fallback lokal hanya dipakai bila header tidak terkirim/terbaca.
+const getServerFilename = (response, fallback) => {
+  const disposition = response.headers.get("content-disposition") || "";
+  const match = disposition.match(/filename="?([^";]+)"?/i);
+  return match ? match[1] : fallback;
+};
+
 import { toast } from "sonner";
 import { useGetStudentsQuery } from "../../store/api/studentsApi";
 import {
@@ -48,6 +58,13 @@ function LaporanManagement() {
   const [selectedBulan, setSelectedBulan] = useState(
     new Date().toISOString().slice(0, 7),
   );
+  const [kelompokKategori, setKelompokKategori] = useState("TAHSIN");
+
+  // Export Pembagian Kelompok & Munaqosyah hanya untuk SUPER_ADMIN/DIREKTUR
+  // (backend membatasi role yang sama di /api/export/halaqoh & /munaqosyah)
+  const role = localStorage.getItem("role");
+  const canDownloadInstitusional =
+    role === "SUPER_ADMIN" || role === "DIREKTUR";
 
   const { data: studentsRes } = useGetStudentsQuery();
   const students = studentsRes?.data || [];
@@ -83,7 +100,10 @@ function LaporanManagement() {
       a.href = url;
       const infoPeriode =
         periodeType === "bulanan" ? `_BULANAN_${selectedBulan}` : `_SEMESTERAN`;
-      a.download = `Laporan_Jamai_${kategori.toUpperCase()}${infoPeriode}_${getFilenameTimestamp()}.xlsx`;
+      a.download = getServerFilename(
+        response,
+        `Laporan_Jamai_${kategori.toUpperCase()}${infoPeriode}_${getFilenameTimestamp()}.xlsx`,
+      );
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -120,7 +140,10 @@ function LaporanManagement() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Rapor_Perkembangan_${selectedStudent?.nama || selectedNis}_${getFilenameTimestamp()}.xlsx`;
+      a.download = getServerFilename(
+        response,
+        `Rapor_Perkembangan_${selectedStudent?.nama || selectedNis}_${getFilenameTimestamp()}.xlsx`,
+      );
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -147,7 +170,10 @@ function LaporanManagement() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Laporan_Perkembangan_Ummi_${getFilenameTimestamp()}.docx`;
+      a.download = getServerFilename(
+        response,
+        `Laporan_Perkembangan_Ummi_${getFilenameTimestamp()}.docx`,
+      );
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -182,7 +208,10 @@ function LaporanManagement() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Rapor_Word_${selectedStudent?.nama || selectedNis}_${getFilenameTimestamp()}.docx`;
+      a.download = getServerFilename(
+        response,
+        `Rapor_Word_${selectedStudent?.nama || selectedNis}_${getFilenameTimestamp()}.docx`,
+      );
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -191,6 +220,71 @@ function LaporanManagement() {
     } catch (error) {
       console.error(error);
       toast.error("Terjadi kesalahan saat mengunduh rapor Word individu");
+    } finally {
+      setLoadingType(null);
+    }
+  };
+
+  // Handler unduh rekap Pembagian Kelompok (Halaqoh Tahsin/Tahfidz) — label
+  // semester & tahun ajaran diambil dari tahun akademik aktif oleh server.
+  const handleDownloadKelompok = async () => {
+    try {
+      setLoadingType("kelompok");
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${BASE_API_URL}/export/halaqoh?kategori=${kelompokKategori}`,
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      if (!response.ok) throw new Error("Gagal mengunduh pembagian kelompok");
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = getServerFilename(
+        response,
+        `Pembagian_Kelompok_${kelompokKategori}_${getFilenameTimestamp()}.xlsx`,
+      );
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Pembagian kelompok berhasil diunduh!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Terjadi kesalahan saat mengunduh pembagian kelompok");
+    } finally {
+      setLoadingType(null);
+    }
+  };
+
+  const handleDownloadMunaqosyah = async () => {
+    try {
+      setLoadingType("munaqosyah");
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${BASE_API_URL}/export/munaqosyah`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error("Gagal mengunduh data munaqosyah");
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = getServerFilename(
+        response,
+        `Data_Munaqosyah_${getFilenameTimestamp()}.xlsx`,
+      );
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Data munaqosyah berhasil diunduh!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Terjadi kesalahan saat mengunduh data munaqosyah");
     } finally {
       setLoadingType(null);
     }
@@ -205,7 +299,9 @@ function LaporanManagement() {
           </CardTitle>
           <CardDescription className="text-xs text-blue-700">
             Pilih apakah laporan Jamai diunduh berdasarkan keseluruhan semester
-            aktif atau rekapitulasi khusus per bulan.
+            aktif atau rekapitulasi khusus per bulan. Pengaturan ini hanya
+            berlaku untuk <b>Laporan Jamai</b> (Halaqoh &amp; Kelas) — rapor
+            individu selalu mengikuti semester berjalan.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col sm:flex-row items-center gap-4">
@@ -335,7 +431,7 @@ function LaporanManagement() {
                 Rapor Perkembangan Siswa
               </CardTitle>
               <CardDescription>
-                Format 16. DATA PERKEMBANGAN SISWA
+                Rapor 1 siswa (Tahsin &amp; Tahfidz), siap cetak
               </CardDescription>
             </div>
           </CardHeader>
@@ -422,6 +518,69 @@ function LaporanManagement() {
             </div>
           </CardContent>
         </Card>
+
+        {/* ==================================================== */}
+        {/* KARTU 4: LAPORAN INSTITUSIONAL (SA & DIREKTUR)       */}
+        {/* ==================================================== */}
+        {canDownloadInstitusional && (
+          <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center gap-4 pb-2">
+              <div className="p-3 bg-amber-100 text-amber-600 rounded-lg">
+                <FaClipboardList size={24} />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Laporan Institusional</CardTitle>
+                <CardDescription>
+                  Pembagian Kelompok &amp; Data Munaqosyah
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-4 flex flex-col justify-between h-48 gap-2">
+              <p className="text-sm text-neutral-600">
+                Rekap pembagian kelompok halaqoh per kategori serta data siswa
+                munaqosyah. Label semester &amp; tahun ajaran mengikuti tahun
+                akademik aktif.
+              </p>
+              <div className="flex flex-col gap-2 mt-auto">
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={kelompokKategori}
+                    onValueChange={setKelompokKategori}
+                  >
+                    <SelectTrigger className="w-full h-9 bg-white text-xs">
+                      <SelectValue placeholder="Pilih Kategori" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="TAHSIN">Tahsin Qiraah</SelectItem>
+                      <SelectItem value="TAHFIDZ">Tahfidz Quran</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    onClick={handleDownloadKelompok}
+                    disabled={loadingType === "kelompok"}
+                    className="w-full bg-amber-600 hover:bg-amber-700 text-white gap-2"
+                  >
+                    <FaFileExcel />{" "}
+                    {loadingType === "kelompok"
+                      ? "Mengunduh..."
+                      : "Pembagian Kelompok"}
+                  </Button>
+                </div>
+                <Button
+                  onClick={handleDownloadMunaqosyah}
+                  disabled={loadingType === "munaqosyah"}
+                  variant="outline"
+                  className="w-full gap-2"
+                >
+                  <FaFileExcel />{" "}
+                  {loadingType === "munaqosyah"
+                    ? "Mengunduh..."
+                    : "Data Munaqosyah (.xlsx)"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

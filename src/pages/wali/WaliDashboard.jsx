@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ChartPerkembangan from "../../components/tahsin-tahfidz/ChartPerkembangan";
 import {
@@ -36,8 +37,10 @@ import {
 } from "@/components/ui/pagination";
 import { useState } from "react";
 import { MobileHistoryCard } from "../../components/ui/MobileHistoryCard";
-import { FaCalendarCheck } from "react-icons/fa";
+import { FaCalendarCheck, FaFileExcel, FaFileWord } from "react-icons/fa";
 import { formatRentangAyat } from "../../utils/tahsinProgress";
+import { toast } from "sonner";
+import { BASE_API_URL } from "../../store/baseApi";
 
 export default function WaliDashboard() {
   const nis = localStorage.getItem("nis");
@@ -55,6 +58,7 @@ export default function WaliDashboard() {
   const [currentPageTahsin, setCurrentPageTahsin] = useState(1);
   const [currentPageHafalan, setCurrentPageHafalan] = useState(1);
   const [currentPageMurajaah, setCurrentPageMurajaah] = useState(1);
+  const [loadingRapor, setLoadingRapor] = useState(null);
 
   if (
     isLoadingStudent ||
@@ -194,6 +198,44 @@ export default function WaliDashboard() {
   const chartDataTahsin = prepareChartDataTahsin(riwayatTahsinList);
   const chartDataHafalan = prepareChartDataHafalan(riwayatHafalanList);
 
+  // Unduh rapor semester berjalan (Excel/Word). Backend memvalidasi token WALI
+  // dan hanya mengizinkan NIS milik anaknya sendiri.
+  const handleDownloadRapor = async (format) => {
+    if (!nis) return;
+    const endpoint = format === "docx" ? "individual-word" : "individual";
+    try {
+      setLoadingRapor(format);
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${BASE_API_URL}/export/${endpoint}/${nis}`,
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      if (!response.ok) throw new Error("Gagal mengunduh rapor");
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const disposition = response.headers.get("content-disposition") || "";
+      const match = disposition.match(/filename="?([^";]+)"?/i);
+      a.download = match
+        ? match[1]
+        : `Rapor_${student?.nama || nis}_${new Date().toISOString().slice(0, 10)}.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Rapor ananda berhasil diunduh!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Terjadi kesalahan saat mengunduh rapor");
+    } finally {
+      setLoadingRapor(null);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto p-4 md:p-6">
       {/* Profil Singkat */}
@@ -221,6 +263,40 @@ export default function WaliDashboard() {
                 {student?.halaqoh_tahfidz?.nama || "Belum ada kelompok"}
               </Badge>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Unduh Rapor Ananda — Excel & Word, dibatasi NIS anak sendiri */}
+      <Card className="shadow-sm">
+        <CardContent className="flex flex-col md:flex-row items-center justify-between gap-4 p-5 text-center md:text-left">
+          <div className="flex flex-col gap-1">
+            <CardTitle className="font-semibold text-base">
+              Unduh Rapor Ananda
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Rapor perkembangan Tahsin &amp; Tahfidz semester berjalan, siap
+              cetak dalam format Excel atau Word.
+            </CardDescription>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <Button
+              onClick={() => handleDownloadRapor("xlsx")}
+              disabled={loadingRapor === "xlsx"}
+              className="gap-2"
+            >
+              <FaFileExcel />
+              {loadingRapor === "xlsx" ? "Mengunduh..." : "Excel (.xlsx)"}
+            </Button>
+            <Button
+              onClick={() => handleDownloadRapor("docx")}
+              disabled={loadingRapor === "docx"}
+              variant="outline"
+              className="gap-2"
+            >
+              <FaFileWord />
+              {loadingRapor === "docx" ? "Mengunduh..." : "Word (.docx)"}
+            </Button>
           </div>
         </CardContent>
       </Card>
