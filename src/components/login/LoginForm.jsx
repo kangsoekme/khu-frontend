@@ -9,11 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 
-// Login satuan "form pintar" (tanpa tab): SATU form untuk seluruh role.
-// - Identifier mengandung "@" → akun Pengelola (SUPER_ADMIN/DIREKTUR/GURU): email + password
-// - Identifier berupa angka (NIS) → akun Wali Santri: NIS + tanggal lahir (DDMMYYYY)
-// Deteksi berjalan live saat mengetik; label field rahasia ikut menyesuaikan
-// agar pengguna tahu harus mengisi apa tanpa perlu memilih menu apa pun.
 export function LoginForm({
   className,
   onSubmit,
@@ -29,17 +24,6 @@ export function LoginForm({
   const isUnknown = trimmed.length > 0 && !isStaff && !isWali;
 
   // Label field rahasia adaptif sesuai hasil deteksi identifier.
-  const secretLabel = isStaff
-    ? "Password"
-    : isWali
-      ? "Tanggal Lahir (DDMMYYYY)"
-      : "Password / Tanggal Lahir (DDMMYYYY)";
-
-  const secretPlaceholder = isStaff
-    ? "********"
-    : isWali
-      ? "Contoh: 17082015"
-      : "Contoh: ******** atau 17082015";
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -70,16 +54,7 @@ export function LoginForm({
               <form onSubmit={handleSubmit} autoComplete="off">
                 <FieldGroup>
                   <Field>
-                    <FieldLabel htmlFor="identifier">
-                      Email{" "}
-                      <span className="font-normal text-muted-foreground">
-                        (Pengelola)
-                      </span>{" "}
-                      / NIS Siswa{" "}
-                      <span className="font-normal text-muted-foreground">
-                        (Wali)
-                      </span>
-                    </FieldLabel>
+                    <FieldLabel htmlFor="identifier">Email</FieldLabel>
                     <Input
                       id="identifier"
                       name="identifier"
@@ -93,27 +68,8 @@ export function LoginForm({
                     />
                   </Field>
 
-                  {/* Indikator deteksi live: jenis akun apa yang dikenali sistem */}
-                  {isStaff && (
-                    <p className="-mt-2 text-xs font-medium text-primary-600">
-                      ✓ Terdeteksi akun <b>Pengelola</b> — lanjut isi Password
-                    </p>
-                  )}
-                  {isWali && (
-                    <p className="-mt-2 text-xs font-medium text-grade-mumtaz-text">
-                      ✓ Terdeteksi akun <b>Wali Santri</b> — lanjut isi Tanggal
-                      Lahir anak
-                    </p>
-                  )}
-                  {isUnknown && (
-                    <p className="-mt-2 text-xs font-medium text-grade-maqbul-text">
-                      Format belum dikenali — pastikan email mengandung @ atau
-                      NIS berupa angka.
-                    </p>
-                  )}
-
                   <Field>
-                    <FieldLabel htmlFor="secret">{secretLabel}</FieldLabel>
+                    <FieldLabel htmlFor="secret">Password</FieldLabel>
                     <Input
                       id="secret"
                       name="secret"
