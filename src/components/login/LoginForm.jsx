@@ -60,7 +60,7 @@ export function LoginForm({
                       name="identifier"
                       type="text"
                       autoComplete="off"
-                      placeholder="Contoh: guru@khu.sch.id atau 2019012"
+                      placeholder="Isikan email anda disini"
                       required
                       disabled={isLoading}
                       value={identifier}
@@ -75,7 +75,7 @@ export function LoginForm({
                       name="secret"
                       autoComplete="new-password"
                       type={showSecret ? "text" : "password"}
-                      placeholder={secretPlaceholder}
+                      placeholder="Isikan password anda disini"
                       required
                       disabled={isLoading}
                     />
