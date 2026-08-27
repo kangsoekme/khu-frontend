@@ -46,8 +46,10 @@ function BackupManagement() {
         },
       );
 
-      const resData = await response.json().catch(() => ({}));
+      // Body fetch hanya bisa dibaca SEKALI — baca JSON hanya di jalur error,
+      // jalur sukses langsung blob().
       if (!response.ok) {
+        const resData = await response.json().catch(() => ({}));
         throw new Error(resData.message || "Gagal membuat file backup");
       }
 
