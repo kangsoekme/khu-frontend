@@ -277,9 +277,7 @@ const router = createBrowserRouter([
         ],
       },
       {
-        element: (
-          <RoleProtectedRoute allowedRoles={["DIREKTUR", "SUPER_ADMIN"]} />
-        ),
+        element: <RoleProtectedRoute allowedRoles={["DIREKTUR"]} />,
         children: [
           {
             path: "/laporan",

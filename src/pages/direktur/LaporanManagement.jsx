@@ -60,11 +60,10 @@ function LaporanManagement() {
   );
   const [kelompokKategori, setKelompokKategori] = useState("TAHSIN");
 
-  // Export Pembagian Kelompok & Munaqosyah hanya untuk SUPER_ADMIN/DIREKTUR
-  // (backend membatasi role yang sama di /api/export/halaqoh & /munaqosyah)
+  // Export Pembagian Kelompok & Munaqosyah hanya untuk DIREKTUR (backend
+  // membatasi role yang sama di /api/export/halaqoh & /munaqosyah)
   const role = localStorage.getItem("role");
-  const canDownloadInstitusional =
-    role === "SUPER_ADMIN" || role === "DIREKTUR";
+  const canDownloadInstitusional = role === "DIREKTUR";
 
   const { data: studentsRes } = useGetStudentsQuery();
   const students = studentsRes?.data || [];
